@@ -8,6 +8,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.util.Date;
 
 public class Utiliies {
@@ -71,6 +72,25 @@ public class Utiliies {
     public static String formatDateTime(Date date){
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy hh:mm:ss");
         return sdf.format(date);
+    }
+
+    public static Date formatStringDate(String date){
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy hh:mm:ss");
+            return sdf.parse(date);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public static LocalDate convertDoubleToLocalDate(double number) {
+        double raw = number;
+        long days = (long) raw;
+        double fraction = raw - days;
+
+        LocalDate epoch = LocalDate.of(1899, 12, 30);
+        LocalDate date = epoch.plusDays(days);
+        return date;
     }
 
     public static boolean uploadFile(MultipartFile file){
