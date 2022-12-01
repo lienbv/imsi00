@@ -13,5 +13,7 @@ import java.util.Optional;
 
 @Repository
 public interface VDetailBillRepo extends JpaSpecificationExecutor<VDetailBill>, JpaRepository<VDetailBill, Integer> {
-    
+    @Query("select sum(db.amount) from VDetailBill db where db.status = ?1 and db.billId = ?2")
+    Optional<Long> findBySumQuantity(int status, int billId);
+
 }
