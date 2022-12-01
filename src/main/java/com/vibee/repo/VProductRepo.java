@@ -62,15 +62,17 @@ public interface VProductRepo extends JpaSpecificationExecutor<VProduct>,JpaRepo
             "join v_warehouse on v_warehouse.id_product=v_product.id join v_export on v_export.id_warehouse=v_warehouse.id join v_unit on v_unit.id=export.id_unit join v_user on v_user.id=v_product.creator where v_product.id= ?1 group by v_product.id", nativeQuery = true)
     Object findProductById( int id);
 
-    @Query("SELECT p.id as productId,p.productName as productName ,p.barCode as barCode, (SELECT u.url FROM UploadFile u WHERE u.id=p.fileId) as img, i.id as importId FROM Product p JOIN warehouse w on w.productId=p.id JOIN import i on i.warehouseId = w.id WHERE i.status=1 AND i.productCode LIKE :barCode")
+    @Query("SELECT p.id as productId,p.productName as productName ,p.barCode as barCode, (SELECT u.url FROM UploadFile u WHERE u.id=p.fileId) as img, i.id as importId, i.productCode as productCode FROM Product p JOIN warehouse w on w.productId=p.id JOIN import i on i.warehouseId = w.id WHERE i.status=1 AND i.productCode LIKE :barCode")
     List<ProductStallObject> searchProductByProductCode(@Param("barCode") String searchValue);
 
-    @Query("SELECT p.id as productId,p.productName as productName ,p.barCode as barCode, (SELECT u.url FROM UploadFile u WHERE u.id=p.fileId) as img FROM Product p JOIN warehouse w on w.productId=p.id JOIN import i on i.warehouseId = w.id where i.status=1 AND i.id= :importId")
-    ProductStallObject searchProductByImport(@Param("importId") int importId);
+    @Query("SELECT p.id as productId,p.productName as productName ,p.barCode as barCode, (SELECT u.url FROM UploadFile u WHERE u.id=p.fileId) as img,i.id as importId FROM Product p JOIN warehouse w on w.productId=p.id JOIN import i on i.warehouseId = w.id where i.status=1 AND i.productCode= :productCode")
+    ProductStallObject searchProductByImport(@Param("productCode") String productCode);
     List<VProduct> findById(int id);
     @Query(value = "select v_import.ID as importId, v_product.BAR_CODE as baseCode, v_product.NAME_PRODUCT as productName, v_upload_file.FILE_NAME as fileName," +
             " v_warehouse.OUT_AMOUNT as outAmount,\n" +
             "v_warehouse.OUT_PRICE as outPrice from v_import join v_warehouse on v_import.WAREHOUSE_ID = v_warehouse.ID join v_product\n" +
             "on v_product.ID = v_warehouse.PRODUCT_ID join v_upload_file on v_product.FILE_ID = v_upload_file.ID", nativeQuery = true)
     List<IgetHomeSellOnline> getHomeSellOnline();
+
+
 }

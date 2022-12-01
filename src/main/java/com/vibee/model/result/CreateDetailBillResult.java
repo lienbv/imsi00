@@ -1,24 +1,24 @@
-package com.vibee.model.response.product;
+package com.vibee.model.result;
 
-import com.vibee.model.item.SelectExportItem;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.List;
-
+import java.math.BigDecimal;
 @Setter
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class SelectedProductResult {
-    private int importId;
+public class CreateDetailBillResult {
+    private int productId;
     private String productName;
-    private String img;
     private String barCode;
+    private int importId;
+    private String img;
     private int amount;
     private String productCode;
-    private List<SelectExportItem> items;
-    // List<responseSelectedProduct>
+    private int unitId;
+    private BigDecimal outPrice;
+    private int exportId;
 }

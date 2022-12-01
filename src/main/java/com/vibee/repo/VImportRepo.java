@@ -49,4 +49,7 @@ public interface VImportRepo extends JpaSpecificationExecutor<VImport>,JpaReposi
             "JOIN v_unit as ui ON ui.id=v_import.id_unit \n" +
             "JOIN v_user as us ON us.username=v_import.creator WHERE w.product_id= ?1 GROUP BY v_import.id,us.fullname ORDER BY ?2 ?3",nativeQuery = true)
     List<GetWarehousesObject> getWarehouseByProductId(int productId, String orderBy, String orderType);
+
+    @Query("SELECT CASE WHEN COUNT(i)>0 THEN TRUE ELSE FALSE END FROM import i WHERE i.status=1 AND i.productCode= :productCode")
+    Boolean isExistProductByProductCode(@Param("productCode") String productCode);
 }

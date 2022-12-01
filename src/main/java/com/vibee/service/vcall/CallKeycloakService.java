@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import java.util.Map;
 
 @Component
-@FeignClient(name="CallKeycloak", url = "${integration.keycloak.url}",path = "/realms/${vibee.auth.realm.name}/protocol/openid-connect")
+@FeignClient(name="CallKeycloak", url = "${integration.keycloak.url}",path = "/auth/realms/${vibee.auth.realm.name}/protocol/openid-connect")
 public interface CallKeycloakService {
     @PostMapping(value="/token",consumes = "application/x-www-form-urlencoded")
     @Headers("Content-Type: application/x-www-form-urlencoded")
