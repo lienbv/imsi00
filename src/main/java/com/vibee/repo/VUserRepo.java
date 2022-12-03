@@ -15,6 +15,11 @@ import java.util.List;
 @Repository
 public interface VUserRepo extends JpaRepository<VUser, Integer> {
 
+    @Transactional
+    @Modifying
+    @Query(value = "  UPDATE user SET user.STATUS=2 WHERE user.ID= ?1", nativeQuery = true)
+    void updateStatusAccount(int id);
+
     VUser findByUsername(String user);
 //
     @Query("SELECT u.id FROM VUser u WHERE u.username= :username")
