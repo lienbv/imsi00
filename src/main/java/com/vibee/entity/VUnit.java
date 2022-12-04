@@ -13,7 +13,7 @@ import java.util.Date;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
+@Entity(name = "unit")
 @Table(name="v_unit")
 public class VUnit implements Serializable {
     private static final long serialVersionUID = 1L;
