@@ -3,15 +3,25 @@ package com.vibee.service.vunit.impl;
 import com.vibee.entity.VUnit;
 import com.vibee.model.Status;
 import com.vibee.model.item.InfoUnitItem;
+import com.vibee.model.item.UnitItemEdit;
+import com.vibee.model.item.UnitsItem;
+import com.vibee.model.response.BaseResponse;
 import com.vibee.model.response.unit.GetUnitChildReponse;
 import com.vibee.repo.VUnitRepo;
 import com.vibee.service.vunit.UnitService;
 import com.vibee.utils.MessageUtils;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import com.vibee.model.request.v_unit.UnitDeleteParentRequest;
+import com.vibee.model.request.v_unit.UnitRequest;
+import com.vibee.model.response.unit.GetUnitsResponse;
+
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -55,5 +65,132 @@ public class UnitServiceImpl implements UnitService {
             unitItems.add(item);
         }
         return unitItems;
+    }
+
+    @Override
+    public GetUnitsResponse getAll(String name, int page, int record) {
+        log.info("UnitService-getAll :: Start");
+        GetUnitsResponse response = new GetUnitsResponse();
+        Pageable pageable = PageRequest.of(page, record);
+        List<UnitsItem> responseUnits = new ArrayList<>();
+        List<VUnit> units = new ArrayList<>();
+        if (name.equals("")) {
+            units = unitRepo.getAllUnitParents(pageable).getContent();
+            int sizeItem = unitRepo.getAllUnitParents().size();
+            response.setTotalItems(sizeItem);
+            response.setTotalPages(Math.round(sizeItem/record));
+        } else {
+            units = unitRepo.findByUnitName("%"+name+"%", pageable).getContent();
+            int sizeItem = unitRepo.findByUnitName("%"+name+"%").size();
+            response.setTotalItems(sizeItem);
+            response.setTotalPages(Math.round(sizeItem/record));
+        }
+        for (VUnit unit : units) {
+            UnitsItem unitsItem = setUnitsItem(unit);
+            List<UnitsItem> responseUnitChild = new ArrayList<>();
+            List<VUnit> unitChildren = unitRepo.getUnitsByParentId(unit.getId());
+            for (VUnit unitChild : unitChildren) {
+                UnitsItem  unitsItemChild = setUnitsItem(unitChild);
+                responseUnitChild.add(unitsItemChild);
+            }
+            unitsItem.setList(responseUnitChild);
+            responseUnits.add(unitsItem);
+        }
+        response.setList(responseUnits);
+        response.setPage(page);
+        response.setPageSize(record);
+
+        response.getStatus().setMessage(MessageUtils.get("","msg.success"));
+        response.getStatus().setStatus(Status.Success);
+        log.info("UnitService-getAll :: End");
+        return response;
+    }
+
+    private UnitsItem setUnitsItem(VUnit unit) {
+        UnitsItem unitsItem = new UnitsItem();
+        unitsItem.setId(unit.getId());
+        unitsItem.setCreator(unit.getCreator());
+        unitsItem.setUnitName(unit.getUnitName());
+        unitsItem.setDescription(unit.getDescription());
+        unitsItem.setAmount(unit.getAmount());
+        unitsItem.setCreatedDate(unit.getCreatedDate());
+        unitsItem.setParent(unit.getParentId());
+        return unitsItem;
+    }
+
+    @Override
+    public VUnit save(UnitRequest request) {
+        log.info("UnitService-save :: Start");
+        VUnit unit = new VUnit();
+        unit.setUnitName(request.getUnitName());
+        unit.setAmount(request.getAmount());
+        unit.setDescription(request.getDescription());
+        unit.setParentId(request.getParentId());
+        unit.setCreatedDate(new Date());
+        //unit.setCreator();
+        VUnit save = unitRepo.save(unit);
+        if (save.getParentId() == 0) {
+            if(request.getChildId() != 0) {
+                VUnit childUnit = unitRepo.findById(request.getChildId()).get();
+                List<VUnit> unitChildrenOld = unitRepo.getAllUnitByParentId(childUnit.getId());
+                for (VUnit item : unitChildrenOld) {
+                    item.setParentId(save.getId());
+                    unitRepo.save(item);
+                }
+                childUnit.setParentId(save.getId());
+                unitRepo.save(childUnit);
+            }
+        }
+        log.info("UnitService-save :: End");
+        return unit;
+    }
+
+    @Override
+    public VUnit update(UnitRequest request) {
+        log.info("UnitService-update :: Start");
+        VUnit unitOld = unitRepo.findById(request.getId()).get();
+        VUnit unit = new VUnit();
+        unit.setId(request.getId());
+        unit.setUnitName(request.getUnitName());
+        unit.setAmount(request.getAmount());
+        unit.setDescription(request.getDescription());
+        unit.setParentId(unitOld.getParentId());
+        unit.setCreatedDate(new Date());
+        //unit.setCreator();
+
+        VUnit save = unitRepo.save(unit);
+        log.info("UnitService-update :: End");
+        return unit;
+    }
+
+    @Override
+    public BaseResponse delete(int id) {
+        log.info("UnitService-delete :: Start");
+        VUnit unit = unitRepo.findById(id).get();
+        unitRepo.delete(unit);
+        log.info("UnitService-delete :: End");
+        return null;
+    }
+
+    @Override
+    public BaseResponse deleteUnitParent(UnitDeleteParentRequest request) {
+        log.info("UnitService-deleteUnitParent :: Start");
+        BaseResponse response = new BaseResponse();
+        VUnit unitParent = unitRepo.findById(request.getIdParent()).get();
+        unitParent.setParentId(0);
+        unitParent.setAmount(1);
+        unitRepo.save(unitParent);
+        for (int i = 0; i < request.getListEdit().length; i++) {
+            UnitItemEdit itemEdit = request.getListEdit()[i];
+            VUnit item = unitRepo.findById(itemEdit.getId()).get();
+            item.setAmount(itemEdit.getAmount());
+            item.setParentId(request.getIdParent());
+            unitRepo.save(item);
+        }
+        unitRepo.deleteById(request.getIdDelete());
+        response.getStatus().setMessage(MessageUtils.get("","msg.success"));
+        response.getStatus().setStatus(Status.Success);
+        log.info("UnitService-deleteUnitParent :: End");
+        return response;
     }
 }
