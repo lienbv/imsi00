@@ -6,4 +6,5 @@ public interface ProductStallObject {
     String getBarCode();
     int getProductId();
     String getImg();
+    String getProductCode();
 }

@@ -46,14 +46,25 @@ public class Utiliies {
         }
     }
 
-    public static String convertStatusSupplier(int status) {
-        switch (status) {
-            case 1 :
-                return "Hợp tác";
-            case 2 :
-                return "Hủy";
-            default:
-                return "không biết";
+    public static String convertStatusSupplier(int status,String language) {
+        if (language.equals("vi")) {
+            switch (status) {
+                case 1:
+                    return "đang hoạt động";
+                case 2:
+                    return "không hoạt động";
+                default:
+                    return "không biết";
+            }
+        }else {
+            switch (status) {
+                case 1:
+                    return "Active";
+                case 2:
+                    return "Inactive";
+                default:
+                    return "no information";
+            }
         }
     }
 
@@ -70,6 +81,9 @@ public class Utiliies {
     }
 
     public static String formatDateTime(Date date){
+        if (date == null) {
+            return "";
+        }
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy hh:mm:ss");
         return sdf.format(date);
     }

@@ -17,7 +17,7 @@ import java.util.Date;
 @NoArgsConstructor
 @Component
 @Data
-@Entity
+@Entity(name = "supplier")
 @Table(name = "v_supplier")
 public class VSupplier implements Serializable{
 	private static final long serialVersionUID = 1L;

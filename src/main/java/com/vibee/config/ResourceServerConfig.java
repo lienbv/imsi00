@@ -43,12 +43,11 @@ public class ResourceServerConfig extends GlobalMethodSecurityConfiguration {
 
 	@Bean
 	SecurityFilterChain oauth2AuthFilterChain(HttpSecurity http) throws Exception {
-// @formatter:off
-//		http.addFilterBefore(new SimpleCORSFilter(), DisableEncodeUrlFilter.class);
-//		http.addFilterBefore(new SimpleCORSFilter(), ChannelProcessingFilter.class);
-//        http.authorizeRequests().anyRequest().authenticated().and().addFilterAfter(new CustomTokenFilter(this.redisAdapter), BearerTokenAuthenticationFilter.class).logout()
-//    	.and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-//    	.and().oauth2ResourceServer().jwt().jwtAuthenticationConverter(customJwtAuthenticationConverter());
+		http.addFilterBefore(new SimpleCORSFilter(), DisableEncodeUrlFilter.class);
+		http.addFilterBefore(new SimpleCORSFilter(), ChannelProcessingFilter.class);
+        http.authorizeRequests().anyRequest().authenticated().and().addFilterAfter(new CustomTokenFilter(this.redisAdapter), BearerTokenAuthenticationFilter.class).logout()
+    	.and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+    	.and().oauth2ResourceServer().jwt().jwtAuthenticationConverter(customJwtAuthenticationConverter());
 		return http.build();
 	}
 
@@ -60,7 +59,6 @@ public class ResourceServerConfig extends GlobalMethodSecurityConfiguration {
 				                       "/swagger-ui.html#!/**",
 				                        "/v2/**",
 				                        "/actuator/**",
-				                        "/",
 				                       "/vibee/api/v1/auth/**");
 	}
 	

@@ -1,5 +1,6 @@
 package com.vibee.config.redis;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -125,6 +126,38 @@ public class RedisAdapter implements DisposableBean {
         }
     }
 
+    public <T> boolean sets(String key, int expireInSeconds, List<T> value) {
+        if (CommonUtil.isNullOrEmpty(key)) {
+            return false;
+        }
+        String str = CommonUtil.listToJson(value);
+        if (redisConfig.isCluster()) {
+            JedisCluster jedisCluster = getJedisCluster();
+            if (expireInSeconds < 1) {
+                jedisCluster.set(key, str);
+            } else {
+                jedisCluster.setex(key, expireInSeconds, str);
+            }
+            return true;
+        } else {
+            Jedis jedis = null;
+            try {
+                jedis = getRedisPool().getResource();
+                if (expireInSeconds < 1) {
+                    jedis.set(key, str);
+                } else {
+                    jedis.setex(key, expireInSeconds, str);
+                }
+                return true;
+            } catch (Exception e) {
+                logger.error("Set redis error : " + e.getMessage());
+                return false;
+            } finally {
+                returnToPool(jedis);
+            }
+        }
+    }
+
     public <T> T get(String key, Class<T> clazz) {
         if (redisConfig.isCluster()) {
             JedisCluster jedisCluster = getJedisCluster();
@@ -136,6 +169,26 @@ public class RedisAdapter implements DisposableBean {
                 jedis = getRedisPool().getResource();
                 String str = jedis.get(key);
                 return CommonUtil.stringToBean(str, clazz);
+            } catch (Exception e) {
+                logger.error("Get redis error : " + e.getMessage());
+                return null;
+            } finally {
+                returnToPool(jedis);
+            }
+        }
+    }
+
+    public <T> List<T> gets(String key, Class<T> clazz) throws IOException {
+        if (redisConfig.isCluster()) {
+            JedisCluster jedisCluster = getJedisCluster();
+            String str = jedisCluster.get(key);
+            return CommonUtil.jsonToList(str, clazz);
+        } else {
+            Jedis jedis = null;
+            try {
+                jedis = getRedisPool().getResource();
+                String str = jedis.get(key);
+                return CommonUtil.jsonToList(str, clazz);
             } catch (Exception e) {
                 logger.error("Get redis error : " + e.getMessage());
                 return null;

@@ -17,7 +17,7 @@ public interface CreateProductService {
 
     CreateProductResponse create(CreateProductRequest request);
     CreateProductResponse upload(MultipartFile file, String language);
-    SelectedProductResponse selectProduct(int productId,String cartCode, String language);
+    SelectedProductResponse selectProduct(String productId,String cartCode, String language);
     BaseResponse deleteCart(String key, String language);
      CreateProduct updateCart(Update request, String cartCode);
 

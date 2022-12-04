@@ -14,6 +14,15 @@ import java.util.List;
 
 @Repository
 public interface VSupplierRepo extends JpaSpecificationExecutor<VSupplier>,JpaRepository<VSupplier, Integer>{
+    @Query("select s from supplier s where s.nameSup like %:search% or s.address like %:search% or s.numberPhone like %:search% or s.email like %:search% and s.status= :status")
+    List<VSupplier> search(@Param("search") String search, @Param("status") int status);
+
+    @Query("select s from supplier s where s.status= :status")
+    List<VSupplier> getSuppliers(@Param("status") int status);
+    @Modifying
+    @Transactional
+    @Query("update supplier s set s.status=:status where s.id=:id")
+    void updateStatus(@Param("id") int id,@Param("status") int status);
     @Transactional
     @Modifying
     @Query(value = "  UPDATE supplier SET supplier.STATUS=2 WHERE supplier.ID= ?1", nativeQuery = true)

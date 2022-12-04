@@ -7,7 +7,9 @@ import com.vibee.entity.VExport;
 import com.vibee.entity.VWarehouse;
 import com.vibee.model.Status;
 import com.vibee.model.request.bill.TransactionBillRequest;
+import com.vibee.model.request.bill.ViewBillRequest;
 import com.vibee.model.response.BaseResponse;
+import com.vibee.model.result.CreateDetailBillResult;
 import com.vibee.model.result.TransactionBillResult;
 import com.vibee.repo.VBillRepo;
 import com.vibee.repo.VDetailBillRepo;
@@ -18,6 +20,7 @@ import com.vibee.utils.MessageUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
@@ -53,7 +56,19 @@ public class AddBillServiceImpl implements AddBillService {
         String paymentMethod= request.getPaymentMethod();
         String transactionType= request.getTransactionType();
         String language=request.getLanguage();
-        List<TransactionBillResult> results=request.getResults();
+//        List<CreateDetailBillResult> createDetailBillResults=this.redisAdapter.get(request.getCartCode(),List.class);
+        List<CreateDetailBillResult> createDetailBillResults= null;
+        try {
+            createDetailBillResults = this.redisAdapter.gets(request.getCartCode(), CreateDetailBillResult.class);
+        } catch (Exception e) {
+            createDetailBillResults=null;
+        }
+        if(createDetailBillResults==null || createDetailBillResults.size()==0){
+            response.getStatus().setStatus(Status.Fail);
+            response.getStatus().setMessage(MessageUtils.get("bill.not.found",language));
+            return response;
+        }
+
         VBill bill=new VBill();
         bill.setCreatedDate(new Date());
         bill.setCreator(creator);
@@ -64,26 +79,29 @@ public class AddBillServiceImpl implements AddBillService {
         bill.setTransactionType(transactionType);
         bill=billRepo.save(bill);
         List<VDetailBill> detailBills=new ArrayList<>();
-        for (TransactionBillResult result:results){
+        for (CreateDetailBillResult result:createDetailBillResults){
             VDetailBill detailBill=new VDetailBill();
-            BigDecimal price=result.getItem().getOutPrice().divide(BigDecimal.valueOf(result.getAmount()));
+            BigDecimal price=result.getOutPrice().divide(BigDecimal.valueOf(result.getAmount()));
             sumPrice=sumPrice.add(price);
             detailBill.setPrice(price);
             detailBill.setBillId(bill.getId());
             detailBill.setAmount(result.getAmount());
             detailBill.setCreator(creator);
-            detailBill.setUnit(result.getItem().getUnitName());
+            detailBill.setUnitId(result.getUnitId());
             detailBill.setStatus(1);
             detailBill.setCreatedDate(new Date());
             detailBill.setImportId(result.getImportId());
             detailBills.add(detailBill);
-            VExport export=this.exportRepo.getById(result.getItem().getExportId());
+            VExport export=this.exportRepo.getById(result.getExportId());
             export.setOutAmount(export.getOutAmount()+result.getAmount());
             this.exportRepo.save(export);
             VWarehouse warehouse=this.warehouseRepo.getWarehouseByImportId(result.getImportId());
             warehouse.setOutPrice(warehouse.getOutPrice().add(price));
             warehouse.setOutAmount(warehouse.getOutAmount()+result.getAmount());
             this.warehouseRepo.save(warehouse);
+        }
+        if (request.getPaymentMethod().equals("payment")){
+            bill.setInPrice(sumPrice);
         }
         bill.setPrice(sumPrice);
         this.billRepo.save(bill);
@@ -92,6 +110,23 @@ public class AddBillServiceImpl implements AddBillService {
         this.redisAdapter.delete(request.getCartCode());
         //ket thuc chuc nang
         response.getStatus().setMessage(MessageUtils.get(language,"msg.success.transaction.bill"));
+        response.getStatus().setStatus(Status.Success);
+        return response;
+    }
+
+    @Override
+    public BaseResponse saveRedis(ViewBillRequest request) {
+        BaseResponse response=new BaseResponse();
+        String language=request.getLanguage();
+        String cartCode=request.getCartCode();
+        List<CreateDetailBillResult> results=request.getDetailBills();
+        boolean isExist=this.redisAdapter.exists(cartCode);
+        if (isExist){
+            this.redisAdapter.delete(cartCode);
+        }
+        this.redisAdapter.set(cartCode,84600,results);
+//        this.redisAdapter.sets(cartCode,84600,results);
+        response.getStatus().setMessage(MessageUtils.get(language,"msg.success.save.redis"));
         response.getStatus().setStatus(Status.Success);
         return response;
     }

@@ -20,5 +20,5 @@ public class TransactionBillRequest extends BaseRequest {
     private String paymentMethod;
     private String transactionType;
     private String cartCode;
-    private List<TransactionBillResult> results;
+//    private List<TransactionBillResult> results;
 }

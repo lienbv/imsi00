@@ -36,6 +36,6 @@ public class VDetailBill implements Serializable{
 	private int importId;
 	@Column(name = "CREATOR")
 	private String creator;
-	@Column(name = "UNIT")
-	private String unit;
+	@Column(name = "UNIT_ID")
+	private int unitId;
 }

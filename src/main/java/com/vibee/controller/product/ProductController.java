@@ -59,7 +59,7 @@ public class ProductController {
     }
 
     @GetMapping("/selected/{id}/{cartCode}")
-    public SelectedProductResponse selectProduct(@PathVariable("id") int productId, @PathVariable("cartCode") String cartCode, @RequestParam(name = "language") String languageReq) {
+    public SelectedProductResponse selectProduct(@PathVariable("id") String productId, @PathVariable("cartCode") String cartCode, @RequestParam(name = "language") String languageReq) {
         return this.createProductService.selectProduct(productId,cartCode,languageReq);
     }
 
