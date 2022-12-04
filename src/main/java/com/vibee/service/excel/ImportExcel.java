@@ -25,7 +25,7 @@ public class ImportExcel {
     private static final int COLUMN_INDEX_SUPPLIER = 2;
     private static final int COLUMN_INDEX_EXPIRE_DATE = 3;
     private static final int COLUMN_INDEX_AMOUNT = 4;
-    private static final int COLUMN_INDEX_TYPE_PRODUCT = 5;
+//    private static final int COLUMN_INDEX_TYPE_PRODUCT = 5;
     private static final int COLUMN_INDEX_PRICE = 6;
 
 
@@ -80,9 +80,9 @@ public class ImportExcel {
                     case COLUMN_INDEX_AMOUNT:
                         product.setInAmount(new BigDecimal((double) cellValue).intValue());
                         break;
-                    case COLUMN_INDEX_TYPE_PRODUCT:
-                        product.setType((String) getCellValue(cell));
-                        break;
+//                    case COLUMN_INDEX_TYPE_PRODUCT:
+//                        product.setType((String) getCellValue(cell));
+//                        break;
                     case COLUMN_INDEX_PRICE:
                         product.setPrice((double) getCellValue(cell));
                         break;

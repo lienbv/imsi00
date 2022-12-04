@@ -18,6 +18,6 @@ public class GetImportFileExcel {
     private String supplier;
     private Date expireDate;
     private int inAmount;
-    private String type;
+//    private String type;
     private double price;
 }
