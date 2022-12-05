@@ -30,16 +30,16 @@ public interface VUnitRepo extends JpaRepository<VUnit, Integer>{
 //
 
     //
-    @Query("SELECT u FROM VUnit u WHERE u.parentId=0")
+    @Query("SELECT u FROM unit u WHERE u.parentId=0")
     Page<VUnit> getAllUnitParents(Pageable pageable);
 
-    @Query("select u from VUnit u where u.id in (select a.parentId from VUnit a where a.unitName like ?1) or (u.parentId = 0 and u.unitName like ?1)")
+    @Query("select u from unit u where u.id in (select a.parentId from unit a where a.unitName like ?1) or (u.parentId = 0 and u.unitName like ?1)")
     Page<VUnit> findByUnitName(String name, Pageable pageable);
 
-    @Query("select u from VUnit u where u.id in (select a.parentId from VUnit a where a.unitName like ?1) or (u.parentId = 0 and u.unitName like ?1)")
+    @Query("select u from unit u where u.id in (select a.parentId from unit a where a.unitName like ?1) or (u.parentId = 0 and u.unitName like ?1)")
     List<VUnit> findByUnitName(String name);
 
-    @Query("SELECT u FROM VUnit u WHERE u.parentId= :unitId order by u.amount asc ")
+    @Query("SELECT u FROM unit u WHERE u.parentId= :unitId order by u.amount asc ")
     List<VUnit> getUnitsByParentId(@Param("unitId") int unitId);
 
 }

@@ -2,6 +2,7 @@ package com.vibee.repo;
 
 import com.vibee.entity.VExport;
 import com.vibee.model.ObjectResponse.ExportStallObject;
+import com.vibee.model.ObjectResponse.GetExportsObject;
 import com.vibee.model.ObjectResponse.SelectExportStallObject;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -30,5 +31,10 @@ public interface VExportRepo extends JpaRepository<VExport,Integer> {
             "where v_import.product_id =?1 AND v_export.status=1 group by v_export.id",nativeQuery = true)
     List<SelectExportStallObject> getExportsByProduct(int productCode);
 
-
+    @Query("SELECT u.id as unit, u.unitName as unitName, e.outPrice as outPrice, e.inPrice as inPrice " +
+            "FROM export e JOIN unit u ON e.unitId=u.id " +
+            "JOIN import i ON i.id=e.importId " +
+            "JOIN warehouse w ON w.id=i.warehouseId " +
+            "JOIN product p ON p.id=w.productId WHERE p.barCode = :barCode AND e.status=1 ORDER BY i.id DESC LIMIT 1")
+    List<GetExportsObject> getExportsByBarCode(@Param("barCode") String barCode);
 }

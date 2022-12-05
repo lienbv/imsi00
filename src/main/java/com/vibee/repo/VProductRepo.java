@@ -73,6 +73,6 @@ public interface VProductRepo extends JpaSpecificationExecutor<VProduct>,JpaRepo
             "v_warehouse.OUT_PRICE as outPrice from v_import join v_warehouse on v_import.WAREHOUSE_ID = v_warehouse.ID join v_product\n" +
             "on v_product.ID = v_warehouse.PRODUCT_ID join v_upload_file on v_product.FILE_ID = v_upload_file.ID", nativeQuery = true)
     List<IgetHomeSellOnline> getHomeSellOnline();
-
-
+    @Query("SELECT CASE WHEN COUNT(p)>0 THEN TRUE ELSE FALSE END FROM product p WHERE p.barcode= :barcode")
+    Boolean existsByBarcode(@Param("barcode") String barcode);
 }

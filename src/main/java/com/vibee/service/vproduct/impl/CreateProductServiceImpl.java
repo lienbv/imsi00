@@ -205,7 +205,7 @@ public class CreateProductServiceImpl implements CreateProductService {
     public CreateProductResponse upload(MultipartFile file, String language) {
         log.info("UploadProductSerivce :: Start");
         CreateProductResponse response=new CreateProductResponse();
-        boolean saveImg= Utiliies .uploadFile(file);
+        boolean saveImg= Utiliies.uploadFile(file);
         if(saveImg==false){
             log.error("save file is false");
             response.getStatus().setStatus(Status.Fail);
@@ -218,7 +218,7 @@ public class CreateProductServiceImpl implements CreateProductService {
         uploadFile.setFileName(file.getName());
         uploadFile.setSize(BigDecimal.valueOf(file.getSize()));
         uploadFile.setType(file.getContentType());
-        uploadFile.setUrl("C:\\Users\\lamca\\OneDrive\\Desktop\\Vibee_BE\\single\\vibee\\target\\classes\\templates\\" + file.getOriginalFilename());
+        uploadFile.setUrl(Utiliies.getFilePath(file.getOriginalFilename()));
         uploadFile=this.fileUploadRepo.save(uploadFile);
         if (uploadFile==null){
             log.error("upload file is false");

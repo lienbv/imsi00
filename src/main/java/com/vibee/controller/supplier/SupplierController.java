@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 
 @RestController
-@RequestMapping("/vibee/api/v1/suppler")
+@RequestMapping("/vibee/api/v1/supplier")
 @CrossOrigin("*")
 public class SupplierController {
     private SupplierService supService;
