@@ -13,7 +13,7 @@ import java.util.TimeZone;
 
 @SpringBootApplication
 @EnableFeignClients
-@ComponentScan({ "com.vibee" })
+//@ComponentScan({ "com.vibee" })
 public class VibeeApplication {
 
 	public static void main(String[] args) {

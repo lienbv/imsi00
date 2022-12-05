@@ -30,4 +30,5 @@ public interface VBillRepo extends JpaSpecificationExecutor<VBill>, JpaRepositor
 
     @Query("select sum(b.price) from VBill b where b.createdDate between ?1 and ?2 and b.status = 5")
     Optional<Long> findByTotalPriceOfBills(Date startDay, Date endDay);
+
 }
