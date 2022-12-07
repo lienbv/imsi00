@@ -241,15 +241,19 @@ public class TypeProductServiceImpl implements ITypeProductService {
     }
     @Override
     public SelectionTypeProductItemsResponse getAllSelect() {
-        Map<String, Object> map = new HashMap<>();
-        Map<Integer, SelectionTypeProductItems> hm = new HashedMap();
         String language = "";
         SelectionTypeProductItemsResponse response = new SelectionTypeProductItemsResponse();
         List<Object> list = this.typeProductRepo.getByParentIdAndStatus();
         response.setData(this.convert(list, language));
-        response.getStatus().setStatus(Status.Success);
-        response.getStatus().setMessage(MessageUtils.get(language, "msg.typeProduct.success"));
         return response;
+    }
+    @Override
+    public List<SelectionTypeProductItems> getAllSelected() {
+        String language = "";
+        List<SelectionTypeProductItems> response = new ArrayList<>();
+        List<Object> list = this.typeProductRepo.getByParentIdAndStatus();
+
+        return this.convert(list, language);
     }
 
     private List<SelectionTypeProductItems> convert(List<Object> request, String language) {
@@ -416,7 +420,6 @@ public class TypeProductServiceImpl implements ITypeProductService {
     }
 
     public SelectionTypeProductItems getAllSelectDetail(int id) {
-        Map<Integer, SelectionTypeProductItems> hm = new HashedMap();
         SelectionTypeProductItems response = new SelectionTypeProductItems();
         VTypeProduct typeProduct = this.typeProductRepo.getByParentIdAndStatus(id);
         response.setName(typeProduct.getName());

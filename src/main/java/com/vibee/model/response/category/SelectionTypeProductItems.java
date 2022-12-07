@@ -7,5 +7,4 @@ public class SelectionTypeProductItems {
     private int id;
     private String name;
     private  int parentId;
-
 }

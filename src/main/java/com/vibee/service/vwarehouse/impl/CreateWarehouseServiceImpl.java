@@ -20,6 +20,8 @@ import com.vibee.model.result.ImportWarehouseResult;
 import com.vibee.repo.*;
 import com.vibee.service.excel.ImportExcel;
 import com.vibee.service.vimport.CreateImportProductService;
+import com.vibee.service.vimport.IImportSuppierService;
+import com.vibee.service.vimport.impl.ImportSupplierServiceImpl;
 import com.vibee.service.vwarehouse.CreateWarehouseService;
 import com.vibee.utils.CommonUtil;
 import com.vibee.utils.MessageUtils;
@@ -49,6 +51,7 @@ public class CreateWarehouseServiceImpl implements CreateWarehouseService {
     private final VImportRepo importRepo;
     private final VUnitRepo unitRepo;
     private final RedisAdapter redisAdapter;
+    private final IImportSuppierService importSupplierService;
 
     @Autowired
     public CreateWarehouseServiceImpl(VWarehouseRepo warehouseRepo,
@@ -58,7 +61,7 @@ public class CreateWarehouseServiceImpl implements CreateWarehouseService {
                                       VExportRepo exportRepo,
                                       VImportRepo importRepo,
                                       VUnitRepo unitRepo,
-                                      RedisAdapter redisAdapter) {
+                                      RedisAdapter redisAdapter, IImportSuppierService importSupplierService) {
         this.warehouseRepo=warehouseRepo;
         this.productRepo=productRepo;
         this.createImportProductService=createImportProductService;
@@ -67,6 +70,7 @@ public class CreateWarehouseServiceImpl implements CreateWarehouseService {
         this.importRepo=importRepo;
         this.unitRepo=unitRepo;
         this.redisAdapter=redisAdapter;
+        this.importSupplierService = importSupplierService;
     }
     @Override
     public CreateWarehouseResponse create(CreateWarehouseRequest request) {
@@ -223,7 +227,7 @@ public class CreateWarehouseServiceImpl implements CreateWarehouseService {
             warehouseInfo.setInPrice(result.getInPrice());
             warehouseInfo.setSupplierId(result.getSupplierId());
             warehouseInfo.setProductName(result.getProductName());
-            warehouseInfo.setRangeDate(CommonUtil.convertStringToDateddMMyyyy(result.getRangeDates()));
+            warehouseInfo.setRangeDate(String.valueOf(CommonUtil.convertStringToDateddMMyyyy(result.getRangeDates())));
             List<UnitItem> unitItems=new ArrayList<>();
             for (ExportResult exportResult:result.getExports()){
                 UnitItem unitItem=new UnitItem();
@@ -240,6 +244,7 @@ public class CreateWarehouseServiceImpl implements CreateWarehouseService {
             warehousesInfo.add(warehouseInfo);
         }
         //call service save to db
+        this.importSupplierService.done(warehousesInfo);
 
         //delete key in redis
         this.redisAdapter.delete(key);
