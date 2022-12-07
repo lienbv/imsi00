@@ -74,5 +74,12 @@ public interface VProductRepo extends JpaSpecificationExecutor<VProduct>,JpaRepo
             "on v_product.ID = v_warehouse.PRODUCT_ID join v_upload_file on v_product.FILE_ID = v_upload_file.ID", nativeQuery = true)
     List<IgetHomeSellOnline> getHomeSellOnline();
 
+    @Query("SELECT SUM(p.status) FROM Product p WHERE p.status = 3")
+    public int sumReportBlockProduct();
+
+    @Query("SELECT SUM(p.status) FROM Product p WHERE p.status = 2")
+    public int sumReportSoldOutProduct();
+
+    public List<VProduct> findTop6ByOrderByCreatedDateDesc();
 
 }
