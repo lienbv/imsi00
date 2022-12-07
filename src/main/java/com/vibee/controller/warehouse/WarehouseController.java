@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/vibee/api/v1/warehouse")
+@RequestMapping("/vibee/api/v1/auth")
 @CrossOrigin("*")
 public class WarehouseController {
     private final GetWarehouseService getWarehouseService;

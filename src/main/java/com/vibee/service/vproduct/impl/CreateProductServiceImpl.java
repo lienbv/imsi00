@@ -23,6 +23,7 @@ import com.vibee.utils.MessageUtils;
 import com.vibee.utils.Utiliies;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.index.Indexed;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -44,6 +45,8 @@ public class CreateProductServiceImpl implements CreateProductService {
     private final VFileUploadRepo fileUploadRepo;
     private final CreateWarehouseService createWarehouseService;
     private final RedisAdapter redisAdapter;
+    @Value("${vibee.url}")
+    private String url;
     @Autowired
     public CreateProductServiceImpl(VTypeProductRepo typeProductRepo,
                                     VSupplierRepo supplierRepo,
@@ -218,7 +221,7 @@ public class CreateProductServiceImpl implements CreateProductService {
         uploadFile.setFileName(file.getName());
         uploadFile.setSize(BigDecimal.valueOf(file.getSize()));
         uploadFile.setType(file.getContentType());
-        uploadFile.setUrl("C:\\Users\\lamca\\OneDrive\\Desktop\\Vibee_BE\\single\\vibee\\target\\classes\\templates\\" + file.getOriginalFilename());
+        uploadFile.setUrl(url + file.getOriginalFilename());
         uploadFile=this.fileUploadRepo.save(uploadFile);
         if (uploadFile==null){
             log.error("upload file is false");
@@ -289,9 +292,7 @@ public class CreateProductServiceImpl implements CreateProductService {
     @Override
     public BaseResponse deleteCart(String key, String language) {
         BaseResponse response = new BaseResponse();
-        System.out.println(this.redisAdapter.exists(key)+"dòng 283");
         this.redisAdapter.delete(key);
-        System.out.println(this.redisAdapter.exists(key)+"dòng 285");
         response.getStatus().setStatus(Status.Success);
         response.getStatus().setMessage(MessageUtils.get(language,""));
         return response;

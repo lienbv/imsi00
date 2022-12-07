@@ -12,7 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/vibee/api/v1/admins/warehouse")
+@RequestMapping("/vibee/api/v1/auth/warehouse")
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 public class WereHouseManagerController {
 

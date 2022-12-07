@@ -24,8 +24,8 @@ public interface VImportRepo extends JpaSpecificationExecutor<VImport>,JpaReposi
             "join v_warehouse on v_import.warehouse_id=v_warehouse.id  where v_warehouse.product_id= ?1 group by v_import.id order by v_import.created_date desc limit 2",nativeQuery = true)
     List<Object> getReportEst(int productId);
 
-    @Query("DELETE import i WHERE i.warehouseId= (SELECT w.id FROM warehouse w WHERE w.productId= :productId)")
-    int deleteByProductId(@Param("productId") int id);
+//    @Query("DELETE from import i WHERE i.warehouseId= (SELECT w.id FROM warehouse w WHERE w.productId= :productId)")
+//    int deleteByProductId(@Param("productId") int id);
 
     @Query(value = "SELECT Import.ID as id, Import.name_supplier as nameSupplier, (Import.inventory/v_unit.amount) as inventory, Import.ID_UNIT as unitId, " +
             "Import.img as img FROM v_v_import JOIN v_unit ON v_unit.id=v_v_import.id_unit WHERE v_v_import.status = 1 AND v_v_import.id_product = ?1",nativeQuery = true)
@@ -49,4 +49,5 @@ public interface VImportRepo extends JpaSpecificationExecutor<VImport>,JpaReposi
             "JOIN v_unit as ui ON ui.id=v_import.id_unit \n" +
             "JOIN v_user as us ON us.username=v_import.creator WHERE w.product_id= ?1 GROUP BY v_import.id,us.fullname ORDER BY ?2 ?3",nativeQuery = true)
     List<GetWarehousesObject> getWarehouseByProductId(int productId, String orderBy, String orderType);
+//   VImport findByWarehouseIdAndRangeDate(int warehouse, Date rangedate);
 }

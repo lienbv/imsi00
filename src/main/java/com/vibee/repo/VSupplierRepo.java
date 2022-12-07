@@ -13,4 +13,9 @@ import java.util.List;
 
 @Repository
 public interface VSupplierRepo extends JpaSpecificationExecutor<VSupplier>,JpaRepository<VSupplier, Integer>{
+    List<VSupplier> findByStatus(int status);
+
+    @Query("select s.id from VSupplier s ")
+    List<String> findById();
+    VSupplier findByIdAndStatus(int id, int status);
 }

@@ -1,6 +1,5 @@
 package com.vibee.model.request.bill;
 
-import com.vibee.model.item.SelectExportItem;
 import com.vibee.model.request.BaseRequest;
 import com.vibee.model.result.TransactionBillResult;
 import lombok.AllArgsConstructor;

@@ -11,8 +11,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class Utiliies {
-
-    @Value("url.file")
+    @Value("${vibee.url}")
     private static String url;
 
     public static String convertStatusUser(int status) {
@@ -75,7 +74,7 @@ public class Utiliies {
 
     public static boolean uploadFile(MultipartFile file){
         try {
-            FileCopyUtils.copy(file.getBytes(), new File("C:\\Users\\lamca\\OneDrive\\Desktop\\Vibee_BE\\single\\vibee\\target\\classes\\templates" + file.getOriginalFilename()));
+            FileCopyUtils.copy(file.getBytes(), new File( url+ file.getOriginalFilename()));
         } catch (IOException e) {
             e.printStackTrace();
             return false;

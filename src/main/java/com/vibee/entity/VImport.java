@@ -46,4 +46,6 @@ public class VImport {
     private Date expiredDate;
     @Column(name = "PRODUCT_CODE")
     private String productCode;
+//    @Column
+//    private Date rangeDate;
 }
