@@ -10,12 +10,12 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.Date;
+import java.util.Random;
 
 public class Utiliies {
 
     @Value("${url.file}")
     private static String url;
-
 
     public static String convertStatusUser(int status) {
         switch (status) {
@@ -120,5 +120,51 @@ public class Utiliies {
 
     public static String getFilePath(String fileName) {
         return url + fileName;
+    }
+
+    static String generateCode(int idProduct, int idWareHouse, int idImport) {
+        String idProductSTR = idProduct+"";
+        String idWareHouseSTR = idWareHouse+"";
+        String idImportSTR = idImport+"";
+        int idProductSize = 4;
+        int idWareHouseSize = 4;
+        int idImportSize = 6;
+        char idProductChar[] = new char[idProductSize];
+        char idWareHouseChar[] = new char[idWareHouseSize];
+        char idImportChar[] = new char[idImportSize];
+
+        Random getRDProduct =  new Random();
+        for (int i = 0; i < idProductSize; i++) {
+            idProductChar[i] = idProductSTR.charAt(getRDProduct.nextInt(idProductSTR.length()));
+        }
+        String codeProduct = "";
+        for (int i = 0; i < idProductChar.length; i++) {
+            codeProduct += idProductChar[i];
+        }
+
+        Random getRDWareHouse =  new Random();
+        for (int i = 0; i < idWareHouseSize; i++) {
+            idWareHouseChar[i] = idWareHouseSTR.charAt(getRDWareHouse.nextInt(idWareHouseSTR.length()));
+        }
+        String codeWareHouse = "";
+        for (int i = 0; i < idWareHouseChar.length; i++) {
+            codeWareHouse += idWareHouseChar[i];
+        }
+
+        Random getRDImport =  new Random();
+        for (int i = 0; i < idImportSize; i++) {
+            idImportChar[i] = idImportSTR.charAt(getRDImport.nextInt(idImportSTR.length()));
+        }
+        String codeImport = "";
+        for (int i = 0; i < idImportChar.length; i++) {
+            codeImport += idImportChar[i];
+        }
+
+        return "VB-"+codeProduct+codeWareHouse+codeImport;
+    }
+
+    public static String formatDateReverse(Date date){
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        return sdf.format(date);
     }
 }
