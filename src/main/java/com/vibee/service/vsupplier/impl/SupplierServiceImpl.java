@@ -256,7 +256,7 @@ public class SupplierServiceImpl implements SupplierService {
             item.setNumberPhone(supplier.getNumberPhone());
             item.setStatus(supplier.getStatus());
             item.setCreatedDate(supplier.getCreatedDate());
-            item.setStatusName(Utiliies.convertStatusSupplier(supplier.getStatus()));
+            item.setStatusName(Utiliies.convertStatusSupplier(supplier.getStatus(),language));
             supplierItems.add(item);
         }
         response.setTotalItems(suppliers.size());

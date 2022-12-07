@@ -1,7 +1,7 @@
-package com.vibee.model.response.warehouse;
+package com.vibee.model.response.category;
 
 import com.vibee.model.response.BaseResponse;
-import com.vibee.model.result.ImportWarehouseResult;
+import com.vibee.model.result.GetTypeProductResult;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,7 +13,6 @@ import java.util.List;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ImportWarehouseResponse extends BaseResponse {
-    private int supplierCode;
-    private List<ImportWarehouseResult> products;
+public class GetTypeProductResponse extends BaseResponse {
+    private List<GetTypeProductResult> results;
 }

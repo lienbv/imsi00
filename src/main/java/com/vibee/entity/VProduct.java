@@ -13,7 +13,7 @@ import java.util.Date;
 @NoArgsConstructor
 @Component
 @Data
-@Entity(name = "Product")
+@Entity(name = "product")
 @Table(name = "v_product")
 public class VProduct implements Serializable{
 	private static final long serialVersionUID = 1L;

@@ -15,5 +15,15 @@ import java.util.List;
 @Repository
 @Transactional
 public interface VOrderRepo extends JpaSpecificationExecutor<VOrder>,JpaRepository<VOrder, Integer>{
+    @Query("SELECT COUNT(o) FROM VOrder o WHERE o.status = 1")
+    public int sumOrderUnConfimred();
 
+    @Query("SELECT COUNT(o) FROM VOrder o WHERE o.status = 2")
+    public int sumOrderPacking();
+
+    @Query("SELECT COUNT(o) FROM VOrder o WHERE o.status = 3")
+    public int sumOrderShipping();
+
+    @Query("SELECT COUNT(o) FROM VOrder o WHERE o.status = 7")
+    public int sumOrderCancel();
 }

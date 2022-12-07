@@ -189,7 +189,7 @@ public class CustomerAccountServiceImpl implements CustomerAccountService {
         user.setStatus(1);
         VUser save = userRepo.save(user);
         VUserRole userRole = new VUserRole();
-        userRole.setRole(2);
+        userRole.setRoleId(2);
         userRole.setUserId(save.getId());
         userRoleRepo.save(userRole);
 

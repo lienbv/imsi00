@@ -92,7 +92,7 @@ public class AddBillServiceImpl implements AddBillService {
             detailBill.setCreatedDate(new Date());
             detailBill.setImportId(result.getImportId());
             detailBills.add(detailBill);
-            VExport export=this.exportRepo.getById(result.getExportId());
+            VExport export=this.exportRepo.getById(result.getExport().getExportId());
             export.setOutAmount(export.getOutAmount()+result.getAmount());
             this.exportRepo.save(export);
             VWarehouse warehouse=this.warehouseRepo.getWarehouseByImportId(result.getImportId());

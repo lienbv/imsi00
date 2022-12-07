@@ -6,10 +6,14 @@ import com.vibee.model.item.InfoUnitItem;
 import com.vibee.model.item.UnitItemEdit;
 import com.vibee.model.item.UnitsItem;
 import com.vibee.model.response.BaseResponse;
+import com.vibee.model.response.export.GetExportsByUnitSelectResponse;
 import com.vibee.model.response.unit.GetUnitChildReponse;
+import com.vibee.model.result.ExportResult;
+import com.vibee.model.result.GetUnitResult;
 import com.vibee.repo.VUnitRepo;
 import com.vibee.service.vunit.UnitService;
 import com.vibee.utils.MessageUtils;
+import com.vibee.utils.ProductUtils;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -191,6 +195,60 @@ public class UnitServiceImpl implements UnitService {
         response.getStatus().setMessage(MessageUtils.get("","msg.success"));
         response.getStatus().setStatus(Status.Success);
         log.info("UnitService-deleteUnitParent :: End");
+        return response;
+    }
+
+    @Override
+    public GetUnitsResponse getUnits(String language) {
+        log.info("UnitService-getUnits :: Start");
+        GetUnitsResponse response = new GetUnitsResponse();
+        List<GetUnitResult> results= new ArrayList<>();
+        List<VUnit> units = unitRepo.getAllUnits();
+        if (units.isEmpty()){
+            log.error("UnitService-getUnits :: End :: Unit is empty");
+            response.getStatus().setMessage(MessageUtils.get(language,"msg.notFound"));
+            response.getStatus().setStatus(Status.Fail);
+            return response;
+        }
+        for (VUnit unit : units) {
+            GetUnitResult result = new GetUnitResult();
+            result.setId(unit.getId());
+            result.setName(unit.getUnitName());
+            result.setStatusCode(unit.getStatus());
+            result.setDescription(unit.getDescription());
+            result.setParentId(unit.getParentId());
+            result.setStatusName(ProductUtils.statusname(unit.getStatus()));
+            results.add(result);
+        }
+        response.setResults(results);
+        response.getStatus().setStatus(Status.Success);
+        response.getStatus().setMessage(MessageUtils.get(language,"msg.success"));
+        log.info("UnitService-getUnits :: End");
+        return response;
+    }
+
+    @Override
+    public GetExportsByUnitSelectResponse getUnitsByUnitSelected(String language, int unitId) {
+        log.info("UnitService-getUnitsByUnitSelected :: Start :: unitId = {}", unitId);
+        GetExportsByUnitSelectResponse response = new GetExportsByUnitSelectResponse();
+        List<ExportResult> results= new ArrayList<>();
+        List<VUnit> units = unitRepo.getAllUnitByParentId(unitId);
+        if (units.isEmpty()){
+            log.error("UnitService-getUnits :: End :: Unit is empty");
+            response.getStatus().setMessage(MessageUtils.get(language,"msg.notFound"));
+            response.getStatus().setStatus(Status.Fail);
+            return response;
+        }
+        for (VUnit unit : units) {
+            ExportResult result = new ExportResult();
+            result.setUnitId(unit.getId());
+            result.setUnitName(unit.getUnitName());
+            results.add(result);
+        }
+        response.setResults(results);
+        response.getStatus().setStatus(Status.Success);
+        response.getStatus().setMessage(MessageUtils.get(language,"msg.success"));
+        log.info("UnitService-getUnitsByUnitSelected :: End :: unitId = {}", unitId);
         return response;
     }
 }

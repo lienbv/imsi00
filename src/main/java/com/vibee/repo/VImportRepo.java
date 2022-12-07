@@ -2,6 +2,7 @@ package com.vibee.repo;
 
 import com.vibee.entity.VImport;
 import com.vibee.model.ObjectResponse.GetCharWarehouseObject;
+import com.vibee.model.ObjectResponse.GetExportsObject;
 import com.vibee.model.ObjectResponse.GetWarehousesObject;
 import com.vibee.model.ObjectResponse.ViewStallObject;
 import org.springframework.data.domain.Pageable;
@@ -51,4 +52,9 @@ public interface VImportRepo extends JpaSpecificationExecutor<VImport>,JpaReposi
 
     @Query("SELECT CASE WHEN COUNT(i)>0 THEN TRUE ELSE FALSE END FROM import i WHERE i.status=1 AND i.productCode= :productCode")
     Boolean isExistProductByProductCode(@Param("productCode") String productCode);
+
+    @Query( value = "SELECT u.id as unit, u.unitName as unitName" +
+            "FROM import i JOIN warehouse w ON w.id=i.warehouseId " +
+            "JOIN product p ON p.id=w.productId JOIN unit u ON u.id=i.unitId WHERE p.barCode = :barCode AND e.status=1 ORDER BY i.id DESC LIMIT 1", nativeQuery = true)
+    GetExportsObject getUnitImportByBarCode(@Param("barCode") String barCode);
 }
