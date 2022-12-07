@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 @RestController
-@RequestMapping("/vibee/api/v1/warehouse")
+@RequestMapping("/vibee/api/v1/auth")
 @CrossOrigin("*")
 public class WarehouseController {
     private final GetWarehouseService getWarehouseService;

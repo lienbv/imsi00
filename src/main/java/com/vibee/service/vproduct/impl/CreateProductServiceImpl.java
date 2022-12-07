@@ -23,7 +23,7 @@ import com.vibee.utils.MessageUtils;
 import com.vibee.utils.Utiliies;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.index.Indexed;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -205,7 +205,7 @@ public class CreateProductServiceImpl implements CreateProductService {
     public CreateProductResponse upload(MultipartFile file, String language) {
         log.info("UploadProductSerivce :: Start");
         CreateProductResponse response=new CreateProductResponse();
-        boolean saveImg= Utiliies.uploadFile(file);
+        boolean saveImg= Utiliies .uploadFile(file);
         if(saveImg==false){
             log.error("save file is false");
             response.getStatus().setStatus(Status.Fail);

@@ -2,6 +2,7 @@ package com.vibee.repo;
 
 import com.vibee.entity.VProduct;
 import com.vibee.model.ObjectResponse.GetProductObject;
+import com.vibee.model.ObjectResponse.ImportInWarehouseObject;
 import com.vibee.model.ObjectResponse.ProductStallObject;
 import com.vibee.model.response.product.IgetHomeSellOnline;
 import org.springframework.data.domain.Pageable;
@@ -28,6 +29,7 @@ public interface VProductRepo extends JpaSpecificationExecutor<VProduct>,JpaRepo
     @Query("SELECT count(p) FROM product p WHERE p.barCode like :barCode")
     long countProductByBarCode(String barCode);
 
+    @Modifying
     @Query("UPDATE product p SET p.status = 4 WHERE p.id= :productId")
     int delete(@Param("productId") int productId);
 
@@ -48,7 +50,7 @@ public interface VProductRepo extends JpaSpecificationExecutor<VProduct>,JpaRepo
     @Query("SELECT p.id as productId,p.productName as productName ,p.barCode as barCode, (SELECT u.url FROM UploadFile u WHERE u.id=p.fileId) as img FROM product p JOIN warehouse w on w.productId=p.id JOIN import i on i.warehouseId = w.id WHERE i.status=1 AND p.productName LIKE :productName")
     List<ProductStallObject> searchProductByproductName(@Param("productName") String searchValue);
 
-    @Query("SELECT p.id as productId,p.productName as productName ,p.barCode as barCode, (SELECT u.url FROM UploadFile u WHERE u.id=p.fileId) as img FROM product p where status=1 AND p.id= :productId")
+    @Query("SELECT p.id as productId,p.productName as productName ,p.barCode as barCode, (SELECT u.url FROM UploadFile u WHERE u.id=p.fileId) as img FROM product p where p.status=1 AND p.id= :productId")
     ProductStallObject searchProductById(@Param("productId") int productId);
 
     @Query("select p.id,p.productName,p.status,p.fileId,w.inAmount-w.outAmount,w.outPrice-w.inPrice,p.supplierName , w.unitId,w.outPrice, w.inPrice from product p JOIN warehouse w ON w.productId=p.id where p.productName like :productName% ")
@@ -76,12 +78,22 @@ public interface VProductRepo extends JpaSpecificationExecutor<VProduct>,JpaRepo
     @Query("SELECT CASE WHEN COUNT(p)>0 THEN TRUE ELSE FALSE END FROM product p WHERE p.barCode= :barcode")
     Boolean existsByBarcode(@Param("barcode") String barcode);
 
-    @Query("SELECT SUM(p.status) FROM product p WHERE p.status = 3")
+    @Query("SELECT SUM(p.status) FROM product  p WHERE p.status = 3")
     public int sumReportBlockProduct();
 
     @Query("SELECT SUM(p.status) FROM product p WHERE p.status = 2")
     public int sumReportSoldOutProduct();
 
     public List<VProduct> findTop6ByOrderByCreatedDateDesc();
+
+    VProduct findByBarCodeAndStatusOrStatus(String barcode, int status_1, int status_2);
+
+    @Query("select max (p.id) from product p")
+    int findMaxId();
+
+    @Query(value = "select p.BAR_CODE as barCode,  i.EXPIRED_DATE as expiredDate from v_product p join v_warehouse w on p.ID = w.PRODUCT_ID \n" +
+            "join v_import i on i.WAREHOUSE_ID = w.ID where p.BAR_CODE =?1", nativeQuery = true)
+    List<ImportInWarehouseObject>findByBarcodeAndRangeDate(String barCode);
+
 
 }

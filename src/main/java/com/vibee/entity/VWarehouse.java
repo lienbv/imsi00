@@ -41,4 +41,5 @@ public class VWarehouse implements Serializable {
     private int unitId;
     @Column(name = "NUMBER_OF_ENTRIES")
     private int numberOfEntries;
+
 }

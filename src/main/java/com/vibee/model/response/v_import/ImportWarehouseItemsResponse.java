@@ -1,20 +1,12 @@
 package com.vibee.model.response.v_import;
 
-import com.vibee.model.response.BaseResponse;
 import lombok.Data;
 
 import java.math.BigDecimal;
 import java.util.Date;
 
 @Data
-public class ImportWarehouseItemsResponse extends BaseResponse {
-//    importId:number
-//    productCode:String
-//    qrCode:String
-//    unitName:String
-//    amount:number
-//    inPrice:BigDecimal
-//    rangeDate:Date
+public class ImportWarehouseItemsResponse {
     private int importId;
     private String productCode;
     private String qrCode;

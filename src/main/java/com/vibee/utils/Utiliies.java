@@ -13,8 +13,7 @@ import java.util.Date;
 import java.util.Random;
 
 public class Utiliies {
-
-    @Value("${url.file}")
+    @Value("${vibee.url}")
     private static String url;
 
     public static String convertStatusUser(int status) {

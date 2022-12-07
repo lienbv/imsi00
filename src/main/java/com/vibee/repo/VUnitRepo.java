@@ -31,6 +31,17 @@ public interface VUnitRepo extends JpaRepository<VUnit, Integer>{
 
     @Query(value="SELECT unit.id FROM unit where unit.id =(select import.id_unit from import where import.id_product=?1 order by warehouse.created_date asc limit 1)",nativeQuery = true)
     int getUnitIdById(int productId);
+    List<VUnit> findByParentIdOrStatus(int parentId, int status);
+    List<VUnit> findByStatus(int status);
+    VUnit findById(int id);
+    @Query(value = "select * from v_unit where id =?1 or PARENT_ID=?2 or id= (select PARENT_ID from v_unit where v_unit.id=?3)", nativeQuery = true)
+    List<VUnit> getAllById(int id, int parentId, int id_1);
+
+    List<VUnit> findByParentIdAndStatus(int parent, int status);
+
+    @Query(value = "select max(v.id) from v_unit v where v.PARENT_ID =?1 and v.status=?2", nativeQuery = true)
+    int  getMaxIdByParenId(int parent, int status);
+
 
 //
 

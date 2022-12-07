@@ -135,7 +135,7 @@ public class UnitServiceImpl implements UnitService {
         VUnit save = unitRepo.save(unit);
         if (save.getParentId() == 0) {
             if(request.getChildId() != 0) {
-                VUnit childUnit = unitRepo.findById(request.getChildId()).get();
+                VUnit childUnit = unitRepo.findById(request.getChildId());
                 List<VUnit> unitChildrenOld = unitRepo.getAllUnitByParentId(childUnit.getId());
                 for (VUnit item : unitChildrenOld) {
                     item.setParentId(save.getId());
@@ -152,7 +152,7 @@ public class UnitServiceImpl implements UnitService {
     @Override
     public VUnit update(UnitRequest request) {
         log.info("UnitService-update :: Start");
-        VUnit unitOld = unitRepo.findById(request.getId()).get();
+        VUnit unitOld = unitRepo.findById(request.getId());
         VUnit unit = new VUnit();
         unit.setId(request.getId());
         unit.setUnitName(request.getUnitName());
@@ -170,7 +170,7 @@ public class UnitServiceImpl implements UnitService {
     @Override
     public BaseResponse delete(int id) {
         log.info("UnitService-delete :: Start");
-        VUnit unit = unitRepo.findById(id).get();
+        VUnit unit = unitRepo.findById(id);
         unitRepo.delete(unit);
         log.info("UnitService-delete :: End");
         return null;
@@ -180,13 +180,13 @@ public class UnitServiceImpl implements UnitService {
     public BaseResponse deleteUnitParent(UnitDeleteParentRequest request) {
         log.info("UnitService-deleteUnitParent :: Start");
         BaseResponse response = new BaseResponse();
-        VUnit unitParent = unitRepo.findById(request.getIdParent()).get();
+        VUnit unitParent = unitRepo.findById(request.getIdParent());
         unitParent.setParentId(0);
         unitParent.setAmount(1);
         unitRepo.save(unitParent);
         for (int i = 0; i < request.getListEdit().length; i++) {
             UnitItemEdit itemEdit = request.getListEdit()[i];
-            VUnit item = unitRepo.findById(itemEdit.getId()).get();
+            VUnit item = unitRepo.findById(itemEdit.getId());
             item.setAmount(itemEdit.getAmount());
             item.setParentId(request.getIdParent());
             unitRepo.save(item);
