@@ -14,6 +14,8 @@ import java.math.BigDecimal;
 public class ExportResult {
     private BigDecimal inPrice;
     private BigDecimal outPrice;
-    private int unit;
+    private int unitId;
     private String unitName;
+    private int inventory;
+    private int exportId;
 }

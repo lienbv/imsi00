@@ -20,5 +20,5 @@ public class CreateDetailBillResult {
     private String productCode;
     private int unitId;
     private BigDecimal outPrice;
-    private int exportId;
+    private ExportResult export;
 }

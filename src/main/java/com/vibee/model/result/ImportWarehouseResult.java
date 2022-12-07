@@ -14,19 +14,19 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ImportWarehouseResult {
-        private String id;
+        private int id;
         private int productId;
         private String img;
         private String productName;
         private String barcode;
         private BigDecimal inPrice;
         private BigDecimal outPrice;
-        private int typeProductId;
+        private GetTypeProductResult typeProduct;
         private int inAmount;
-        private int unitId;
+        private GetUnitResult unit;
         private String qrCode;
         private int supplierId;
         private String creator;
-        private Date rangeDates;
-        List<ExportResult> export;
+        private String rangeDates;
+        List<ExportResult> exports;
 }

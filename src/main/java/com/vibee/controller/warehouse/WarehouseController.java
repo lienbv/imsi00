@@ -1,6 +1,7 @@
 package com.vibee.controller.warehouse;
 
 import com.vibee.model.request.warehouse.GetWarehouseRequest;
+import com.vibee.model.response.BaseResponse;
 import com.vibee.model.response.product.CreateProductResponse;
 import com.vibee.model.response.warehouse.GetWarehousesResponse;
 import com.vibee.model.response.warehouse.ImportWarehouseResponse;
@@ -44,5 +45,20 @@ public class WarehouseController {
     @PostMapping("/import-file")
     public ImportWarehouseResponse createProduct(@RequestParam("file") MultipartFile file, @RequestParam("language") String language, @RequestParam("supplierCode") int supplierCode) {
         return this.createWarehouseService.importFile(supplierCode,language,file);
+    }
+
+    @PostMapping("/save")
+    public ImportWarehouseResponse save(@RequestParam("language") String language, @RequestParam("supplier") int supplierCode) {
+        return this.createWarehouseService.save(supplierCode,language);
+    }
+
+    @GetMapping("/get-warehouse-by-supplier")
+    public ImportWarehouseResponse getWarehouseBySupplier(@RequestParam("language") String language, @RequestParam("supplier") int supplierCode) {
+        return this.createWarehouseService.getWarehouseBySupplier(supplierCode,language);
+    }
+
+    @PostMapping("/save-import-products-to-redis")
+    public BaseResponse saveImportProductsToRedis(@RequestParam("language") String language, @RequestBody ImportWarehouseResponse request) {
+        return this.createWarehouseService.saveRedis(request,language);
     }
 }
