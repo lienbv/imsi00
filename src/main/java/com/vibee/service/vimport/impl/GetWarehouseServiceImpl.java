@@ -1,10 +1,7 @@
 package com.vibee.service.vimport.impl;
 
 import com.vibee.entity.VWarehouse;
-import com.vibee.model.ObjectResponse.GetExportProductObject;
-import com.vibee.model.ObjectResponse.GetImportProductObject;
-import com.vibee.model.ObjectResponse.GetProductObject;
-import com.vibee.model.ObjectResponse.GetWarehousesObject;
+import com.vibee.model.ObjectResponse.*;
 import com.vibee.model.Status;
 import com.vibee.model.item.FilterItem;
 import com.vibee.model.item.GetCharWareHouseItem;
@@ -70,7 +67,7 @@ public class GetWarehouseServiceImpl implements GetWarehouseService {
             response.getStatus().setMessage(MessageUtils.get(language, "product.not.found"));
             return response;
         }
-        List<Object> charWarehouses=this.importRepo.getCharWarehouseByProductId(productId);
+        List<GetCharWarehouseObject> charWarehouses=this.importRepo.getCharWarehouseByProductId(productId);
         if(charWarehouses==null || charWarehouses.size()==0) {
             log.error("getWereHouses :: charWarehouse not found");
             response.getStatus().setStatus(Status.Fail);
@@ -231,20 +228,15 @@ public class GetWarehouseServiceImpl implements GetWarehouseService {
         return response;
     }
 
-    private List<GetCharWareHouseItem> convertChar(List<Object> lst) {
+    private List<GetCharWareHouseItem> convertChar(List<GetCharWarehouseObject> lst) {
         List<GetCharWareHouseItem> responses=new ArrayList<>();
-        for (Object o:lst){
-            Object[] objects = (Object[]) o;
+        for (GetCharWarehouseObject o:lst){
             GetCharWareHouseItem response = new GetCharWareHouseItem();
-            double inAmount = (Double) objects[0];
-            BigDecimal outAmount = (BigDecimal) objects[1];
-            BigDecimal inPrice = (BigDecimal) objects[3];
-            BigDecimal outPrice = (BigDecimal) objects[4];
-            response.setCreateDate(CommonUtil.convertDateToStringddMMyyyy((Date) objects[2]));
-            response.setOutAmount(outAmount);
-            response.setInAmount(inAmount);
-            response.setInPrice(inPrice);
-            response.setOutPrice(outPrice);
+            response.setCreateDate(CommonUtil.convertDateToStringddMMyyyy(o.getCreateDate()));
+            response.setOutAmount(o.getOutAmount());
+            response.setInAmount(o.getInAmount());
+            response.setInPrice(o.getInPrice());
+            response.setOutPrice(o.getOutPrice());
             responses.add(response);
         }
         return responses;

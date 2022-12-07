@@ -8,7 +8,9 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.util.Date;
+import java.util.Random;
 
 public class Utiliies {
     @Value("${vibee.url}")
@@ -44,14 +46,25 @@ public class Utiliies {
         }
     }
 
-    public static String convertStatusSupplier(int status) {
-        switch (status) {
-            case 1 :
-                return "Hợp tác";
-            case 2 :
-                return "Hủy";
-            default:
-                return "không biết";
+    public static String convertStatusSupplier(int status,String language) {
+        if (language.equals("vi")) {
+            switch (status) {
+                case 1:
+                    return "đang hoạt động";
+                case 2:
+                    return "không hoạt động";
+                default:
+                    return "không biết";
+            }
+        }else {
+            switch (status) {
+                case 1:
+                    return "Active";
+                case 2:
+                    return "Inactive";
+                default:
+                    return "no information";
+            }
         }
     }
 
@@ -68,17 +81,89 @@ public class Utiliies {
     }
 
     public static String formatDateTime(Date date){
+        if (date == null) {
+            return "";
+        }
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy hh:mm:ss");
         return sdf.format(date);
     }
 
+    public static Date formatStringDate(String date){
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy hh:mm:ss");
+            return sdf.parse(date);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public static LocalDate convertDoubleToLocalDate(double number) {
+        double raw = number;
+        long days = (long) raw;
+        double fraction = raw - days;
+
+        LocalDate epoch = LocalDate.of(1899, 12, 30);
+        LocalDate date = epoch.plusDays(days);
+        return date;
+    }
+
     public static boolean uploadFile(MultipartFile file){
         try {
-            FileCopyUtils.copy(file.getBytes(), new File( url+ file.getOriginalFilename()));
+            FileCopyUtils.copy(file.getBytes(), new File(url + file.getOriginalFilename()));
         } catch (IOException e) {
             e.printStackTrace();
             return false;
         }
         return true;
+    }
+
+    public static String getFilePath(String fileName) {
+        return url + fileName;
+    }
+
+    static String generateCode(int idProduct, int idWareHouse, int idImport) {
+        String idProductSTR = idProduct+"";
+        String idWareHouseSTR = idWareHouse+"";
+        String idImportSTR = idImport+"";
+        int idProductSize = 4;
+        int idWareHouseSize = 4;
+        int idImportSize = 6;
+        char idProductChar[] = new char[idProductSize];
+        char idWareHouseChar[] = new char[idWareHouseSize];
+        char idImportChar[] = new char[idImportSize];
+
+        Random getRDProduct =  new Random();
+        for (int i = 0; i < idProductSize; i++) {
+            idProductChar[i] = idProductSTR.charAt(getRDProduct.nextInt(idProductSTR.length()));
+        }
+        String codeProduct = "";
+        for (int i = 0; i < idProductChar.length; i++) {
+            codeProduct += idProductChar[i];
+        }
+
+        Random getRDWareHouse =  new Random();
+        for (int i = 0; i < idWareHouseSize; i++) {
+            idWareHouseChar[i] = idWareHouseSTR.charAt(getRDWareHouse.nextInt(idWareHouseSTR.length()));
+        }
+        String codeWareHouse = "";
+        for (int i = 0; i < idWareHouseChar.length; i++) {
+            codeWareHouse += idWareHouseChar[i];
+        }
+
+        Random getRDImport =  new Random();
+        for (int i = 0; i < idImportSize; i++) {
+            idImportChar[i] = idImportSTR.charAt(getRDImport.nextInt(idImportSTR.length()));
+        }
+        String codeImport = "";
+        for (int i = 0; i < idImportChar.length; i++) {
+            codeImport += idImportChar[i];
+        }
+
+        return "VB-"+codeProduct+codeWareHouse+codeImport;
+    }
+
+    public static String formatDateReverse(Date date){
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        return sdf.format(date);
     }
 }

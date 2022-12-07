@@ -3,12 +3,14 @@ package com.vibee.service.vauth.impl;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.vibee.config.redis.RedisAdapter;
+import com.vibee.entity.VRole;
 import com.vibee.entity.VUser;
 import com.vibee.model.Status;
 import com.vibee.model.info.UserInfo;
 import com.vibee.model.request.auth.GetAccessTokenRequest;
 import com.vibee.model.response.auth.LoginResponse;
 import com.vibee.model.response.auth.TokenResponse;
+import com.vibee.repo.VRoleRepo;
 import com.vibee.repo.VUserRepo;
 import com.vibee.service.vauth.LoginService;
 import com.vibee.service.vcall.CallKeycloakService;
@@ -31,14 +33,17 @@ public class LoginImpl implements LoginService {
     private String clientSecret;
     private final String BASIC_TOKEN = "Basic ";
     private final CallKeycloakService callKeycloakService;
+    private final VRoleRepo roleRepo;
 
     @Autowired
     public LoginImpl(VUserRepo userRepo,
                      CallKeycloakService callKeycloakService,
-                     RedisAdapter redisAdapter) {
+                     RedisAdapter redisAdapter,
+                     VRoleRepo roleRepo) {
         this.userRepo = userRepo;
         this.callKeycloakService = callKeycloakService;
         this.redisAdapter=redisAdapter;
+        this.roleRepo=roleRepo;
     }
 
     @Override
@@ -77,29 +82,30 @@ public class LoginImpl implements LoginService {
             response.getStatus().setMessage(MessageUtils.get(language, "msg.login.is.failed"));
             return response;
         }
-        try {
-            DecodedJWT jwt = JWT.decode(tokenResponse.getAccess_token().replace("Bearer", "").trim());
-
-            // check JWT role is correct
-            List<String> roles = ((List)jwt.getClaim("realm_access").asMap().get("roles"));
-            role=roles.get(0);
-            // check JWT is still active
-            Date expiryDate = jwt.getExpiresAt();
-            if(expiryDate.before(new Date()))
-                throw new Exception("token is expired");
-
-        } catch (Exception e) {
-            log.error("exception : {} ", e.getMessage());
-            response.getStatus().setStatus(Status.Fail);
-            response.getStatus().setMessage(MessageUtils.get(language, "msg.login.is.failed"));
-            return response;
-        }
+//        try {
+//            DecodedJWT jwt = JWT.decode(tokenResponse.getAccess_token().replace("Bearer", "").trim());
+//
+//            // check JWT role is correct
+//            List<String> roles = ((List)jwt.getClaim("realm_access").asMap().get("roles"));
+//            role=roles.get(0);
+//            // check JWT is still active
+//            Date expiryDate = jwt.getExpiresAt();
+//            if(expiryDate.before(new Date()))
+//                throw new Exception("token is expired");
+//
+//        } catch (Exception e) {
+//            log.error("exception : {} ", e.getMessage());
+//            response.getStatus().setStatus(Status.Fail);
+//            response.getStatus().setMessage(MessageUtils.get(language, "msg.login.is.failed"));
+//            return response;
+//        }
         UserInfo info = new UserInfo();
         info.setUsername(user.getUsername());
         response.getStatus().setMessage(MessageUtils.get(language, "msg.login.is.success"));
         response.getStatus().setStatus(Status.Success);
         response.setAccessToken(tokenResponse.getAccess_token());
         response.setRefreshToken(tokenResponse.getRefresh_token());
+        role=this.roleRepo.findByUserId(user.getId());
         response.setRole(role);
         if (tokenResponse.getAccess_token() != null) {
             String key = "expireToken::" + tokenResponse.getAccess_token().hashCode();

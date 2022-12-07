@@ -12,7 +12,7 @@ import java.io.Serializable;
 @NoArgsConstructor
 @Component
 @Data
-@Entity
+@Entity(name = "role")
 @Table(name = "v_role")
 public class VRole implements Serializable{
 	private static final long serialVersionUID = 1L;

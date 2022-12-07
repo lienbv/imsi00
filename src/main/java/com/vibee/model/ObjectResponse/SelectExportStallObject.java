@@ -8,4 +8,5 @@ public interface SelectExportStallObject {
     String getUnitName();
     BigDecimal getOutPrice();
     Double getInventory();
+    int getAmount();
 }

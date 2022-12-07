@@ -8,7 +8,7 @@ import org.springframework.context.annotation.ComponentScan;
 
 @SpringBootApplication
 @EnableFeignClients
-@ComponentScan({ "com.vibee" })
+//@ComponentScan({ "com.vibee" })
 public class VibeeApplication {
 
 	public static void main(String[] args) {

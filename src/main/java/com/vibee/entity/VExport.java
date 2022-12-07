@@ -13,7 +13,7 @@ import java.util.Date;
 @NoArgsConstructor
 @Component
 @Data
-@Entity
+@Entity(name = "export")
 @Table(name = "v_export")
 public class VExport {
     private static final long serialVersionUID = 1L;

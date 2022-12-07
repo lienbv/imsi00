@@ -18,6 +18,7 @@ public class SelectedProductResult {
     private String img;
     private String barCode;
     private int amount;
+    private String productCode;
     private List<SelectExportItem> items;
     // List<responseSelectedProduct>
 }

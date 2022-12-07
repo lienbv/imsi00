@@ -24,7 +24,6 @@ import com.vibee.utils.Utiliies;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.index.Indexed;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -45,8 +44,6 @@ public class CreateProductServiceImpl implements CreateProductService {
     private final VFileUploadRepo fileUploadRepo;
     private final CreateWarehouseService createWarehouseService;
     private final RedisAdapter redisAdapter;
-    @Value("${vibee.url}")
-    private String url;
     @Autowired
     public CreateProductServiceImpl(VTypeProductRepo typeProductRepo,
                                     VSupplierRepo supplierRepo,
@@ -221,7 +218,7 @@ public class CreateProductServiceImpl implements CreateProductService {
         uploadFile.setFileName(file.getName());
         uploadFile.setSize(BigDecimal.valueOf(file.getSize()));
         uploadFile.setType(file.getContentType());
-        uploadFile.setUrl(url + file.getOriginalFilename());
+        uploadFile.setUrl(Utiliies.getFilePath(file.getOriginalFilename()));
         uploadFile=this.fileUploadRepo.save(uploadFile);
         if (uploadFile==null){
             log.error("upload file is false");
@@ -237,19 +234,21 @@ public class CreateProductServiceImpl implements CreateProductService {
     }
 
     @Override
-    public SelectedProductResponse selectProduct(int productId, String cartCode, String language) {
+    public SelectedProductResponse selectProduct(String productCode, String cartCode, String language) {
         log.info("selectProductService:: BEGIN");
         SelectedProductResponse response=new SelectedProductResponse();
 
-        Boolean isExistProduct=this.importRepo.existsById(productId);
+        Boolean isExistProduct=this.importRepo.isExistProductByProductCode(productCode);
         if (Boolean.FALSE.equals(isExistProduct)){
             log.error("product is not exist");
             response.getStatus().setStatus(Status.Fail);
             response.getStatus().setMessage(MessageUtils.get(language,"msg.error.product.not.found"));
             return response;
         }
-        ProductStallObject productStall=this.productRepo.searchProductByImport(productId);
-        List<SelectExportStallObject> exportStalls=this.exportRepo.getExportsByProduct(productId);
+        ProductStallObject productStall=this.productRepo.searchProductByImport(productCode);
+        List<SelectExportStallObject> exportStalls=this.exportRepo.getExportsByProduct(productCode);
+
+
 
         List<SelectExportItem> items=new ArrayList<>();
         for (SelectExportStallObject exportStall:exportStalls){
@@ -261,8 +260,29 @@ public class CreateProductServiceImpl implements CreateProductService {
             item.setExportId(exportStall.getExportId());
             items.add(item);
         }
+        SelectExportItem item=new SelectExportItem();
+        for(int i=0;i<items.size();i++){
+            for(int j=i+1;j<items.size();j++){
+                if(items.get(i).getAmount()<items.get(i).getAmount()){
+                    item=items.get(i);
+                    items.get(i).setAmount(items.get(j).getAmount());
+                    items.get(i).setInventory(items.get(j).getInventory());
+                    items.get(i).setUnitId(items.get(j).getUnitId());
+                    items.get(i).setUnitName(items.get(j).getUnitName());
+                    items.get(i).setExportId(items.get(j).getExportId());
+                    items.get(i).setOutPrice(items.get(j).getOutPrice());
+                    items.get(j).setAmount(item.getAmount());
+                    items.get(j).setInventory(item.getInventory());
+                    items.get(j).setUnitId(item.getUnitId());
+                    items.get(j).setUnitName(item.getUnitName());
+                    items.get(j).setExportId(item.getExportId());
+                    items.get(j).setOutPrice(item.getOutPrice());
+                }
+            }
+        }
+
         SelectedProductResult result=new SelectedProductResult();
-        result.setImportId(productId);
+        result.setImportId(productStall.getImportId());
         result.setAmount(1);
         result.setProductName(productStall.getProductName());
         result.setImg(productStall.getImg());
@@ -271,13 +291,13 @@ public class CreateProductServiceImpl implements CreateProductService {
         //lưu vào redis
         CreateProduct createProduct = new CreateProduct();
 
-        createProduct.setImportId(productId);
+        createProduct.setImportId(productStall.getImportId());
         createProduct.setAmount(1);
         createProduct.setProductName(productStall.getProductName());
         createProduct.setImg(productStall.getImg());
         createProduct.setBarCode(productStall.getBarCode());
         createProduct.setItems(items);
-        createProduct.setProductId(productId);
+        createProduct.setProductId(productStall.getProductId());
         createProduct.setKey(cartCode);
 
         this.redisAdapter.set(cartCode,0, createProduct);
@@ -292,7 +312,9 @@ public class CreateProductServiceImpl implements CreateProductService {
     @Override
     public BaseResponse deleteCart(String key, String language) {
         BaseResponse response = new BaseResponse();
+        System.out.println(this.redisAdapter.exists(key)+"dòng 283");
         this.redisAdapter.delete(key);
+        System.out.println(this.redisAdapter.exists(key)+"dòng 285");
         response.getStatus().setStatus(Status.Success);
         response.getStatus().setMessage(MessageUtils.get(language,""));
         return response;

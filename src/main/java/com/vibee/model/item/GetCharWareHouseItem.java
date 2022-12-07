@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.util.Date;
 
 @Setter
 @Getter
@@ -16,5 +17,5 @@ public class GetCharWareHouseItem {
     private BigDecimal inPrice;
     private BigDecimal outPrice;
     private double inAmount;
-    private BigDecimal outAmount;
+    private double outAmount;
 }

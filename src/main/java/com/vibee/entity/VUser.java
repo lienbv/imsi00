@@ -10,7 +10,7 @@ import java.util.Date;
 @NoArgsConstructor
 @Setter
 @Getter
-@Entity
+@Entity(name = "user")
 @Table(name = "v_user")
 public class VUser implements Serializable{
 	private static final long serialVersionUID = 1L;

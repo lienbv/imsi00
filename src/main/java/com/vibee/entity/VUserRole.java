@@ -13,7 +13,7 @@ import java.io.Serializable;
 @NoArgsConstructor
 @Component
 @Data
-@Entity
+@Entity(name = "userRole")
 @Table(name = "v_user_role")
 public class VUserRole implements Serializable{
 	private static final long serialVersionUID = 1L;
@@ -24,6 +24,6 @@ public class VUserRole implements Serializable{
 	@Column(name = "ID_USER")
 	private int userId;
 	@Column(name = "ID_ROLE")
-	private int role;
+	private int roleId;
 
 }
