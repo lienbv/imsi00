@@ -1,5 +1,9 @@
 package com.vibee.utils;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 import java.util.Random;
 
 public class DataUtils {
@@ -43,6 +47,11 @@ public class DataUtils {
             optCodeLowercase += otpLowercase[i];
         }
         return optCodeLowercase+optCode;
+    }
+    public static String modifyDateLayout(String inputDate) throws ParseException {
+
+        Date date = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US).parse(inputDate);
+        return new SimpleDateFormat("dd/MM/yyyy").format(date);
     }
 
     public static String generateTempPwd(int upercase,int lowercase, int num,  int character) {
