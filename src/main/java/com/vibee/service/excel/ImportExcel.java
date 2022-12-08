@@ -6,6 +6,7 @@ import org.apache.poi.hpsf.Decimal;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -18,7 +19,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
-
+@Service
 public class ImportExcel {
     private static final int COLUMN_INDEX_NAME_PRODUCT = 0;
     private static final int COLUMN_INDEX_BARCODE = 1;

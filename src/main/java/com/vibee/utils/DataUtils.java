@@ -3,6 +3,48 @@ package com.vibee.utils;
 import java.util.Random;
 
 public class DataUtils {
+
+    public static String generateBarcode( int number){
+        String numbers ="0123456789";
+        String text ="VB";
+        char otp[] = new char[number];
+
+        Random getOtpNum = new Random();
+        for (int i = 0; i < number; i++) {
+            otp[i] = numbers.charAt(getOtpNum.nextInt(numbers.length()));
+        }
+        String optCode = "";
+        for (int i = 0; i < otp.length; i++) {
+            optCode += otp[i];
+        }
+        return text+optCode;
+    }
+    public static String generateIdRedis( int number, int lowercase){
+        String numbers ="0123456789";
+        String text ="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+        char otp[] = new char[number];
+
+        Random getOtpNum = new Random();
+        for (int i = 0; i < number; i++) {
+            otp[i] = numbers.charAt(getOtpNum.nextInt(numbers.length()));
+        }
+        String optCode = "";
+        for (int i = 0; i < otp.length; i++) {
+            optCode += otp[i];
+        }
+
+        char otpLowercase[] = new char[lowercase];
+        Random getOtpLowercase = new Random();
+        for (int i = 0; i < lowercase; i++) {
+            otpLowercase[i] = text.charAt(getOtpLowercase.nextInt(text.length()));
+        }
+        String optCodeLowercase = "";
+        for (int i = 0; i < otpLowercase.length; i++) {
+            optCodeLowercase += otpLowercase[i];
+        }
+        return optCodeLowercase+optCode;
+    }
+
     public static String generateTempPwd(int upercase,int lowercase, int num,  int character) {
 
         String numbers ="0123456789";

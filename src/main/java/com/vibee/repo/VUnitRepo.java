@@ -15,17 +15,33 @@ public interface VUnitRepo extends JpaRepository<VUnit, Integer>{
     @Query(value="SELECT u FROM unit u WHERE u.detailProductId = (SELECT TOP1 dp.id FROM VDetailProduct dp WHERE dp.productId = ?1 ORDER BY dp.id DESC)", nativeQuery = true)
     List<VUnit> findByProductId(int productId);
 
-    @Query("SELECT u FROM unit u WHERE u.parentId= :unitId or u.id= :unitId")
+    @Query("SELECT u FROM unit u WHERE u.parentId= :unitId or u.id= :unitId AND u.status=1")
     List<VUnit> getAllUnitByParentId(@Param("unitId") int unitId);
 
     @Query("SELECT u FROM unit u WHERE u.parentId=0")
     List<VUnit> getAllUnitParents();
+
+    @Query("SELECT u FROM unit u WHERE u.status=1")
+    List<VUnit> getAllUnits();
+
+
 
     @Query(value="SELECT unit.unit_name FROM unit where unit.id =(select import.id_unit from import where import.id_product=?1 order by warehouse.created_date asc limit 1)",nativeQuery = true)
     String getUnitNameByProductId(int productId);
 
     @Query(value="SELECT unit.id FROM unit where unit.id =(select import.id_unit from import where import.id_product=?1 order by warehouse.created_date asc limit 1)",nativeQuery = true)
     int getUnitIdById(int productId);
+    List<VUnit> findByParentIdOrStatus(int parentId, int status);
+    List<VUnit> findByStatus(int status);
+    VUnit findById(int id);
+    @Query(value = "select * from v_unit where id =?1 or PARENT_ID=?2 or id= (select PARENT_ID from v_unit where v_unit.id=?3)", nativeQuery = true)
+    List<VUnit> getAllById(int id, int parentId, int id_1);
+
+    List<VUnit> findByParentIdAndStatus(int parent, int status);
+
+    @Query(value = "select max(v.id) from v_unit v where v.PARENT_ID =?1 and v.status=?2", nativeQuery = true)
+    int  getMaxIdByParenId(int parent, int status);
+
 
 //
 
@@ -42,4 +58,6 @@ public interface VUnitRepo extends JpaRepository<VUnit, Integer>{
     @Query("SELECT u FROM unit u WHERE u.parentId= :unitId order by u.amount asc ")
     List<VUnit> getUnitsByParentId(@Param("unitId") int unitId);
 
+    @Query(value="SELECT u FROM unit u JOIN import i ON i.unitId=u.id JOIN warehhouse w ON w.id=i.warehouseId JOIN product p ON p.id = w.productId WHERE u.status=1 AND p.barcode = ?1 ORDER BY i.createdDate DESC LIMIT 1", nativeQuery = true)
+    VUnit getUnitByBarCode(String barcode);
 }

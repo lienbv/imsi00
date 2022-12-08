@@ -8,6 +8,7 @@ import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.UnknownHostException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -85,6 +86,18 @@ public class CommonUtil {
     }
     SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
     return sdf.format(date);
+  }
+
+  public static Date convertStringToDateddMMyyyy(String date){
+    if (isEmptyOrNull(date)){
+      return null;
+    }
+    SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+    try {
+      return sdf.parse(date);
+    } catch (ParseException e) {
+      return null;
+    }
   }
 
   public static <T> String beanToString(T value) {

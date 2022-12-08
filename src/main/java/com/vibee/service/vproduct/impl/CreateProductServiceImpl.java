@@ -23,7 +23,7 @@ import com.vibee.utils.MessageUtils;
 import com.vibee.utils.Utiliies;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.index.Indexed;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -218,7 +218,7 @@ public class CreateProductServiceImpl implements CreateProductService {
         uploadFile.setFileName(file.getName());
         uploadFile.setSize(BigDecimal.valueOf(file.getSize()));
         uploadFile.setType(file.getContentType());
-        uploadFile.setUrl("C:\\Users\\lamca\\OneDrive\\Desktop\\Vibee_BE\\single\\vibee\\target\\classes\\templates\\" + file.getOriginalFilename());
+        uploadFile.setUrl(Utiliies.getFilePath(file.getOriginalFilename()));
         uploadFile=this.fileUploadRepo.save(uploadFile);
         if (uploadFile==null){
             log.error("upload file is false");
