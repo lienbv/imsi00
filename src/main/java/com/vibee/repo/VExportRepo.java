@@ -31,10 +31,10 @@ public interface VExportRepo extends JpaRepository<VExport,Integer> {
             "where v_import.product_id =?1 AND v_export.status=1 group by v_export.id",nativeQuery = true)
     List<SelectExportStallObject> getExportsByProduct(int productCode);
 
-    @Query( value = "SELECT u.id as unit, u.unitName as unitName, e.outPrice as outPrice, e.inPrice as inPrice " +
-            "FROM export e JOIN unit u ON e.unitId=u.id " +
-            "JOIN import i ON i.id=e.importId " +
-            "JOIN warehouse w ON w.id=i.warehouseId " +
-            "JOIN product p ON p.id=w.productId WHERE p.barCode = :barCode AND e.status=1 ORDER BY i.id DESC LIMIT 1", nativeQuery = true)
+    @Query( value = "SELECT u.id as unit, u.UNIT_NAME as unitName, e.OUT_PRICE as outPrice, e.IN_PRICE as inPrice " +
+            "FROM v_export e JOIN v_unit u ON e.ID_UNIT=u.id " +
+            "JOIN v_import i ON i.id=e.IMPORT_ID " +
+            "JOIN v_warehouse w ON w.id=i.WAREHOUSE_ID " +
+            "JOIN v_product p ON p.id=w.PRODUCT_ID WHERE p.BAR_CODE = :barCode AND e.status=1 ORDER BY i.id DESC LIMIT 1", nativeQuery = true)
     List<GetExportsObject> getExportsByBarCode(@Param("barCode") String barCode);
 }

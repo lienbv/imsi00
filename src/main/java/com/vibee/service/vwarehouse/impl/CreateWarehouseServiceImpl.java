@@ -301,7 +301,7 @@ public class CreateWarehouseServiceImpl implements CreateWarehouseService {
         }
         boolean isAfter=this.redisAdapter.exists(key);
         if (Boolean.FALSE.equals(isAfter)){
-            this.redisAdapter.set(key,60*60*24, request.getProducts());
+            this.redisAdapter.sets(key,60*60*24, request.getProducts());
         }
         response.getStatus().setStatus(Status.Success);
         response.getStatus().setMessage(MessageUtils.get(language,"msg.success.save.redis"));

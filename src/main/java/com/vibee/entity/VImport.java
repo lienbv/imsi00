@@ -28,7 +28,7 @@ public class VImport {
     private String creator;
     @Column(name = "IN_AMOUNT")
     private Double inAmount;
-    @Column(name = "IN_MONEY")
+    @Column(name = "IN_PRICE")
     private BigDecimal inMoney;
     @Column(name = "UPDATER")
     private int updater;
