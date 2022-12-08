@@ -175,19 +175,19 @@ public class StatisticAdminServiceImpl implements StatisticAdminService {
 
     @Override
     public StatisticAdminResponse reportSumProduct(BaseRequest request) {
-        StatisticAdminResponse response = null;
-        log.info("AdminStatisticResponse :: Start");
-        int block_product, sold_out = 0;
-
-        block_product = this.productRepo.sumReportBlockProduct();
-        sold_out = this.productRepo.sumReportSoldOutProduct();
-
-        response = new StatisticAdminResponse(block_product, sold_out);
-        response.getStatus().setMessage(MessageUtils.get(request.getLanguage(), "msg.success"));
-        response.getStatus().setStatus(Status.Success);
-
-        log.info("AdminStatisticResponse :: End");
-        return response;
+//        StatisticAdminResponse response = null;
+//        log.info("AdminStatisticResponse :: Start");
+//        int block_product, sold_out = 0;
+//
+//        block_product = this.productRepo.sumReportBlockProduct();
+//        sold_out = this.productRepo.sumReportSoldOutProduct();
+//
+//        response = new StatisticAdminResponse(block_product, sold_out);
+//        response.getStatus().setMessage(MessageUtils.get(request.getLanguage(), "msg.success"));
+//        response.getStatus().setStatus(Status.Success);
+//
+//        log.info("AdminStatisticResponse :: End");
+        return null;
     }
 
     @Override

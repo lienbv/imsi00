@@ -27,6 +27,22 @@ public class AdminStatisticController {
         return this.statisticAdminService.totalPriceOfDay();
     }
 
+    @GetMapping("/statistic")
+    public StatisticAdminResponse display7days(BaseRequest request, @RequestParam(value = "startDate", defaultValue = "") String startDate,
+                                               @RequestParam(value = "endDate", defaultValue = "") String endDate) {
+        return statisticAdminService.statisticDisplay7Days(request, startDate, endDate);
+    }
+
+    @GetMapping("report-sum-product")
+    public StatisticAdminResponse displaySumProduct(BaseRequest request){
+        return statisticAdminService.reportSumProduct(request);
+    }
+
+    @GetMapping("top-5-product")
+    public ReportTopProductResponse displayTop6Product(@RequestParam("language") String lang){
+        return this.statisticAdminService.getTop6Product(lang);
+    }
+
     @GetMapping("report-sum-order")
     public StatisticAdminResponse displaySumOrder(BaseRequest request){
         return this.statisticAdminService.reportSumOrder(request);
@@ -41,10 +57,4 @@ public class AdminStatisticController {
     public InterestRateItem interestRate(){
         return statisticAdminService.interestRate();
     }
-
-    @GetMapping("top-5-product")
-    public ReportTopProductResponse displayTop6Product(@RequestParam("language") String lang){
-        return this.statisticAdminService.getTop6Product(lang);
-    }
-
 }

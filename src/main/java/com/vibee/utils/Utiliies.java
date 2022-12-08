@@ -7,9 +7,14 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.text.DecimalFormatSymbols;
+import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.util.Currency;
 import java.util.Date;
+import java.util.Locale;
 import java.util.Random;
 
 public class Utiliies {
@@ -162,5 +167,16 @@ public class Utiliies {
     public static String formatDateReverse(Date date){
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         return sdf.format(date);
+    }
+
+    public static NumberFormat convertMoney() {
+        Locale locale = new Locale("vi", "VN");
+        Currency currency = Currency.getInstance("VND");
+
+        DecimalFormatSymbols df = DecimalFormatSymbols.getInstance(locale);
+        df.setCurrency(currency);
+        NumberFormat numberFormat = NumberFormat.getCurrencyInstance(locale);
+        numberFormat.setCurrency(currency);
+        return numberFormat;
     }
 }

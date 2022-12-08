@@ -51,4 +51,8 @@ public interface VImportRepo extends JpaSpecificationExecutor<VImport>,JpaReposi
 
     @Query("SELECT CASE WHEN COUNT(i)>0 THEN TRUE ELSE FALSE END FROM import i WHERE i.status=1 AND i.productCode= :productCode")
     Boolean isExistProductByProductCode(@Param("productCode") String productCode);
+
+    @Query("select o from import o where o.productCode = :productCode")
+    VImport findByProductCode(@Param("productCode") String productCode);
+
 }
