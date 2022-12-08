@@ -244,7 +244,7 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
         for (ImportWarehouseInfor infor: data) {
             VWarehouse vWarehouseNew = new VWarehouse();
             VProduct vProduct = this.vProductRepo.findByBarCodeAndStatusOrStatus(infor.getBarcode(), 1, 2);
-            int maxId = this.vUnitRepo.getMaxIdByParenId(infor.getUnitId(), 1);
+            int maxId = this.vUnitRepo.getMaxIdByParenId(infor.getUnitId(),infor.getUnitId());
             VUnit vUnit = this.vUnitRepo.findById(maxId);
             VImport vImport = new VImport();
 

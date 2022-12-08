@@ -11,6 +11,7 @@ import com.vibee.model.request.v_import.CreateImportRequest;
 import com.vibee.model.request.warehouse.CreateWarehouseRequest;
 import com.vibee.model.response.BaseResponse;
 import com.vibee.model.response.v_import.CreateImportResponse;
+import com.vibee.model.response.v_import.ImportWarehouseItemsResponse;
 import com.vibee.model.response.warehouse.CreateWarehouseResponse;
 import com.vibee.model.response.warehouse.ImportWarehouseResponse;
 import com.vibee.model.result.ExportResult;
@@ -192,9 +193,9 @@ public class CreateWarehouseServiceImpl implements CreateWarehouseService {
     }
 
     @Override
-    public ImportWarehouseResponse save(int supplierCode, String language) {
+    public ImportWarehouseItemsResponse save(int supplierCode, String language) {
         log.info("CreateWarehouseServiceImpl.save start importCode:{}",supplierCode);
-        ImportWarehouseResponse response=new ImportWarehouseResponse();
+        ImportWarehouseItemsResponse response=new ImportWarehouseItemsResponse();
         String key=String.format("import_%s",supplierCode);
         boolean isExist=this.redisAdapter.exists(key);
         if (Boolean.FALSE.equals(isExist)){
@@ -227,7 +228,7 @@ public class CreateWarehouseServiceImpl implements CreateWarehouseService {
             warehouseInfo.setInPrice(result.getInPrice());
             warehouseInfo.setSupplierId(result.getSupplierId());
             warehouseInfo.setProductName(result.getProductName());
-            warehouseInfo.setRangeDate(String.valueOf(CommonUtil.convertStringToDateddMMyyyy(result.getRangeDates())));
+            warehouseInfo.setRangeDate(result.getRangeDates());
             List<UnitItem> unitItems=new ArrayList<>();
             for (ExportResult exportResult:result.getExports()){
                 UnitItem unitItem=new UnitItem();
@@ -244,7 +245,7 @@ public class CreateWarehouseServiceImpl implements CreateWarehouseService {
             warehousesInfo.add(warehouseInfo);
         }
         //call service save to db
-        this.importSupplierService.done(warehousesInfo);
+        response=this.importSupplierService.done(warehousesInfo);
 
         //delete key in redis
         this.redisAdapter.delete(key);
@@ -298,7 +299,10 @@ public class CreateWarehouseServiceImpl implements CreateWarehouseService {
             log.error("key is exist so delete redis by key:{}",key);
             this.redisAdapter.delete(key);
         }
-        this.redisAdapter.set(key,60*60*24, request.getProducts());
+        boolean isAfter=this.redisAdapter.exists(key);
+        if (Boolean.FALSE.equals(isAfter)){
+            this.redisAdapter.set(key,60*60*24, request.getProducts());
+        }
         response.getStatus().setStatus(Status.Success);
         response.getStatus().setMessage(MessageUtils.get(language,"msg.success.save.redis"));
         return response;

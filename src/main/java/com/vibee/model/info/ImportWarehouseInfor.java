@@ -8,7 +8,7 @@ import java.util.List;
 
 @Data
 public class ImportWarehouseInfor {
-    private int id;
+    private String id;
     private int productId;
     private String image;
     private String productName;
