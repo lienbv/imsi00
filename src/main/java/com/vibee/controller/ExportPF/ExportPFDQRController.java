@@ -2,6 +2,7 @@ package com.vibee.controller.ExportPF;
 
 import com.vibee.model.response.BaseResponse;
 import com.vibee.service.pdf.ExportPDFService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 public class ExportPFDQRController {
     private ExportPDFService exportPDFService;
 
+    @Autowired
     public ExportPFDQRController(ExportPDFService exportPDFService) {
         this.exportPDFService = exportPDFService;
     }

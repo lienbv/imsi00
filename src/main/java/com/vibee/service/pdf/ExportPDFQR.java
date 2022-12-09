@@ -3,6 +3,7 @@ package com.vibee.service.pdf;
 import com.itextpdf.text.*;
 import com.itextpdf.text.Font;
 import com.itextpdf.text.Image;
+import com.itextpdf.text.pdf.BaseFont;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
@@ -26,7 +27,7 @@ import java.util.List;
 public class ExportPDFQR {
     public static void export(int count, String productCode, BigDecimal price, String productName, String urlQR, String unit) {
         String now = new SimpleDateFormat("MM_dd_yyyy_HH_mm_ss").format(Calendar.getInstance().getTime());
-        String title = productCode+now+".pdf";
+        String title = "src/main/resources/static/pdf/qrcode/"+productCode+now+".pdf";
         try (OutputStream outputStream = new FileOutputStream(title)) {
             Document document = new Document(PageSize.A4, 0,0,0,0);
             document.left(0);
@@ -48,7 +49,11 @@ public class ExportPDFQR {
             image.scaleToFit(50, 50);
             Chunk chunk = new Chunk(image, 0, 0, true);
 
+            BaseFont baseFont = BaseFont.createFont("src/main/resources/static/font/vuArial.ttf", BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+            Font fontvn = new Font(baseFont);
+
             Phrase phrase = new Phrase();
+            phrase.setFont(fontvn);
             phrase.getFont().setSize(8);
             phrase.add(chunk);
             String line1 = "\n"+productName;

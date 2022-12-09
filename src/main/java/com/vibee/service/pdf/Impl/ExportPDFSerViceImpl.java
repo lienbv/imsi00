@@ -33,7 +33,7 @@ public class ExportPDFSerViceImpl implements ExportPDFService {
         VImport vImport = importRepo.findByProductCode(productCode);
         VWarehouse vWarehouse = warehouseRepo.getById(vImport.getWarehouseId());
         VProduct vProduct = vProductRepo.getById(vWarehouse.getProductId());
-        VUnit vUnit = vUnitRepo.findById(vImport.getUnitId()).get();
+        VUnit vUnit = vUnitRepo.findById(vImport.getUnitId());
         VUploadFile uploadFile = uploadFileRepo.getById(vImport.getFileId());
         ExportPDFQR.export(amount,productCode,vWarehouse.getOutPrice(), vProduct.getProductName(), uploadFile.getUrl(), vUnit.getUnitName());
         BaseResponse response = new BaseResponse();
