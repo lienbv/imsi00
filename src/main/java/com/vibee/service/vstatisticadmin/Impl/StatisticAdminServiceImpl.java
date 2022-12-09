@@ -26,6 +26,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.MathContext;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -72,7 +73,27 @@ public class StatisticAdminServiceImpl implements StatisticAdminService {
 
     @Override
     public InterestRateItem interestRate() {
-        return null;
+        log.info("AdminStatisticResponse-interestRate :: Start");
+        InterestRateItem response = new InterestRateItem();
+        Date now = new Date();
+        Map<String, Calendar> current = getStartAndEndDate(now);
+        Calendar yesterdayCalender = Calendar.getInstance();
+        yesterdayCalender.setTime(now);
+        yesterdayCalender.roll(Calendar.DATE, -1);
+        Map<String, Calendar> yesterday = getStartAndEndDate(yesterdayCalender.getTime());
+
+        BigDecimal totalCurrent = getTotalPriceOfDay(current.get("startDate"), current.get("endDate"));
+        BigDecimal totalYesterday = getTotalPriceOfDay(yesterday.get("startDate"), yesterday.get("endDate"));
+        response.setTotalPriceCurrent(totalCurrent);
+        response.setTotalPriceYesterDay(totalYesterday);
+
+        BigDecimal subtract = totalCurrent.subtract(totalYesterday, MathContext.DECIMAL128);
+        BigDecimal divide = subtract.divide(totalYesterday,MathContext.DECIMAL128);
+        BigDecimal multi = divide.multiply(new BigDecimal(100), MathContext.DECIMAL128);
+        response.setPercent(multi.intValue());
+
+        log.info("AdminStatisticResponse-interestRate :: End");
+        return response;
     }
 
     @Override
@@ -175,19 +196,19 @@ public class StatisticAdminServiceImpl implements StatisticAdminService {
 
     @Override
     public StatisticAdminResponse reportSumProduct(BaseRequest request) {
-        StatisticAdminResponse response = null;
-        log.info("AdminStatisticResponse :: Start");
-        int block_product, sold_out = 0;
-
-        block_product = this.productRepo.sumReportBlockProduct();
-        sold_out = this.productRepo.sumReportSoldOutProduct();
-
-        response = new StatisticAdminResponse(block_product, sold_out);
-        response.getStatus().setMessage(MessageUtils.get(request.getLanguage(), "msg.success"));
-        response.getStatus().setStatus(Status.Success);
-
-        log.info("AdminStatisticResponse :: End");
-        return response;
+//        StatisticAdminResponse response = null;
+//        log.info("AdminStatisticResponse :: Start");
+//        int block_product, sold_out = 0;
+//
+//        block_product = this.productRepo.sumReportBlockProduct();
+//        sold_out = this.productRepo.sumReportSoldOutProduct();
+//
+//        response = new StatisticAdminResponse(block_product, sold_out);
+//        response.getStatus().setMessage(MessageUtils.get(request.getLanguage(), "msg.success"));
+//        response.getStatus().setStatus(Status.Success);
+//
+//        log.info("AdminStatisticResponse :: End");
+        return null;
     }
 
     @Override
