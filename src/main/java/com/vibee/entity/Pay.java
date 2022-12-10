@@ -25,9 +25,12 @@ public class Pay implements Serializable {
     private int debitId;
     @Column(name = "ACTUAL_DATE_OF_PAYMENT_OF_DEBT")
     private Date actualDateOfPaymentOfDebt;
-    @Column(name = "amount_pay")
-    private BigDecimal amountPay;
+    @Column(name = "PRICE")
+    private BigDecimal price;
     @Column(name = "STATUS")
     private int status;
-
+    @Column(name = "IN_PRICE")
+    private BigDecimal in_Price;
+    @Column(name = "NUMBER_OF_PAYOUTS")
+    private int numberOfPayOuts;
 }

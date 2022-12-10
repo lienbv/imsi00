@@ -24,7 +24,6 @@ public class DebitRequest extends BaseRequest {
     private String address;
     @NotNull
     private int typeOfDebtor;
-    @NotNull
     private String expectedDateOfPaymentOfDebt;
     private List<GetDetailBill> debitItems;
 

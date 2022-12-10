@@ -14,6 +14,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -45,9 +46,10 @@ public class DebitController {
         request.setSearchText(searchReq);
         return this.debit.findAll(request);
     }
-    @PostMapping("pay")
-    public BaseResponse pay(@Valid @RequestBody PayRequest request, BindingResult bindingResult){
-       return this.debit.pay(request, bindingResult);
+    @PostMapping("pay/{idDebit}")
+    public BaseResponse pay(@PathVariable(name = "idDebit") int idDebit , @RequestParam(name = "inPrice")  BigDecimal inPrice,
+                            @RequestParam(name = "language")  String language, BindingResult bindingResult){
+       return this.debit.pay(idDebit, inPrice, language, bindingResult);
     }
 
     @GetMapping("/getDetailByBill/{bill}")
@@ -55,8 +57,12 @@ public class DebitController {
     return this.debit.getDetailBill(bill);
     }
     @GetMapping("findById/{id}")
-    public List<DebitDetailResponse> findByIdDebitOfDebitDetail(@PathVariable(name = "id") int id){
+    public DebitDetailResponse findByIdDebitOfDebitDetail(@PathVariable(name = "id") int id){
         return this.debit.findByIdDebitOfDebitDetail(id);
+    }
+    @PostMapping("payDebit/{idDebit}")
+    public BaseResponse payDebit(@Valid @RequestBody PayRequest request, @PathVariable(name = "idDebit") int idDebit, BindingResult bindingResult){
+        return this.debit.payDebit(idDebit,request, bindingResult);
     }
 
 }
