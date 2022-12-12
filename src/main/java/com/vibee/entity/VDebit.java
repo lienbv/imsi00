@@ -25,13 +25,13 @@ public class VDebit implements Serializable {
     private Date debitDate;
     @Column(name = "CREATOR_DEBTOR")
     private String creatorDebtor;
-    @Column(name = "userId")
+    @Column(name = "USER_ID")
     private int userId;
     @Column(name = "FULL_NAME")
     private String fullName;
     @Column(name = "ADDRESS")
     private String address;
-    @Column(name = "TOTAL_AMOUNT_OWED")
+    @Column(name = "TOTAL")
     private BigDecimal totalAmountOwed;
     @Column(name = "CREATOR_PAYER")
     private String creatorPayer;
