@@ -291,7 +291,7 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
                 VWarehouse  vWarehouse = this.vWarehouseRepo.findByProductId(vProduct.getId());
                 if(vWarehouse !=null){
                     vWarehouse.setId(vWarehouse.getId());
-                    vWarehouse.setProductId(vWarehouse.getProductId());
+                    vWarehouse.setProductId(vProduct.getId());
                     vWarehouse.setCreator(infor.getCreator());
                     Double inPrice = infor.getInPrice().doubleValue();
                     Double oldPrice = vWarehouse.getInPrice().doubleValue();

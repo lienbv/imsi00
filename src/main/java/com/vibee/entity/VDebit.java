@@ -16,7 +16,7 @@ import java.util.Date;
 @Data
 @Entity
 @Table(name = "v_debit")
-public class Debit implements Serializable {
+public class VDebit implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID")
@@ -25,10 +25,12 @@ public class Debit implements Serializable {
     private Date debitDate;
     @Column(name = "CREATOR_DEBTOR")
     private String creatorDebtor;
+    @Column(name = "userId")
+    private int userId;
     @Column(name = "FULL_NAME")
     private String fullName;
-    @Column(name = "PHONE_NUMBER")
-    private String phoneNumber;
+    @Column(name = "ADDRESS")
+    private String address;
     @Column(name = "TOTAL_AMOUNT_OWED")
     private BigDecimal totalAmountOwed;
     @Column(name = "CREATOR_PAYER")
@@ -37,8 +39,6 @@ public class Debit implements Serializable {
     private int status;
     @Column(name = "BILL_ID")
     private int billId;
-    @Column(name = "ADDRESS")
-    private String address;
     @Column(name = "TYPE_OF_DEBTOR")
     private int typeOfDebtor;
     @Column(name = "EXPECTED_DATE_OF_PAYMENT_OF_DEBT")

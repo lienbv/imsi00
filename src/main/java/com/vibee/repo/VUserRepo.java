@@ -1,6 +1,5 @@
 package com.vibee.repo;
 
-import com.vibee.entity.VBill;
 import com.vibee.entity.VUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -49,4 +48,6 @@ public interface VUserRepo extends JpaRepository<VUser, Integer> {
     @Query("select u from user u join userRole ur on u.id = ur.userId where u.status = :status and ur.roleId = 2 and u.fullname like :fullname")
     public List<VUser> getCustomerByNames(@Param("status") int status,@Param("fullname") String fullname);
 
+    VUser findByNumberPhone(String phone);
+    VUser findById(int id);
 }

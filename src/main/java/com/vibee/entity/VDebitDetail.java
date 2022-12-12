@@ -15,7 +15,7 @@ import java.util.Date;
 @Data
 @Entity
 @Table(name = "v_debit_detail")
-public class DebitDetail {
+public class VDebitDetail {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID")

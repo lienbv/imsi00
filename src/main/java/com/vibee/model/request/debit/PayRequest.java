@@ -10,20 +10,6 @@ import java.util.List;
 
 @Data
 public class PayRequest extends BaseRequest {
-    @NotNull
-    private String fullName;
-    @NotNull
-    private String phoneNumber;
     private BigDecimal inPrice;
-    private BigDecimal totalAmountOwed;
-    @NotNull
-    private String creatorPayer;
-    @NotNull
-    private int billId;
-    @NotNull
-    private String address;
-    @NotNull
-    private int typeOfDebtor;
-    private String expectedDateOfPaymentOfDebt;
-    private List<GetDetailBill> debitItems;
+
 }
