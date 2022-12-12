@@ -79,10 +79,10 @@ public interface VProductRepo extends JpaSpecificationExecutor<VProduct>,JpaRepo
     Boolean existsByBarcode(@Param("barcode") String barcode);
 
     @Query("SELECT SUM(p.status) FROM product  p WHERE p.status = 3")
-    public int sumReportBlockProduct();
+    public long sumReportBlockProduct();
 
     @Query("SELECT SUM(p.status) FROM product p WHERE p.status = 2")
-    public int sumReportSoldOutProduct();
+    public long sumReportSoldOutProduct();
 
     public List<VProduct> findTop6ByOrderByCreatedDateDesc();
 

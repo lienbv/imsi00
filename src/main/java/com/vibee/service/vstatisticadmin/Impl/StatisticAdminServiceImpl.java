@@ -50,27 +50,97 @@ public class StatisticAdminServiceImpl implements StatisticAdminService {
     @Override
     public StatisticAdminResponse totalPriceOfDay() {
         StatisticAdminResponse response = new StatisticAdminResponse();
-        Calendar sDate = Calendar.getInstance();
-        sDate.setTime(new Date());
-        sDate.set(Calendar.HOUR_OF_DAY, 0);
-        sDate.set(Calendar.MINUTE,0);
-        sDate.set(Calendar.SECOND,0);
-        sDate.set(Calendar.MILLISECOND,0);
-        Calendar eDate = Calendar.getInstance();
-        eDate.setTime(new Date());
-        eDate.set(Calendar.HOUR_OF_DAY, 23);
-        eDate.set(Calendar.MINUTE, 59);
-        eDate.set(Calendar.SECOND, 59);
-        eDate.set(Calendar.MILLISECOND, 999);
+        Map<String, Calendar> now = this.getStartAndEndDate(new Date());
 
-        BigDecimal totalPriceOfBills = new BigDecimal(billRepo.findByTotalPriceOfBills(sDate.getTime(), eDate.getTime()).orElse(0L));
+        BigDecimal totalPriceOfBillsOfDay = new BigDecimal(billRepo.findByTotalPriceOfBills(now.get("startDate").getTime(), now.get("endDate").getTime()).orElse(0L));
+        List<Optional<Long>> interestRatesOfDay = billRepo.getInterestRateOfDay(now.get("startDate").getTime(), now.get("endDate").getTime());
+        BigDecimal interestRateOfDay = BigDecimal.ZERO;
+        for (Optional<Long> aLong: interestRatesOfDay) {
+            interestRateOfDay = interestRateOfDay.add(new BigDecimal(aLong.orElse(0L).longValue()));
+        }
 
-        response.setTotalPriceOfDay(totalPriceOfBills);
+        Calendar yesterdayCalender = Calendar.getInstance();
+        yesterdayCalender.setTime(new Date());
+        yesterdayCalender.roll(Calendar.DATE, -1);
+        Map<String, Calendar> yesterday = getStartAndEndDate(yesterdayCalender.getTime());
+
+        BigDecimal totalPriceOfBillsOfYesterday = new BigDecimal(billRepo.findByTotalPriceOfBills(yesterday.get("startDate").getTime(), yesterday.get("endDate").getTime()).orElse(0L));
+        List<Optional<Long>> interestRatesOfYesterday = billRepo.getInterestRateOfDay(yesterday.get("startDate").getTime(), yesterday.get("endDate").getTime());
+        BigDecimal interestRateOfYesterday = BigDecimal.ZERO;
+        for (Optional<Long> aLong: interestRatesOfYesterday) {
+            interestRateOfYesterday = interestRateOfYesterday.add(new BigDecimal(aLong.orElse(0L).longValue()));
+        }
+
+        //status
+        if (totalPriceOfBillsOfDay.compareTo(totalPriceOfBillsOfYesterday) == 0) {
+            response.setStatusTotalPriceOfDay("equal");
+        } else if (totalPriceOfBillsOfDay.compareTo(totalPriceOfBillsOfYesterday) == 1) {
+            response.setStatusTotalPriceOfDay("more");
+        } else {
+            response.setStatusTotalPriceOfDay("less");
+        }
+
+        //status
+        if (interestRateOfDay.compareTo(interestRateOfYesterday) == 0) {
+            response.setStatusInterestRateOfDay("equal");
+        } else if (interestRateOfDay.compareTo(interestRateOfYesterday) == 1) {
+            response.setStatusInterestRateOfDay("more");
+        } else {
+            response.setStatusInterestRateOfDay("less");
+        }
+
+        float percentTotalPrice = 0;
+        float percentInterestRate = 0;
+        //percent
+        try{
+            if (interestRateOfYesterday.intValue() == 0 && interestRateOfDay.intValue() == 0){
+                percentTotalPrice = 0;
+            } else if (interestRateOfYesterday.intValue() == 0) {
+                percentTotalPrice = 100;
+            } else if (interestRateOfDay.intValue() == 0) {
+                percentTotalPrice = -100;
+            } else {
+                BigDecimal subtractTotalPrice = interestRateOfDay.subtract(interestRateOfYesterday, MathContext.DECIMAL128);
+                BigDecimal divideTotalPrice = subtractTotalPrice.divide(interestRateOfYesterday,MathContext.DECIMAL128);
+                BigDecimal multiTotalPrice = divideTotalPrice.multiply(new BigDecimal(100), MathContext.DECIMAL128);
+                percentTotalPrice = multiTotalPrice.floatValue();
+            }
+        } catch (Exception e) {
+//            percentTotalPrice = 100;
+            e.printStackTrace();
+        }
+
+        System.out.println(interestRateOfDay.intValue()+"/"+interestRateOfYesterday.intValue());
+
+        try{
+            if (interestRateOfYesterday.intValue() == 0 && interestRateOfDay.intValue() == 0) {
+                percentInterestRate = 0;
+            } else if (interestRateOfYesterday.intValue() == 0) {
+                percentInterestRate = 100;
+            } else if (interestRateOfDay.intValue() == 0) {
+                percentInterestRate = -100;
+            } else {
+                BigDecimal subtractTotalPrice = totalPriceOfBillsOfDay.subtract(totalPriceOfBillsOfYesterday, MathContext.DECIMAL128);
+                BigDecimal divideTotalPrice = subtractTotalPrice.divide(totalPriceOfBillsOfYesterday,MathContext.DECIMAL128);
+                BigDecimal multiTotalPrice = divideTotalPrice.multiply(new BigDecimal(100), MathContext.DECIMAL128);
+                percentInterestRate = multiTotalPrice.floatValue();
+            }
+        } catch (Exception e) {
+//            percentInterestRate = 100;
+            e.printStackTrace();
+        }
+
+        response.setPercentTotalPriceOfDay(percentTotalPrice);
+        response.setPercentInterestRateOfDay(percentInterestRate);
+        System.out.println(percentTotalPrice+"/"+percentInterestRate);
+        response.setInterestRateOfDay(interestRateOfDay);
+        response.setTotalPriceOfDay(totalPriceOfBillsOfDay);
         response.getStatus().setStatus(Status.Success);
         response.getStatus().setMessage("");
         return response;
     }
 
+    //không dùng
     @Override
     public InterestRateItem interestRate() {
         log.info("AdminStatisticResponse-interestRate :: Start");
@@ -87,13 +157,19 @@ public class StatisticAdminServiceImpl implements StatisticAdminService {
         response.setTotalPriceCurrent(totalCurrent);
         response.setTotalPriceYesterDay(totalYesterday);
 
-        BigDecimal subtract = totalCurrent.subtract(totalYesterday, MathContext.DECIMAL128);
-        BigDecimal divide = subtract.divide(totalYesterday,MathContext.DECIMAL128);
-        BigDecimal multi = divide.multiply(new BigDecimal(100), MathContext.DECIMAL128);
-        response.setPercent(multi.intValue());
+        try {
+            BigDecimal subtract = totalCurrent.subtract(totalYesterday, MathContext.DECIMAL128);
+            BigDecimal divide = subtract.divide(totalYesterday,MathContext.DECIMAL128);
+            BigDecimal multi = divide.multiply(new BigDecimal(100), MathContext.DECIMAL128);
+            response.setPercent(multi.intValue());
+            log.info("AdminStatisticResponse-interestRate :: End");
+            return response;
+        } catch (Exception e) {
+            log.info("AdminStatisticResponse-interestRate :: End");
+            return response;
+        }
 
-        log.info("AdminStatisticResponse-interestRate :: End");
-        return response;
+
     }
 
     @Override
@@ -194,21 +270,22 @@ public class StatisticAdminServiceImpl implements StatisticAdminService {
         return response;
     }
 
+    //done
     @Override
     public StatisticAdminResponse reportSumProduct(BaseRequest request) {
-//        StatisticAdminResponse response = null;
-//        log.info("AdminStatisticResponse :: Start");
-//        int block_product, sold_out = 0;
-//
-//        block_product = this.productRepo.sumReportBlockProduct();
-//        sold_out = this.productRepo.sumReportSoldOutProduct();
-//
-//        response = new StatisticAdminResponse(block_product, sold_out);
-//        response.getStatus().setMessage(MessageUtils.get(request.getLanguage(), "msg.success"));
-//        response.getStatus().setStatus(Status.Success);
-//
-//        log.info("AdminStatisticResponse :: End");
-        return null;
+        StatisticAdminResponse response = null;
+        log.info("AdminStatisticResponse :: Start");
+        long block_product, sold_out = 0;
+
+        block_product = this.productRepo.sumReportBlockProduct();
+        sold_out = this.productRepo.sumReportSoldOutProduct();
+
+        response = new StatisticAdminResponse(block_product, sold_out);
+        response.getStatus().setMessage(MessageUtils.get(request.getLanguage(), "msg.success"));
+        response.getStatus().setStatus(Status.Success);
+
+        log.info("AdminStatisticResponse :: End");
+        return response;
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.vibee.service.excel;
 
+import com.vibee.model.result.GetIFileExcelStatus;
 import com.vibee.model.result.GetImportFileExcel;
 import com.vibee.utils.Utiliies;
 import org.apache.poi.hpsf.Decimal;
@@ -27,10 +28,10 @@ public class ImportExcel {
     private static final int COLUMN_INDEX_EXPIRE_DATE = 3;
     private static final int COLUMN_INDEX_AMOUNT = 4;
 //    private static final int COLUMN_INDEX_TYPE_PRODUCT = 5;
-    private static final int COLUMN_INDEX_PRICE = 6;
+    private static final int COLUMN_INDEX_PRICE = 5;
 
 
-    public static List<GetImportFileExcel> readExcel(String excelFilePath) throws IOException, ParseException {
+    public static GetIFileExcelStatus readExcel(String excelFilePath) throws IOException, ParseException {
         List<GetImportFileExcel> listImportFileExcelList = new ArrayList<>();
 
         // Get file
@@ -41,7 +42,7 @@ public class ImportExcel {
 
         // Get sheet
         Sheet sheet = workbook.getSheetAt(0);
-
+        StringBuilder stringBuilder = new StringBuilder();
         // Get all rows
         Iterator<Row> iterator = sheet.iterator();
         while (iterator.hasNext()) {
@@ -56,49 +57,104 @@ public class ImportExcel {
 
             // Read cells and set value for book object
             GetImportFileExcel product = new GetImportFileExcel();
+            int amountOfNull = 0;
             while (cellIterator.hasNext()) {
                 //Read cell
                 Cell cell = cellIterator.next();
                 Object cellValue = getCellValue(cell);
                 if (cellValue == null || cellValue.toString().isEmpty()) {
+                    amountOfNull++;
                     continue;
                 }
                 // Set value for book object
                 int columnIndex = cell.getColumnIndex();
                 switch (columnIndex) {
                     case COLUMN_INDEX_NAME_PRODUCT:
-                        product.setNameProduct((String) getCellValue(cell));
+                        try {
+                            product.setNameProduct((String) getCellValue(cell));
+                        } catch (Exception e) {
+                            if (getCellValue(cell) instanceof Boolean) {
+                                boolean value = (Boolean) getCellValue(cell);
+                                product.setNameProduct(value+"");
+                            } else if (getCellValue(cell) instanceof Double) {
+                                double value = (Double) getCellValue(cell);
+                                int i = (int) value;
+                                product.setNameProduct(i+"");
+                            }
+                        }
                         break;
                     case COLUMN_INDEX_BARCODE:
-                        product.setBarcode((String) getCellValue(cell));
+                        try {
+                            product.setBarcode((String) getCellValue(cell));
+                        } catch (Exception e) {
+                            if (getCellValue(cell) instanceof Boolean) {
+                                boolean value = (Boolean) getCellValue(cell);
+                                product.setBarcode(value+"");
+                            } else if (getCellValue(cell) instanceof Double) {
+                                double value = (Double) getCellValue(cell);
+                                int i = (int) value;
+                                product.setBarcode(i+"");
+                            }
+                        }
                         break;
                     case COLUMN_INDEX_SUPPLIER:
-                        product.setSupplier((String) getCellValue(cell));
+                        try {
+                            product.setSupplier((String) getCellValue(cell));
+                        } catch (Exception e) {
+                            if (getCellValue(cell) instanceof Boolean) {
+                                boolean value = (Boolean) getCellValue(cell);
+                                product.setSupplier(value+"");
+                            } else if (getCellValue(cell) instanceof Double) {
+                                double value = (Double) getCellValue(cell);
+                                int i = (int) value;
+                                product.setSupplier(i+"");
+                            }
+                        }
                         break;
                     case COLUMN_INDEX_EXPIRE_DATE:
-                        product.setExpireDate(new SimpleDateFormat("yyyy-MM-dd").parse(Utiliies.convertDoubleToLocalDate((double) getCellValue(cell)).toString()));
+                        if (getCellValue(cell) instanceof String) {
+                            stringBuilder.append("Kiểm tra ngày dòng: "+cell.getRowIndex()+"\n");
+                        } else {
+                            product.setExpireDate(new SimpleDateFormat("yyyy-MM-dd").parse(Utiliies.convertDoubleToLocalDate((double) getCellValue(cell)).toString()));
+                        }
                         break;
                     case COLUMN_INDEX_AMOUNT:
-                        product.setInAmount(new BigDecimal((double) cellValue).intValue());
+                        try {
+                            product.setInAmount(new BigDecimal((Double) cellValue).intValue());
+                        } catch (Exception e) {
+                            stringBuilder.append("Kiểm tra số lượng dòng: "+cell.getRowIndex()+"\n");
+                        }
                         break;
 //                    case COLUMN_INDEX_TYPE_PRODUCT:
 //                        product.setType((String) getCellValue(cell));
 //                        break;
                     case COLUMN_INDEX_PRICE:
-                        product.setPrice((double) getCellValue(cell));
+                        try{
+                            product.setPrice((Double) getCellValue(cell));
+                        } catch (Exception e) {
+                            stringBuilder.append("Kiểm tra giá tiền dòng: "+cell.getRowIndex()+"\n");
+                        }
                         break;
                     default:
                         break;
                 }
 
             }
-            listImportFileExcelList.add(product);
+            if (amountOfNull != 1) {
+                listImportFileExcelList.add(product);
+            }
         }
 
         workbook.close();
         inputStream.close();
-
-        return listImportFileExcelList;
+        GetIFileExcelStatus getIFileExcelStatus = new GetIFileExcelStatus();
+        if (stringBuilder.length() < 1) {
+            getIFileExcelStatus.setList(listImportFileExcelList);
+        } else {
+            getIFileExcelStatus.setList(new ArrayList<>());
+            getIFileExcelStatus.setMessage(stringBuilder.toString());
+        }
+        return getIFileExcelStatus;
     }
 
     // Get Workbook
@@ -144,4 +200,6 @@ public class ImportExcel {
 
         return cellValue;
     }
+
+
 }

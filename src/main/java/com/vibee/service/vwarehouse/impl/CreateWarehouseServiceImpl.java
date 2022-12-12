@@ -131,7 +131,7 @@ public class CreateWarehouseServiceImpl implements CreateWarehouseService {
         String filePath=Utiliies.getFilePath(fileName);
         List<GetImportFileExcel> products=new ArrayList<>();
         try {
-            products=this.importExcel.readExcel(filePath);
+            products=this.importExcel.readExcel(filePath).getList();
         } catch (IOException e) {
             log.error("read file fail detail error:{}",e);
             response.getStatus().setStatus(Status.Fail);
