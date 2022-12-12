@@ -6,6 +6,7 @@ import com.vibee.model.response.BaseResponse;
 import com.vibee.model.response.category.SelectionTypeProductItems;
 import com.vibee.model.response.product.CreateProductResponse;
 import com.vibee.model.response.product.ShowProductByBarcodeResponse;
+import com.vibee.model.response.v_import.EditImportWarehouse;
 import com.vibee.model.response.v_import.ImportWarehouseItemsResponse;
 import com.vibee.service.vemployee.ITypeProductService;
 import com.vibee.service.vimport.IImportSuppierService;
@@ -64,8 +65,12 @@ public class ImportController {
     public ImportWarehouseItemsResponse doneImport(@RequestBody List<ImportWarehouseInfor> data ){
         return this.importSupplierService.done(data);
     }
+    @PostMapping("/update-import/{key}/{redisId}")
+    public BaseResponse update(@RequestBody ImportInWarehouse request,@PathVariable(name = "key") int key, @PathVariable(name = "redisId") String redisId){
+        return this.importSupplierService.update(request, key, redisId);
+    }
     @GetMapping("/edit-import/{key}/{redisId}")
-    public  ImportInWarehouse edit(@PathVariable(name = "key") int key, @PathVariable(name = "redisId") String redisId, @RequestParam(name = "language") String language){
+    public EditImportWarehouse edit(@PathVariable(name = "key") int key, @PathVariable(name = "redisId") String redisId, @RequestParam(name = "language") String language){
         return this.importSupplierService.edit(key, redisId, language);
     }
 }

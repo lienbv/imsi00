@@ -1,0 +1,23 @@
+package com.vibee.model.response.debit;
+
+import com.vibee.model.response.BaseResponse;
+import lombok.Data;
+
+import java.math.BigDecimal;
+import java.util.List;
+
+
+@Data
+public class DebitDetailResponse extends BaseResponse {
+    private String fullName;
+    private String phoneNumber;
+    private BigDecimal totalAmountOwed;
+    private String creatorPayer;
+    private int billId;
+    private String address;
+    private int typeOfDebtor;
+    private String expectedDateOfPaymentOfDebt;
+    private List<GetDetailBill> debitItems;
+    private int idDebit;
+
+}

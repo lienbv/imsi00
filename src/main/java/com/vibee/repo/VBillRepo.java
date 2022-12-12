@@ -36,4 +36,5 @@ public interface VBillRepo extends JpaSpecificationExecutor<VBill>, JpaRepositor
 
     @Query("select o from VBill o where o.status = ?1 and o.createdDate between ?2 and ?3")
     List<VBill> findBillBy7Days(int status, Date startDate, Date endDate);
+    VBill findById(int idBill);
 }

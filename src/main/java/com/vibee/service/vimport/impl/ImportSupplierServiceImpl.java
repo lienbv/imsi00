@@ -21,6 +21,7 @@ import com.vibee.model.response.product.ShowProductByBarcodeResponse;
 import com.vibee.model.response.redis.*;
 import com.vibee.model.response.supplier.ListSupplier;
 import com.vibee.model.response.supplier.SupplierResponse;
+import com.vibee.model.response.v_import.EditImportWarehouse;
 import com.vibee.model.response.v_import.ImportWarehouseItemsResponse;
 import com.vibee.model.response.v_import.ListImportInWarehouseRedis;
 import com.vibee.model.response.v_import.ListImportWarehouseInforResponse;
@@ -103,7 +104,7 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
         importInWarehouse.setCreator(creator);
         importInWarehouse.setDescription(description);
         try {
-            importInWarehouse.setRangeDates(this.modifyDateLayout(rangeDates));
+            importInWarehouse.setRangeDates(DataUtils.modifyDateLayout(rangeDates));
         } catch (ParseException e) {
             throw new RuntimeException(e);
         }
@@ -120,16 +121,11 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
         return response;
 
     }
-    private String modifyDateLayout(String inputDate) throws ParseException{
-
-        Date date = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US).parse(inputDate);
-        return new SimpleDateFormat("dd/MM/yyyy").format(date);
-    }
     @Override
-    public BaseResponse update(ImportInWarehouse request, String redisId, String key){
+    public BaseResponse update(ImportInWarehouse request, int key, String redisId){
         BaseResponse response = new BaseResponse();
 
-        ImportInWarehouseRedis importInWarehouse = this.importRedisRepo.get(key, redisId);
+        ImportInWarehouseRedis importInWarehouse = this.importRedisRepo.get(String.valueOf(key), redisId);
 
         String creator = "lienpt";
         String barcode = request.getBarCode();
@@ -161,7 +157,7 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
         importInWarehouse.setCreator(creator);
         importInWarehouse.setDescription(description);
         try {
-            importInWarehouse.setRangeDates(this.modifyDateLayout(rangeDates));
+            importInWarehouse.setRangeDates(DataUtils.modifyDateLayout(rangeDates));
         } catch (ParseException e) {
             throw new RuntimeException(e);
         }
@@ -178,11 +174,12 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
         return response;
     }
     @Override
-    public ImportInWarehouse edit(int key, String redisId, String language){
+    public EditImportWarehouse edit(int key, String redisId, String language){
         List<ImportWarehouseInfor> data = new ArrayList<>();
         ImportInWarehouseRedis importInWarehouseRedis = this.importRedisRepo.get(String.valueOf(key), redisId);
 
-            ImportInWarehouse infor = new ImportInWarehouse();
+            EditImportWarehouse infor = new EditImportWarehouse();
+            infor.setId(redisId);
             infor.setNameProd(importInWarehouseRedis.getProductName());
             infor.setBarCode(importInWarehouseRedis.getBarcode());
             infor.setDescription(importInWarehouseRedis.getDescription());
@@ -289,11 +286,12 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
                 vProduct.setStatus(1);
                 vProduct.setProductType(infor.getTypeProductId());
                 vProduct = this.vProductRepo.save(vProduct);
+                response.setProductCode(vProduct.getBarCode());
 
                 VWarehouse  vWarehouse = this.vWarehouseRepo.findByProductId(vProduct.getId());
                 if(vWarehouse !=null){
                     vWarehouse.setId(vWarehouse.getId());
-                    vWarehouse.setProductId(vWarehouse.getProductId());
+                    vWarehouse.setProductId(vProduct.getId());
                     vWarehouse.setCreator(infor.getCreator());
                     Double inPrice = infor.getInPrice().doubleValue();
                     Double oldPrice = vWarehouse.getInPrice().doubleValue();
@@ -332,6 +330,8 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
                 vImport.setUpdatedDate(new Date());
                 vImport.setSupplierId(infor.getSupplierId());
                 vImport.setSupplierName(infor.getSupplierName());
+                vImport.setUnitId(infor.getUnitId());
+
                 Date date = null;
                 try {
                     date = new SimpleDateFormat("dd/MM/yyyy")
@@ -360,7 +360,6 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
                 response.setImportId(vImport.getId());
                 response.setRangeDate(vImport.getExpiredDate());
                 response.setUnitName(infor.getUnit());
-                response.setProductCode(vProduct.getBarCode());
                 response.setAmount(vWarehouse.getInAmount().intValue());
                 response.setQrCode(vImport.getProductCode());
                 response.setInPrice(vWarehouse.getInPrice());
@@ -431,7 +430,7 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
                 response.setImportId(vImport.getId());
                 response.setRangeDate(vImport.getExpiredDate());
                 response.setUnitName(infor.getUnit());
-                response.setProductCode(vProduct.getBarCode());
+                response.setProductCode(vProductNew.getBarCode());
                 response.setAmount(vWarehouseNew.getInAmount().intValue());
                 response.setQrCode(vImport.getProductCode());
                 response.setInPrice(vWarehouseNew.getInPrice());

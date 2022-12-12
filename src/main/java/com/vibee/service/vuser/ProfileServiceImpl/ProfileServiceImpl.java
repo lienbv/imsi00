@@ -27,8 +27,7 @@ import java.util.*;
 @Log4j2
 public class ProfileServiceImpl implements IprofileService {
     private final VUserRepo userRepo;
-    //    @Autowired
-//    private BCryptPasswordEncoder bCryptPasswordEncoder;
+
     @Autowired
     MailServiceImpl mailService;
 
@@ -40,7 +39,7 @@ public class ProfileServiceImpl implements IprofileService {
     @Override
     public ProfileResponse profile() {
         log.info("ProfileServiceImpl :: Start");
-//        String username =SecurityUtil.getPrincipal().getUsername();
+
         String username = "lienpt";
         ProfileResponse response = new ProfileResponse();
         String language = "";
@@ -75,11 +74,10 @@ public class ProfileServiceImpl implements IprofileService {
         String fullname = request.getFullname();
         String cccd = request.getCccd();
         String address = request.getAddress();
-        String numberPhone = request.getNumberPhone();
+        String numberPhone = request.getPhoneNumber();
         String email = request.getEmail();
 
-        VUser crtuser = new VUser();
-        crtuser = userRepo.findByUsername(username);
+        VUser crtuser  = userRepo.findByUsername(username);
 
         if (bindingResult.hasErrors()) {
             response.getStatus().setMessage(MessageUtils.get(language, bindingResult.getAllErrors().get(0).getDefaultMessage()));
