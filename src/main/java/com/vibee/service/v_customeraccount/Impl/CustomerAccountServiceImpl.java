@@ -205,7 +205,7 @@ public class CustomerAccountServiceImpl implements CustomerAccountService {
         log.info("CustomerService-UnlockAndLockAccount :: Start");
         BaseResponse response = new BaseResponse();
 
-        VUser customer = userRepo.findById(id).get();
+        VUser customer = userRepo.findById(id);
         if (customer == null) {
             response.getStatus().setMessage(MessageUtils.get(language,"msg.username.delete"));
             response.getStatus().setStatus(Status.Fail);

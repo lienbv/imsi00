@@ -16,7 +16,7 @@ import java.util.Date;
 @Data
 @Entity
 @Table(name = "V_PAY")
-public class Pay implements Serializable {
+public class VPay implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID")
