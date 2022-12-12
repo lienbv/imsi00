@@ -12,7 +12,12 @@ import java.util.List;
 @Data
 public class StatisticAdminResponse extends BaseResponse {
     private BigDecimal totalPriceOfDay;
-    private BigDecimal interestRate;
+    private BigDecimal interestRateOfDay;
+    private String statusTotalPriceOfDay;
+    private String statusInterestRateOfDay;
+
+    private float percentTotalPriceOfDay;
+    private float percentInterestRateOfDay;
 
     private Date startDate;
     private Date endDate;
@@ -20,8 +25,8 @@ public class StatisticAdminResponse extends BaseResponse {
     //private BigDecimal sales;
     private List<StatisticBill> statisticOfDay;
 
-    private int block_product;
-    private int sold_out;
+    private long block_product;
+    private long sold_out;
 
     private int sumOrderUnConfimred;
     private int sumOrderPacking;
@@ -32,7 +37,7 @@ public class StatisticAdminResponse extends BaseResponse {
         super();
     }
 
-    public StatisticAdminResponse(int block_product, int sold_out){
+    public StatisticAdminResponse(long block_product, long sold_out){
         this.block_product = block_product;
         this.sold_out = sold_out;
     }
