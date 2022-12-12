@@ -25,7 +25,7 @@ public interface VImportRepo extends JpaSpecificationExecutor<VImport>,JpaReposi
             "join v_warehouse on v_import.warehouse_id=v_warehouse.id  where v_warehouse.product_id= ?1 group by v_import.id order by v_import.created_date desc limit 2",nativeQuery = true)
     List<Object> getReportEst(int productId);
 
-    @Query("DELETE from import i WHERE i.warehouseId= (SELECT w.id FROM warehouse w WHERE w.productId= :productId)")
+    @Query("DELETE import i WHERE i.warehouseId= (SELECT w.id FROM warehouse w WHERE w.productId= :productId)")
     int deleteByProductId(@Param("productId") int id);
 
     @Query(value = "SELECT Import.ID as id, Import.name_supplier as nameSupplier, (Import.inventory/v_unit.amount) as inventory, Import.ID_UNIT as unitId, " +
@@ -51,6 +51,10 @@ public interface VImportRepo extends JpaSpecificationExecutor<VImport>,JpaReposi
 
     @Query("SELECT CASE WHEN COUNT(i)>0 THEN TRUE ELSE FALSE END FROM import i WHERE i.status=1 AND i.productCode= :productCode")
     Boolean isExistProductByProductCode(@Param("productCode") String productCode);
+
+    @Query("select o from import o where o.productCode = :productCode")
+    VImport findByProductCode(@Param("productCode") String productCode);
+
 
     @Query( value = "SELECT u.id as unit, u.unitName as unitName" +
             "FROM import i JOIN warehouse w ON w.id=i.warehouseId " +

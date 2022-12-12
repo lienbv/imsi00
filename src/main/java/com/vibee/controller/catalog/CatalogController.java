@@ -10,7 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/vibee/api/v1/auth")
+@RequestMapping("/vibee/api/v1/catalog")
 @CrossOrigin("*")
 public class CatalogController {
     private final UnitService unitService;
