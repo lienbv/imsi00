@@ -7,7 +7,7 @@ import com.vibee.model.request.product.*;
 import com.vibee.model.response.BaseResponse;
 import com.vibee.model.response.product.*;
 import com.vibee.service.vproduct.CloseProductService;
-import com.vibee.service.vproduct.CreateProductService;
+import com.vibee.service.vproduct.SaveProductService;
 import com.vibee.service.vproduct.GetProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.BindingResult;
@@ -22,14 +22,14 @@ import javax.validation.Valid;
 public class ProductController {
 
     private final GetProductService getProductService;
-    private final CreateProductService createProductService;
+    private final SaveProductService saveProductService;
     private final CloseProductService closeProductService;
     @Autowired
     public ProductController(GetProductService getProductService,
-                             CreateProductService createProductService,
+                             SaveProductService saveProductService,
                              CloseProductService closeProductService){
         this.getProductService=getProductService;
-        this.createProductService=createProductService;
+        this.saveProductService=saveProductService;
         this.closeProductService=closeProductService;
     }
     @GetMapping("/view-stall")
@@ -55,22 +55,22 @@ public class ProductController {
 
     @GetMapping("/create/info")
     public InfoCreateProductResponse info(@RequestParam(name = "language") String languageReq) {
-        return this.createProductService.info(languageReq);
+        return this.saveProductService.info(languageReq);
     }
 
     @GetMapping("/selected/{id}/{cartCode}")
     public SelectedProductResponse selectProduct(@PathVariable("id") String productId, @PathVariable("cartCode") String cartCode, @RequestParam(name = "language") String languageReq) {
-        return this.createProductService.selectProduct(productId,cartCode,languageReq);
+        return this.saveProductService.selectProduct(productId,cartCode,languageReq);
     }
 
     @PostMapping("/create")
     public CreateProductResponse CreateProduct(@RequestBody CreateProductRequest request) {
-        return this.createProductService.create(request);
+        return this.saveProductService.create(request);
     }
 
     @PostMapping("/create/upload")
     public CreateProductResponse createProduct(@RequestParam("file") MultipartFile file, @RequestParam("language") String language){
-        return this.createProductService.upload(file,language);
+        return this.saveProductService.upload(file,language);
     }
 
     @PostMapping("/lock")
@@ -94,15 +94,29 @@ public class ProductController {
     }
     @PostMapping("/deleteCart/{cartCode}")
     public BaseResponse deleteCartCode(@PathVariable("cartCode") String cartCode, @RequestParam(name = "language") String languageReq) {
-        return this.createProductService.deleteCart(cartCode,languageReq);
+        return this.saveProductService.deleteCart(cartCode,languageReq);
     }
     @PostMapping("/updateCart/{cartCode}")
     public CreateProduct updateCart(@RequestBody Update request,@PathVariable("cartCode") String cartCode) {
-        return this.createProductService.updateCart(request,cartCode);
+        return this.saveProductService.updateCart(request,cartCode);
     }
     @GetMapping("/online")
     public GetHomeSellOnlineResponse selectProduct(@RequestParam(name = "language") String language){
         return this.getProductService.selectProduct(language);
     }
 
+    @GetMapping("/update/info/{id}")
+    public InfoUpdateProductResponse infoUpdate(@PathVariable("id") int id, @RequestParam(name = "language") String languageReq) {
+        return this.getProductService.infoUpdate(id, languageReq);
+    }
+
+    @PostMapping("/update")
+    public UpdateProductResponse updateProduct(@RequestBody UpdateProductRequest request, @Valid BindingResult result) {
+        return this.saveProductService.UpdateProduct(request, result);
+    }
+
+    @PostMapping("/update/upload/{id}")
+    public UpdateProductResponse updateProduct(@RequestParam("file") MultipartFile file,@PathVariable("id") int id,@RequestParam("language") String language){
+        return this.saveProductService.updateUpload(file,id,language);
+    }
 }

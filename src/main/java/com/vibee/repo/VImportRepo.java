@@ -32,8 +32,8 @@ public interface VImportRepo extends JpaSpecificationExecutor<VImport>,JpaReposi
             "Import.img as img FROM v_v_import JOIN v_unit ON v_unit.id=v_v_import.id_unit WHERE v_v_import.status = 1 AND v_v_import.id_product = ?1",nativeQuery = true)
     List<ViewStallObject> viewStall(int productId);
 
-    @Query(value="SELECT v_v_import.created_date FROM v_v_import WHERE v_v_import.id_product= ?1 ORDER BY v_v_import.created_date DESC LIMIT 1",nativeQuery = true)
-    Date getCreatedDateByProductId( int productId);
+    @Query(value="SELECT v_import.CREATED_DATE FROM v_import WHERE v_import.WAREHOUSE_ID= ?1 ORDER BY v_import.CREATED_DATE DESC LIMIT 1",nativeQuery = true)
+    Date getCreatedDateByProductId( int warehouseId);
 
     @Query("SELECT i.supplierName FROM import i WHERE i.warehouseId= (SELECT w.id FROM warehouse w WHERE w.productId= :productId)")
     List<String> getSupplierNamesByProductId(@Param("productId") int productId);

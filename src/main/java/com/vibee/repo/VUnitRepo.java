@@ -62,4 +62,7 @@ public interface VUnitRepo extends JpaRepository<VUnit, Integer>{
 
     @Query(value="SELECT * FROM v_unit u JOIN v_import i ON i.ID_UNIT=u.id JOIN v_warehouse w ON w.id=i.WAREHOUSE_ID JOIN v_product p ON p.id = w.PRODUCT_ID WHERE u.status=1 AND p.BAR_CODE = ?1 ORDER BY i.CREATED_DATE DESC LIMIT 1", nativeQuery = true)
     VUnit getUnitByBarCode(String barcode);
+
+    @Query("SELECT u.unitName FROM unit u where u.id = :id")
+    String getUnitNameByUnitId (@Param("id") int unitId);
 }

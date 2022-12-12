@@ -59,7 +59,7 @@ public interface VProductRepo extends JpaSpecificationExecutor<VProduct>,JpaRepo
     @Query("SELECT count(p) FROM product p WHERE p.productName like :productName%")
     long countProduct(String productName);
 
-    @Query(value = "SELECT v_product.id,v_product.created_date,v_user.fullname,v_product.status,v_product.bar_code,v_product.description,v_type_product.name, sum(v_warehouse.in_amount) as inAmount, sum(v_export.out_amount/v_unit.amount) as outAmount,v_product.img,v_product.name_product\n" +
+    @Query(value = "SELECT v_product.created_date,v_user.fullname,v_product.status,v_product.bar_code,v_product.description,v_type_product.name,v_product.img,v_product.name_product\n" +
             "from v_product join v_type_product on v_type_product.id=v_product.type_product \n" +
             "join v_warehouse on v_warehouse.id_product=v_product.id join v_export on v_export.id_warehouse=v_warehouse.id join v_unit on v_unit.id=export.id_unit join v_user on v_user.id=v_product.creator where v_product.id= ?1 group by v_product.id", nativeQuery = true)
     Object findProductById( int id);
@@ -96,6 +96,9 @@ public interface VProductRepo extends JpaSpecificationExecutor<VProduct>,JpaRepo
     @Query(value = "select p.BAR_CODE as barCode,  i.EXPIRED_DATE as expiredDate from v_product p join v_warehouse w on p.ID = w.PRODUCT_ID \n" +
             "join v_import i on i.WAREHOUSE_ID = w.ID where p.BAR_CODE =?1", nativeQuery = true)
     List<ImportInWarehouseObject>findByBarcodeAndRangeDate(String barCode);
+
+    @Query("SELECT p FROM product p WHERE p.id= :id")
+    VProduct getProduct(@Param("id") int id);
 
 
 }

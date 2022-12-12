@@ -12,4 +12,6 @@ public interface GetProductService {
     DetailProductResponse detail(int productId, String language);
     GetHomeSellOnlineResponse selectProduct(String language);
 
+    InfoUpdateProductResponse infoUpdate(int idProd,String language);
+
 }

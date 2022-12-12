@@ -49,4 +49,7 @@ public interface VUserRepo extends JpaRepository<VUser, Integer> {
     @Query("select u from user u join userRole ur on u.id = ur.userId where u.status = :status and ur.roleId = 2 and u.fullname like :fullname")
     public List<VUser> getCustomerByNames(@Param("status") int status,@Param("fullname") String fullname);
 
+    @Query("SELECT u.fullname FROM user u WHERE u.username= :username")
+    String findFullNameByUsername(@Param("username") String username);
+
 }
