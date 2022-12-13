@@ -9,7 +9,7 @@ import com.vibee.service.vstatisticadmin.StatisticAdminService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-@RequestMapping("/vibee/api/v1/admins/statistic")
+@RequestMapping("/vibee/api/v1/statistic")
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 @RestController
 public class AdminStatisticController {
