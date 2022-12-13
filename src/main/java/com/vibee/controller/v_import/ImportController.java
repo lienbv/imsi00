@@ -1,6 +1,7 @@
 package com.vibee.controller.v_import;
 
 import com.vibee.model.info.ImportWarehouseInfor;
+import com.vibee.model.item.UnitItem;
 import com.vibee.model.request.v_import.ImportInWarehouse;
 import com.vibee.model.response.BaseResponse;
 import com.vibee.model.response.category.SelectionTypeProductItems;
@@ -17,7 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 @RestController
-@RequestMapping("/vibee/api/v1/auth")
+@RequestMapping("/vibee/api/v1/auth/import-warehouse")
 @CrossOrigin("*")
 public class ImportController {
     private final IImportSuppierService importSupplierService;
@@ -72,5 +73,9 @@ public class ImportController {
     @GetMapping("/edit-import/{key}/{redisId}")
     public EditImportWarehouse edit(@PathVariable(name = "key") int key, @PathVariable(name = "redisId") String redisId, @RequestParam(name = "language") String language){
         return this.importSupplierService.edit(key, redisId, language);
+    }
+    @GetMapping("/unitId-parent/{parent}")
+    public List<UnitItem> getAllSelectUnitByIdParent(@PathVariable(name = "parent") int parent, @RequestParam(name = "language") String language){
+        return this.importSupplierService.getAllSelectUnitByIdParent(parent, language);
     }
 }

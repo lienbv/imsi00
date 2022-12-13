@@ -39,13 +39,11 @@ public interface VUnitRepo extends JpaRepository<VUnit, Integer>{
 
     List<VUnit> findByParentIdAndStatus(int parent, int status);
 
+    List<VUnit> findByParentId(int parent);
+
     @Query(value = "select max(v.id) from v_unit v where v.PARENT_ID =?1 and v.status=?2", nativeQuery = true)
     int  getMaxIdByParenId(int parent, int status);
 
-
-//
-
-    //
     @Query("SELECT u FROM unit u WHERE u.parentId=0")
     Page<VUnit> getAllUnitParents(Pageable pageable);
 
