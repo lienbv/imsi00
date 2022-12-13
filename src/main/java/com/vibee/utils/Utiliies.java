@@ -55,18 +55,22 @@ public class Utiliies {
         if (language.equals("vi")) {
             switch (status) {
                 case 1:
-                    return "đang hoạt động";
+                    return "Còn hợp tác";
                 case 2:
-                    return "không hoạt động";
+                    return "Ngừng hợp tác";
+                case 3:
+                    return "Đã xóa";
                 default:
                     return "không biết";
             }
         }else {
             switch (status) {
                 case 1:
-                    return "Active";
+                    return "co-operate";
                 case 2:
-                    return "Inactive";
+                    return "stop cooperating";
+                case 3:
+                    return "Deleted";
                 default:
                     return "no information";
             }

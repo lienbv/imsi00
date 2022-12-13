@@ -41,6 +41,7 @@ public interface VUnitRepo extends JpaRepository<VUnit, Integer>{
 
 //    @Query("select max(u.amount) from unit u where u.parentId = :unitId or u.id= :unitId and v.status=1")
 //    int getMaxIdByParenId(@Param("parentId") int parent);
+    List<VUnit> findByParentId(int parent);
 
     @Query(value = "select u.id from v_unit u where u.PARENT_ID = ?1 or u.id= ?2 and u.status=1 order by u.amount desc limit 1", nativeQuery = true)
     int getMaxIdByParenId(int parentId,int unitId);

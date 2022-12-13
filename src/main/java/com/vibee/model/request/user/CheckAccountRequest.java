@@ -9,5 +9,5 @@ public class CheckAccountRequest extends BaseRequest {
     private  String cccd;
     private  String numberPhone;
     private  String email;
-    private  int idUserRoles;
+    private  int idUser;
 }
