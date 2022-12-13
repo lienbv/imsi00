@@ -45,12 +45,20 @@ public class SupplierController {
         return supService.UpdateSup(request, bindingResult,language);
     }
 
+    @GetMapping(value = "/lock-unlock")
+    public DeleteSuplierResponse lockAndUnlockSup(@RequestParam(value = "language", defaultValue = "") String language,
+                                           @RequestParam(value = "id") int id) {
+        DeleteSuplierResponse response = supService.lockAnhUnLock(language, id);
+        return response;
+    }
+
     @GetMapping(value = "/delete")
     public DeleteSuplierResponse deleteSup(@RequestParam(value = "language", defaultValue = "") String language,
                                            @RequestParam(value = "id") int id) {
-        DeleteSuplierResponse response = supService.deleteSup(language, id);
+        DeleteSuplierResponse response = supService.delete(language, id);
         return response;
     }
+
     @GetMapping(value = "/display")
     public ListSupplierResponse DisplaySupplier(@RequestParam(value = "status", defaultValue = "1") int status,
                                                 @RequestParam(value = "nameSearch", defaultValue = "") String nameSup,

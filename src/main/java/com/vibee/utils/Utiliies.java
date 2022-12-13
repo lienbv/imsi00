@@ -58,6 +58,8 @@ public class Utiliies {
                     return "đang hoạt động";
                 case 2:
                     return "không hoạt động";
+                case 3:
+                    return "Đã xóa";
                 default:
                     return "không biết";
             }
@@ -67,6 +69,8 @@ public class Utiliies {
                     return "Active";
                 case 2:
                     return "Inactive";
+                case 3:
+                    return "Deleted";
                 default:
                     return "no information";
             }
