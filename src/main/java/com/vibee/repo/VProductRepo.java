@@ -84,6 +84,7 @@ public interface VProductRepo extends JpaSpecificationExecutor<VProduct>,JpaRepo
     @Query("SELECT SUM(p.status) FROM product p WHERE p.status = 2")
     public long sumReportSoldOutProduct();
 
+    @Query("SELECT p FROM product p order by p.createdDate desc")
     public List<VProduct> findTop6ByOrderByCreatedDateDesc();
 
     VProduct findByBarCodeAndStatusOrStatus(String barcode, int status_1, int status_2);

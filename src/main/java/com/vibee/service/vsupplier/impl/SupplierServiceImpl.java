@@ -182,27 +182,18 @@ public class SupplierServiceImpl implements SupplierService {
 
     @Override
     public DeleteSuplierResponse deleteSup(String language, int id) {
-        log.info("DeleteUserService :: Start");
         DeleteSuplierResponse response = new DeleteSuplierResponse();
-        List<VSupplier> supplierList = supplierRepo.findAll();
-
-//		String language = request.getLanguage();
-//		int id = request.getId();
-
-        for (VSupplier sup : supplierList) {
-            if (sup.getId() == id && sup.getStatus() != 2) {
-                VSupplier crtsup = new VSupplier();
-                crtsup = supplierRepo.findById(id).get();
-                supplierRepo.updateStatusSupplier(crtsup.getId());
-                response.getStatus().setMessage(MessageUtils.get(language, "msg.delete.supplier.success"));
-                response.getStatus().setStatus(Status.Success);
-//                System.out.println("??????");
-                return response;
-            }
+        log.info("DeleteUserService :: Start");
+        VSupplier vSupplier = supplierRepo.getById(id);
+        if (vSupplier.getStatus() == 2) {
+            vSupplier.setStatus(1);
+            supplierRepo.save(vSupplier);
+        } else {
+            vSupplier.setStatus(2);
+            supplierRepo.save(vSupplier);
         }
-
-        response.getStatus().setMessage(MessageUtils.get(language, "msg.delete.supplier.failse"));
-        response.getStatus().setStatus(Status.Fail);
+        response.getStatus().setMessage(MessageUtils.get(language, "msg.delete.supplier.success"));
+        response.getStatus().setStatus(Status.Success);
         log.info("DeleteUserService :: End");
         return response;
     }
@@ -241,10 +232,18 @@ public class SupplierServiceImpl implements SupplierService {
                 pageable = PageRequest.of(pageNumber, size, Sort.by(Sort.Direction.DESC, typeFilter.get(i)));
             }
         }
-
-        List<VSupplier> supplierList = supplierRepo.findBySuppliers("%" + nameSup + "%", pageable);
-        List<VSupplier> suppliers = supplierRepo.findBySuppliers("%" + nameSup + "%");
+        List<VSupplier> supplierList = new ArrayList<>();
+        List<VSupplier> suppliers = new ArrayList<>();
         List<VSupplier> suppliersActive = supplierRepo.findBySuppliers("%" + nameSup + "%", 1);
+        if (status == 0) {
+            supplierList = supplierRepo.findBySuppliers("%" + nameSup + "%", pageable);
+            suppliers = supplierRepo.findBySuppliers("%" + nameSup + "%");
+        } else {
+            supplierList = supplierRepo.findBySuppliers(status,"%" + nameSup + "%", pageable);
+            suppliers = supplierRepo.findBySuppliers(status,"%" + nameSup + "%");
+        }
+
+
         List<SupplierItem> supplierItems = new ArrayList<>();
         for (VSupplier supplier: supplierList) {
             SupplierItem item = new SupplierItem();
