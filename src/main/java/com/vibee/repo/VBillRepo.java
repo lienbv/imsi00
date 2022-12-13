@@ -31,8 +31,8 @@ public interface VBillRepo extends JpaSpecificationExecutor<VBill>, JpaRepositor
     @Query("select sum(b.price) from VBill b where b.createdDate between ?1 and ?2 and b.status = 5")
     Optional<Long> findByTotalPriceOfBills(Date startDay, Date endDay);
 
-    @Query("select sum(ip.inMoney) * sum(vdb.amount) from VBill vb join VDetailBill vdb on vb.id = vdb.id join import ip on ip.id = vdb.importId where vb.createdDate between ?1 and ?2 and vb.status = 5 group by ip.warehouseId")
-    List<Long> getInterestRateOfDay(Date startDay, Date endDay);
+    @Query("select ip.inMoney * sum(vdb.amount) from VBill vb join VDetailBill vdb on vb.id = vdb.id join import ip on ip.id = vdb.importId where vb.createdDate between ?1 and ?2 and vb.status = 5 group by ip.warehouseId")
+    List<Optional<Long>> getInterestRateOfDay(Date startDay, Date endDay);
 
     @Query("select o from VBill o where o.status = ?1 and o.createdDate between ?2 and ?3")
     List<VBill> findBillBy7Days(int status, Date startDate, Date endDate);

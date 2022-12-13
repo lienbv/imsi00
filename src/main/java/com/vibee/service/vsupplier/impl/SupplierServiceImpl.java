@@ -57,12 +57,12 @@ public class SupplierServiceImpl implements SupplierService {
         }
 
         for (VSupplier sup : supplierList) {
-            if (sup.getEmail().equals(email)) {
+            if (sup.getEmail().equals(email) && sup.getStatus() != 3) {
                 response.getStatus().setMessage(MessageUtils.get(language, "msg.email.already.exist"));
                 response.getStatus().setStatus(Status.Fail);
                 return response;
             }
-            if (sup.getNumberPhone().equals(numberPhone)) {
+            if (sup.getNumberPhone().equals(numberPhone)  && sup.getStatus() != 3) {
                 response.getStatus().setMessage(MessageUtils.get(language, "msg.phone.already.exist"));
                 response.getStatus().setStatus(Status.Fail);
                 return response;
@@ -143,7 +143,7 @@ public class SupplierServiceImpl implements SupplierService {
         if(crtsup != null) {
             for (VSupplier sup : supplierList) {
                 // Check email đã tồn tại trong list
-                if (!crtsup.getEmail().equals(sup.getEmail())) {
+                if (!crtsup.getEmail().equals(sup.getEmail())  && sup.getStatus() != 3) {
                     if (sup.getEmail().equals(email)) {
                         response.getStatus().setMessage(MessageUtils.get(language, "msg.exit.email"));
                         response.getStatus().setStatus(Status.Fail);
@@ -151,7 +151,7 @@ public class SupplierServiceImpl implements SupplierService {
                     }
                 }
                 // Check SĐT đã tồn tại trong list
-                if (!crtsup.getNumberPhone().equals(sup.getNumberPhone())) {
+                if (!crtsup.getNumberPhone().equals(sup.getNumberPhone())  && sup.getStatus() != 3) {
                     if (sup.getNumberPhone().equals(numberPhone)) {
                         response.getStatus().setMessage(MessageUtils.get(language, "msg.exit.phoneNumber"));
                         response.getStatus().setStatus(Status.Fail);
@@ -181,30 +181,34 @@ public class SupplierServiceImpl implements SupplierService {
     }
 
     @Override
-    public DeleteSuplierResponse deleteSup(String language, int id) {
-        log.info("DeleteUserService :: Start");
+    public DeleteSuplierResponse lockAnhUnLock(String language, int id) {
         DeleteSuplierResponse response = new DeleteSuplierResponse();
-        List<VSupplier> supplierList = supplierRepo.findAll();
-
-//		String language = request.getLanguage();
-//		int id = request.getId();
-
-        for (VSupplier sup : supplierList) {
-            if (sup.getId() == id && sup.getStatus() != 2) {
-                VSupplier crtsup = new VSupplier();
-                crtsup = supplierRepo.findById(id).get();
-                supplierRepo.updateStatusSupplier(crtsup.getId());
-                response.getStatus().setMessage(MessageUtils.get(language, "msg.delete.supplier.success"));
-                response.getStatus().setStatus(Status.Success);
-//                System.out.println("??????");
-                return response;
-            }
+        log.info("DeleteUserService :: Start");
+        VSupplier vSupplier = supplierRepo.getById(id);
+        if (vSupplier.getStatus() == 2) {
+            vSupplier.setStatus(1);
+            supplierRepo.save(vSupplier);
+        } else {
+            vSupplier.setStatus(2);
+            supplierRepo.save(vSupplier);
         }
-
-        response.getStatus().setMessage(MessageUtils.get(language, "msg.delete.supplier.failse"));
-        response.getStatus().setStatus(Status.Fail);
+        response.getStatus().setMessage(MessageUtils.get(language, "msg.delete.supplier.success"));
+        response.getStatus().setStatus(Status.Success);
         log.info("DeleteUserService :: End");
         return response;
+    }
+
+    @Override
+    public DeleteSuplierResponse delete(String language, int id) {
+        log.info("DeleteUserService :: Start");
+        DeleteSuplierResponse response = new DeleteSuplierResponse();
+        VSupplier vSupplier = supplierRepo.getById(id);
+        vSupplier.setStatus(3);
+        supplierRepo.save(vSupplier);
+        response.getStatus().setMessage(MessageUtils.get(language, "msg.delete.supplier.success"));
+        response.getStatus().setStatus(Status.Success);
+        log.info("DeleteUserService :: End");
+        return null;
     }
 
     private final static String ASC = "asc";
@@ -241,10 +245,18 @@ public class SupplierServiceImpl implements SupplierService {
                 pageable = PageRequest.of(pageNumber, size, Sort.by(Sort.Direction.DESC, typeFilter.get(i)));
             }
         }
-
-        List<VSupplier> supplierList = supplierRepo.findBySuppliers("%" + nameSup + "%", pageable);
-        List<VSupplier> suppliers = supplierRepo.findBySuppliers("%" + nameSup + "%");
+        List<VSupplier> supplierList = new ArrayList<>();
+        List<VSupplier> suppliers = new ArrayList<>();
         List<VSupplier> suppliersActive = supplierRepo.findBySuppliers("%" + nameSup + "%", 1);
+        if (status == 0) {
+            supplierList = supplierRepo.findBySuppliers("%" + nameSup + "%", pageable);
+            suppliers = supplierRepo.findBySuppliers("%" + nameSup + "%");
+        } else {
+            supplierList = supplierRepo.findBySuppliers(status,"%" + nameSup + "%", pageable);
+            suppliers = supplierRepo.findBySuppliers(status,"%" + nameSup + "%");
+        }
+
+
         List<SupplierItem> supplierItems = new ArrayList<>();
         for (VSupplier supplier: supplierList) {
             SupplierItem item = new SupplierItem();
