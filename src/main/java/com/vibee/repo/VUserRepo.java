@@ -16,6 +16,8 @@ public interface VUserRepo extends JpaRepository<VUser, Integer> {
     VUser findByUsername(String user);
     VUser findByEmail(String email);
     VUser findByCccd(String cccd);
+
+    int countByStatus(int status);
     @Query("SELECT u.id FROM user u WHERE u.username= :username")
     int findUserIdByUsername(@Param("username") String username);
     VUser findByUsernameAndEmail(String username, String email);
@@ -43,9 +45,12 @@ public interface VUserRepo extends JpaRepository<VUser, Integer> {
     @Query("select u from user u join userRole ur on u.id = ur.userId where u.status = :status and ur.roleId = 2 and u.fullname like :fullname")
      List<VUser> getCustomerByNames(@Param("status") int status,@Param("fullname") String fullname);
 
-    Page<VUser> findByFullname(String number, Pageable pageable);
+    Page<VUser> findByFullnameLikeAndStatusOrStatus(String name, int status_1, int status_2, Pageable pageable);
 
     VUser findByNumberPhone(String phone);
     VUser findById(int id);
+
+    Page<VUser> findByStatusOrStatus(int status_1, int status_2, Pageable pageable);
+
 
 }

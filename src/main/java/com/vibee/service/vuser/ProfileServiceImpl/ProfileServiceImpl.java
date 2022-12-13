@@ -74,7 +74,7 @@ public class ProfileServiceImpl implements IprofileService {
         String fullname = request.getFullname();
         String cccd = request.getCccd();
         String address = request.getAddress();
-        String numberPhone = request.getPhoneNumber();
+        String numberPhone = request.getNumberPhone();
         String email = request.getEmail();
 
         VUser crtuser  = userRepo.findByUsername(username);

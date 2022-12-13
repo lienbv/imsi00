@@ -1,10 +1,8 @@
 package com.vibee.controller.user;
 import com.vibee.model.request.user.CheckAccountRequest;
-import com.vibee.model.request.user.EditAccountRequest;
 import com.vibee.model.request.user.UpdateAccountRequest;
 import com.vibee.model.request.v_unit.GetOrderByStringRequest;
 import com.vibee.model.request.vaccountemployee.CreateUserRequest;
-import com.vibee.model.request.vaccountemployee.IdUserRoleRequest;
 import com.vibee.model.response.BaseResponse;
 import com.vibee.model.response.user.CreateUserResponse;
 import com.vibee.model.response.user.GetUserItemsResponse;
@@ -32,22 +30,25 @@ public class AccountManagementController {
     @GetMapping (value = "/edit/{id}")
     public CreateUserResponse edit(@PathVariable(name = "id") int id,
                                    @RequestParam(name= "language",required = false, defaultValue = "") String language) {
-        EditAccountRequest request = new EditAccountRequest();
-        request.setIdUserRoles(id);
-        return iUserService.edit(request,language);
+        return iUserService.edit(id,language);
     }
 
     @PostMapping  (value = "/update")
     public CreateUserResponse updateUser(@Valid @RequestBody UpdateAccountRequest request, BindingResult bindingResult) {
         return iUserService.updateAccount(request, bindingResult);
     }
-    @PostMapping (value = "/delete")
-    public BaseResponse deleteUser(@Valid @RequestBody IdUserRoleRequest request) {
-        return iUserService.deleteAccount(request);
+    @PostMapping (value = "/delete/{id}")
+    public BaseResponse deleteUser(@PathVariable("id") int id, @RequestParam(name= "language",required = false, defaultValue = "") String language) {
+        return iUserService.deleteAccount(id, language);
     }
-    @PostMapping (value = "/unlock")
-    public BaseResponse unlock(@Valid @RequestBody IdUserRoleRequest request) {
-        BaseResponse response = iUserService.unlockAccount(request);
+    @PostMapping (value = "/unlock/{id}")
+    public BaseResponse unlock(@PathVariable("id") int id, @RequestParam(name= "language",required = false, defaultValue = "") String language) {
+        BaseResponse response = iUserService.unlockAccount(id, language);
+        return response;
+    }
+    @PostMapping (value = "/lock/{id}")
+    public BaseResponse lock(@PathVariable("id") int id, @RequestParam(name= "language",required = false, defaultValue = "") String language) {
+        BaseResponse response = iUserService.lockAccount(id, language);
         return response;
     }
     @GetMapping (value = "/getAll-user")

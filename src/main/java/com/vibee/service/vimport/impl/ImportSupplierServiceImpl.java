@@ -57,7 +57,7 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
     @Autowired
     public ImportSupplierServiceImpl(VSupplierRepo vSupplierRepo, VProductRepo vProductRepo,
                                      VTypeProductRepo vTypeProductRepo, VUnitRepo vUnitRepo, VFileUploadRepo fileUploadRepo,
-                                      VImportRepo vImportRepo, ImportRedisRepo importRedisRepo,
+                                     VImportRepo vImportRepo, ImportRedisRepo importRedisRepo,
                                      VWarehouseRepo vWarehouseRepo, VExportRepo vExportRepo) {
         this.vSupplierRepo = vSupplierRepo;
         this.vProductRepo = vProductRepo;
@@ -178,21 +178,21 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
         List<ImportWarehouseInfor> data = new ArrayList<>();
         ImportInWarehouseRedis importInWarehouseRedis = this.importRedisRepo.get(String.valueOf(key), redisId);
 
-            EditImportWarehouse infor = new EditImportWarehouse();
-            infor.setId(redisId);
-            infor.setNameProd(importInWarehouseRedis.getProductName());
-            infor.setBarCode(importInWarehouseRedis.getBarcode());
-            infor.setDescription(importInWarehouseRedis.getDescription());
-            infor.setUnits(importInWarehouseRedis.getExportsItems());
-            infor.setCategoryId(importInWarehouseRedis.getTypeProductId());
-            infor.setInPrice(importInWarehouseRedis.getInPrice());
-            infor.setDescription(importInWarehouseRedis.getDescription());
-            infor.setUnitId(importInWarehouseRedis.getUnitId());
-            infor.setSupplierId(importInWarehouseRedis.getSupplierId());
-            infor.setFileId(importInWarehouseRedis.getProductFile());
-            infor.setSupplierName(importInWarehouseRedis.getSupplierName());
-            infor.setRangeDates(importInWarehouseRedis.getRangeDates());
-            infor.setUnit(importInWarehouseRedis.getUnit());
+        EditImportWarehouse infor = new EditImportWarehouse();
+        infor.setId(redisId);
+        infor.setNameProd(importInWarehouseRedis.getProductName());
+        infor.setBarCode(importInWarehouseRedis.getBarcode());
+        infor.setDescription(importInWarehouseRedis.getDescription());
+        infor.setUnits(importInWarehouseRedis.getExportsItems());
+        infor.setCategoryId(importInWarehouseRedis.getTypeProductId());
+        infor.setInPrice(importInWarehouseRedis.getInPrice());
+        infor.setDescription(importInWarehouseRedis.getDescription());
+        infor.setUnitId(importInWarehouseRedis.getUnitId());
+        infor.setSupplierId(importInWarehouseRedis.getSupplierId());
+        infor.setFileId(importInWarehouseRedis.getProductFile());
+        infor.setSupplierName(importInWarehouseRedis.getSupplierName());
+        infor.setRangeDates(importInWarehouseRedis.getRangeDates());
+        infor.setUnit(importInWarehouseRedis.getUnit());
 
         return infor;
     }
@@ -291,7 +291,7 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
                 VWarehouse  vWarehouse = this.vWarehouseRepo.findByProductId(vProduct.getId());
                 if(vWarehouse !=null){
                     vWarehouse.setId(vWarehouse.getId());
-                    vWarehouse.setProductId(vProduct.getId());
+                    vWarehouse.setProductId(vWarehouse.getProductId());
                     vWarehouse.setCreator(infor.getCreator());
                     Double inPrice = infor.getInPrice().doubleValue();
                     Double oldPrice = vWarehouse.getInPrice().doubleValue();
@@ -526,20 +526,20 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
         return response;
     }
 
-    public SelectionTypeProductItemsResponse getAllSelectUnitByIdParent(int parent, String language) {
+    public List<UnitItem> getAllSelectUnitByIdParent(int parent, String language) {
 
-        SelectionTypeProductItemsResponse response = new SelectionTypeProductItemsResponse();
-        List<SelectionTypeProductItems> list = new ArrayList<>();
-        List<VUnit> vUnits = this.vUnitRepo.findByParentIdAndStatus(parent, 1);
+        List<UnitItem> response = new ArrayList<>();
+        List<VUnit> vUnits = this.vUnitRepo.findByParentId(parent);
 
         for (VUnit vUnit : vUnits) {
-            SelectionTypeProductItems selectionTypeProductItems = new SelectionTypeProductItems();
-            selectionTypeProductItems.setId(vUnit.getId());
-            selectionTypeProductItems.setName(vUnit.getUnitName());
-            selectionTypeProductItems.setParentId(vUnit.getParentId());
-            list.add(selectionTypeProductItems);
+            UnitItem unitItem = new UnitItem();
+            unitItem.setUnitName(vUnit.getUnitName());
+            unitItem.setUnitId(vUnit.getId());
+            unitItem.setAmount(vUnit.getAmount());
+            unitItem.setInPrice(BigDecimal.valueOf(0));
+            unitItem.setOutPrice(BigDecimal.valueOf(0));
+            response.add(unitItem);
         }
-        response.setData(list);
         return response;
     }
 
