@@ -10,7 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/vibee/api/v1/admins/unit")
+@RequestMapping("/vibee/api/v1/unit")
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 public class UnitController {
     private final UnitService unitService;

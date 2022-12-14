@@ -18,7 +18,7 @@ public interface VUnitRepo extends JpaRepository<VUnit, Integer>{
     @Query("SELECT u FROM unit u WHERE u.parentId= :unitId or u.id= :unitId AND u.status=1")
     List<VUnit> getAllUnitByParentId(@Param("unitId") int unitId);
 
-    @Query("SELECT u FROM unit u WHERE u.parentId=0")
+    @Query("SELECT u FROM unit u WHERE u.parentId=0 and u.status=1")
     List<VUnit> getAllUnitParents();
 
     @Query("SELECT u FROM unit u WHERE u.status=1")
@@ -44,16 +44,16 @@ public interface VUnitRepo extends JpaRepository<VUnit, Integer>{
     @Query(value = "select max(v.id) from v_unit v where v.PARENT_ID =?1 and v.status=?2", nativeQuery = true)
     int  getMaxIdByParenId(int parent, int status);
 
-    @Query("SELECT u FROM unit u WHERE u.parentId=0")
+    @Query("SELECT u FROM unit u WHERE u.parentId=0 and u.status = 1")
     Page<VUnit> getAllUnitParents(Pageable pageable);
 
-    @Query("select u from unit u where u.id in (select a.parentId from unit a where a.unitName like ?1) or (u.parentId = 0 and u.unitName like ?1)")
+    @Query("select u from unit u where u.id in (select a.parentId from unit a where a.unitName like ?1 and a.status = 1) or (u.parentId = 0 and u.unitName like ?1 and u.status = 1) and u.status = 1")
     Page<VUnit> findByUnitName(String name, Pageable pageable);
 
-    @Query("select u from unit u where u.id in (select a.parentId from unit a where a.unitName like ?1) or (u.parentId = 0 and u.unitName like ?1)")
+    @Query("select u from unit u where u.id in (select a.parentId from unit a where a.unitName like ?1 and a.status = 1) or (u.parentId = 0 and u.unitName like ?1 and u.status = 1) and u.status = 1")
     List<VUnit> findByUnitName(String name);
 
-    @Query("SELECT u FROM unit u WHERE u.parentId= :unitId order by u.amount asc ")
+    @Query("SELECT u FROM unit u WHERE u.parentId= :unitId and u.status = 1 order by u.amount asc ")
     List<VUnit> getUnitsByParentId(@Param("unitId") int unitId);
 
     @Query(value="SELECT u FROM unit u JOIN import i ON i.unitId=u.id JOIN warehhouse w ON w.id=i.warehouseId JOIN product p ON p.id = w.productId WHERE u.status=1 AND p.barcode = ?1 ORDER BY i.createdDate DESC LIMIT 1", nativeQuery = true)
