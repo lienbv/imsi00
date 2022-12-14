@@ -1,4 +1,4 @@
-package com.vibee.controller.staffstatistic;
+package com.vibee.controller.statistic;
 
 import com.vibee.model.response.BaseResponse;
 import com.vibee.model.response.staffstatistic.StaffStatisticResponse;
