@@ -119,4 +119,12 @@ public class ProductController {
     public UpdateProductResponse updateProduct(@RequestParam("file") MultipartFile file,@PathVariable("id") int id,@RequestParam("language") String language){
         return this.saveProductService.updateUpload(file,id,language);
     }
+
+    @GetMapping("/get-product-sell-online")
+    public SellOnlineResponse sellOnline(@RequestParam(name = "page-number") int pageNumberReq,
+                                         @RequestParam(name = "page-size") int pageSizeReq,
+                                         @RequestParam(name= "language") String languageReq,
+                                         @RequestParam(name = "search") String searchReq) {
+        return this.getProductService.sellOnline(languageReq, pageNumberReq, pageSizeReq, searchReq);
+    }
 }

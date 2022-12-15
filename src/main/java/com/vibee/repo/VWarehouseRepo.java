@@ -2,6 +2,7 @@ package com.vibee.repo;
 
 import com.vibee.entity.VWarehouse;
 import com.vibee.model.ObjectResponse.GetReportEstObject;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -17,4 +18,7 @@ public interface VWarehouseRepo extends JpaRepository<VWarehouse, Integer> {
     VWarehouse getWarehouseByImportId(@Param("importId") int importId);
     List<VWarehouse> findById(int id);
     VWarehouse findByProductId(int id);
+
+    @Query("SELECT w from warehouse w WHERE w.status=1")
+    List<VWarehouse> getAllWarehouse(Pageable pageable);
 }

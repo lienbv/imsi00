@@ -4,13 +4,16 @@ import com.vibee.entity.*;
 import com.vibee.model.Status;
 import com.vibee.model.item.GetProductItem;
 import com.vibee.model.item.GetTypeProductItem;
+import com.vibee.model.item.PageItem;
 import com.vibee.model.item.SelectExportItem;
 import com.vibee.model.request.product.GetProductRequest;
 import com.vibee.model.request.product.ViewStallRequest;
 import com.vibee.model.response.product.*;
 import com.vibee.model.ObjectResponse.ProductStallObject;
+import com.vibee.model.result.SellOnlineResult;
 import com.vibee.repo.*;
 import com.vibee.service.vproduct.GetProductService;
+import com.vibee.utils.CommonUtil;
 import com.vibee.utils.MessageUtils;
 import com.vibee.utils.ProductUtils;
 import com.vibee.utils.Utiliies;
@@ -171,7 +174,12 @@ public class GetProductServiceImpl implements GetProductService {
             item.setSupName((String) objects[6]);
             item.setStatusCode(statusCode);
             item.setStatusName(ProductUtils.getstatusname(statusCode, language));
-            item.setUnit((int) objects[7]);
+            int unitId = (int) objects[7];
+            if (unitId == 0) {
+                item.setUnit("");
+            } else {
+                item.setUnit(this.unitRepo.getUnitNameByUnitId(unitId));
+            }
             list.add(item);
         }
         return list;
@@ -273,6 +281,55 @@ public class GetProductServiceImpl implements GetProductService {
         response.setStatusName(ProductUtils.getstatusname(product.getStatus(),language));
         response.setStatusCode(product.getStatus());
         log.info("infoUpdateService :: End");
+        return response;
+    }
+
+    @Override
+    public SellOnlineResponse sellOnline(String language, int pageNumber, int pageSize, String search){
+        log.info("sellOnlineService :: Start");
+        SellOnlineResponse response=new SellOnlineResponse();
+        List<SellOnlineResult> sellOnlineResults=new ArrayList<>();
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        List<VProduct> products;
+        long totalPage;
+        if (CommonUtil.isEmptyOrNull(search)){
+            products=this.productRepo.searchProductByName(pageable);
+            totalPage=this.productRepo.countProduct();
+        }else {
+            products=this.productRepo.searchProductByName(search,pageable);
+            totalPage=this.productRepo.countProduct(search);
+        }
+
+        List<VWarehouse> warehouses=this.vWarehouseRepo.getAllWarehouse(pageable);
+        if (products == null) {
+            log.error("sellOnlineService :: warehouse not found");
+            response.getStatus().setStatus(Status.Fail);
+            response.getStatus().setMessage(MessageUtils.get(language, "msg.warehouse.not.found"));
+            return response;
+        }
+        for (VProduct product:products){
+            VWarehouse warehouse=this.vWarehouseRepo.findByProductId(product.getId());
+            VImport sellOnlineItems=this.importRepo.getImportByWarehouseId(warehouse.getId());
+            if(sellOnlineItems==null){
+                continue;
+            }
+            SellOnlineResult sellOnlineResult=new SellOnlineResult();
+            sellOnlineResult.setImportId(sellOnlineItems.getId());
+            sellOnlineResult.setProductCode(sellOnlineItems.getProductCode());
+            sellOnlineResult.setProductName(this.productRepo.getProduct(warehouse.getProductId()).getProductName());
+            sellOnlineResult.setProductQuantity(warehouse.getInAmount()-warehouse.getOutAmount());
+            sellOnlineResult.setProductImage(this.fileUploadRepo.getURLById(sellOnlineItems.getFileId()));
+            sellOnlineResults.add(sellOnlineResult);
+        }
+        PageItem pageItem = new PageItem();
+        pageItem.setPage(pageNumber);
+        pageItem.setPageSize(pageSize);
+        pageItem.setTotalItems(Math.toIntExact(totalPage));
+        pageItem.setTotalPages((int) Math.ceil((double) totalPage / pageSize));
+        response.setSellOnlineResults(sellOnlineResults);
+        response.getStatus().setStatus(Status.Success);
+        response.getStatus().setMessage("");
+        log.info("sellOnlineService :: End");
         return response;
     }
 

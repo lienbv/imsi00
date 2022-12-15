@@ -14,4 +14,5 @@ public interface GetProductService {
 
     InfoUpdateProductResponse infoUpdate(int idProd,String language);
 
+    SellOnlineResponse sellOnline(String language, int pageNumber, int pageSize, String search);
 }

@@ -56,8 +56,11 @@ public interface VProductRepo extends JpaSpecificationExecutor<VProduct>,JpaRepo
     @Query("select p.id,p.productName,p.status,p.fileId,w.inAmount-w.outAmount,w.outPrice-w.inPrice,p.supplierName , w.unitId,w.outPrice, w.inPrice from product p JOIN warehouse w ON w.productId=p.id where p.productName like :productName% ")
     List<Object> getProducts(@Param("productName") String search, Pageable pageable);
 
-    @Query("SELECT count(p) FROM product p WHERE p.productName like :productName%")
+    @Query("SELECT count(p) FROM product p WHERE p.productName like %:productName% AND p.status=1")
     long countProduct(String productName);
+
+    @Query("SELECT count(p) FROM product p WHERE p.status=1")
+    long countProduct();
 
     @Query(value = "SELECT v_product.created_date,v_user.fullname,v_product.status,v_product.bar_code,v_product.description,v_type_product.name,v_product.img,v_product.name_product\n" +
             "from v_product join v_type_product on v_type_product.id=v_product.type_product \n" +
@@ -101,5 +104,9 @@ public interface VProductRepo extends JpaSpecificationExecutor<VProduct>,JpaRepo
     @Query("SELECT p FROM product p WHERE p.id= :id")
     VProduct getProduct(@Param("id") int id);
 
+    @Query("SELECT p FROM product p WHERE p.status=1 AND p.productName LIKE %:productName%")
+    List<VProduct> searchProductByName(@Param("productName") String productName, Pageable pageable);
 
+    @Query("SELECT p FROM product p WHERE p.status=1")
+    List<VProduct> searchProductByName( Pageable pageable);
 }
