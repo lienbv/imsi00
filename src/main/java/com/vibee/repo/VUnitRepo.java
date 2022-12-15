@@ -18,7 +18,7 @@ public interface VUnitRepo extends JpaRepository<VUnit, Integer>{
     @Query("SELECT u FROM unit u WHERE u.parentId= :unitId or u.id= :unitId AND u.status=1")
     List<VUnit> getAllUnitByParentId(@Param("unitId") int unitId);
 
-    @Query("SELECT u FROM unit u WHERE u.parentId=0")
+    @Query("SELECT u FROM unit u WHERE u.parentId=0 and u.status=1")
     List<VUnit> getAllUnitParents();
 
     @Query("SELECT u FROM unit u WHERE u.status=1")
@@ -42,6 +42,7 @@ public interface VUnitRepo extends JpaRepository<VUnit, Integer>{
 //    @Query("select max(u.amount) from unit u where u.parentId = :unitId or u.id= :unitId and v.status=1")
 //    int getMaxIdByParenId(@Param("parentId") int parent);
     List<VUnit> findByParentId(int parent);
+    List<VUnit> findByParentIdOrIdAndStatus(int parent, int id, int status);
 
     @Query(value = "select u.id from v_unit u where u.PARENT_ID = ?1 or u.id= ?2 and u.status=1 order by u.amount desc limit 1", nativeQuery = true)
     int getMaxIdByParenId(int parentId,int unitId);
@@ -49,20 +50,23 @@ public interface VUnitRepo extends JpaRepository<VUnit, Integer>{
 //
 
     //
-    @Query("SELECT u FROM unit u WHERE u.parentId=0")
+    @Query("SELECT u FROM unit u WHERE u.parentId=0 and u.status = 1")
     Page<VUnit> getAllUnitParents(Pageable pageable);
 
-    @Query("select u from unit u where u.id in (select a.parentId from unit a where a.unitName like ?1) or (u.parentId = 0 and u.unitName like ?1)")
+    @Query("select u from unit u where u.id in (select a.parentId from unit a where a.unitName like ?1 and a.status = 1) or (u.parentId = 0 and u.unitName like ?1 and u.status = 1) and u.status = 1")
     Page<VUnit> findByUnitName(String name, Pageable pageable);
 
-    @Query("select u from unit u where u.id in (select a.parentId from unit a where a.unitName like ?1) or (u.parentId = 0 and u.unitName like ?1)")
+    @Query("select u from unit u where u.id in (select a.parentId from unit a where a.unitName like ?1 and a.status = 1) or (u.parentId = 0 and u.unitName like ?1 and u.status = 1) and u.status = 1")
     List<VUnit> findByUnitName(String name);
 
-    @Query("SELECT u FROM unit u WHERE u.parentId= :unitId order by u.amount asc ")
+    @Query("SELECT u FROM unit u WHERE u.parentId= :unitId and u.status = 1 order by u.amount asc ")
     List<VUnit> getUnitsByParentId(@Param("unitId") int unitId);
 
     @Query(value="SELECT * FROM v_unit u JOIN v_import i ON i.ID_UNIT=u.id JOIN v_warehouse w ON w.id=i.WAREHOUSE_ID JOIN v_product p ON p.id = w.PRODUCT_ID WHERE u.status=1 AND p.BAR_CODE = ?1 ORDER BY i.CREATED_DATE DESC LIMIT 1", nativeQuery = true)
     VUnit getUnitByBarCode(String barcode);
+
+    @Query(value = "SELECT * FROM vibee.v_unit v where v.PARENT_ID= ?1 or v.ID = ?2 order by v.AMOUNT desc limit 1 ", nativeQuery = true)
+    VUnit getByIdChild(int parent, int id);
 
     @Query("SELECT u.unitName FROM unit u where u.id = :id")
     String getUnitNameByUnitId (@Param("id") int unitId);

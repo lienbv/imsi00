@@ -90,6 +90,7 @@ public interface VProductRepo extends JpaSpecificationExecutor<VProduct>,JpaRepo
     @Query("SELECT p FROM product p order by p.createdDate desc")
     public List<VProduct> findTop6ByOrderByCreatedDateDesc();
 
+    VProduct findByBarCodeAndStatus(String barcode, int status_1);
 //    VProduct findByBarCodeAndStatusOrStatus(String barcode, int status_1, int status_2);
 @Query("SELECT p FROM product p WHERE p.barCode= :barcode AND p.status= :status or p.status= :active")
     VProduct findByBarCodeAndStatusOrStatus(@Param("barcode") String barcode,@Param("status") int status_1,@Param("active") int status_2);

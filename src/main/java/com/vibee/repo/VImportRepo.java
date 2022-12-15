@@ -1,6 +1,8 @@
 package com.vibee.repo;
 
+import com.groupdocs.signature.internal.a.va;
 import com.vibee.entity.VImport;
+import com.vibee.entity.VUnit;
 import com.vibee.model.ObjectResponse.GetCharWarehouseObject;
 import com.vibee.model.ObjectResponse.GetExportsObject;
 import com.vibee.model.ObjectResponse.GetWarehousesObject;
@@ -63,4 +65,7 @@ public interface VImportRepo extends JpaSpecificationExecutor<VImport>,JpaReposi
 
     @Query(value = "SELECT * FROM v_import WHERE v_import.status=1 AND v_import.warehouse_id= ?1 ORDER BY v_import.EXPIRED_DATE DESC LIMIT 1",nativeQuery = true)
     VImport getImportByWarehouseId(int warehouseId);
+    @Query(value = "select * from v_import v where v.WAREHOUSE_ID = ?1 order by v.UPDATE_DATE desc limit 1", nativeQuery = true)
+    VImport getVImportBy(int warehouse);
+
 }

@@ -16,5 +16,6 @@ public class CreateUserResponse extends BaseResponse {
     private String cccd;
     private int idUser;
     private String address;
+    private String password;
 
 }

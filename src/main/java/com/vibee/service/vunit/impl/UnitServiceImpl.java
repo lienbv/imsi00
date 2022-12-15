@@ -131,6 +131,7 @@ public class UnitServiceImpl implements UnitService {
         unit.setDescription(request.getDescription());
         unit.setParentId(request.getParentId());
         unit.setCreatedDate(new Date());
+        unit.setStatus(1);
         //unit.setCreator();
         VUnit save = unitRepo.save(unit);
         if (save.getParentId() == 0) {
@@ -170,10 +171,15 @@ public class UnitServiceImpl implements UnitService {
     @Override
     public BaseResponse delete(int id) {
         log.info("UnitService-delete :: Start");
+        BaseResponse response = new BaseResponse();
         VUnit unit = unitRepo.findById(id);
-        unitRepo.delete(unit);
+//        unitRepo.delete(unit);
+        unit.setStatus(2);
+        unitRepo.save(unit);
+        response.getStatus().setMessage(MessageUtils.get("","msg.success"));
+        response.getStatus().setStatus(Status.Success);
         log.info("UnitService-delete :: End");
-        return null;
+        return response;
     }
 
     @Override
@@ -191,7 +197,9 @@ public class UnitServiceImpl implements UnitService {
             item.setParentId(request.getIdParent());
             unitRepo.save(item);
         }
-        unitRepo.deleteById(request.getIdDelete());
+        unitParent.setStatus(2);
+        unitRepo.save(unitParent);
+//        unitRepo.deleteById(request.getIdDelete());
         response.getStatus().setMessage(MessageUtils.get("","msg.success"));
         response.getStatus().setStatus(Status.Success);
         log.info("UnitService-deleteUnitParent :: End");
