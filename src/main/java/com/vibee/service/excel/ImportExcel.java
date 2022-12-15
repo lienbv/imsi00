@@ -57,13 +57,11 @@ public class ImportExcel {
 
             // Read cells and set value for book object
             GetImportFileExcel product = new GetImportFileExcel();
-            int amountOfNull = 0;
             while (cellIterator.hasNext()) {
                 //Read cell
                 Cell cell = cellIterator.next();
                 Object cellValue = getCellValue(cell);
                 if (cellValue == null || cellValue.toString().isEmpty()) {
-                    amountOfNull++;
                     continue;
                 }
                 // Set value for book object
@@ -77,8 +75,8 @@ public class ImportExcel {
                                 boolean value = (Boolean) getCellValue(cell);
                                 product.setNameProduct(value+"");
                             } else if (getCellValue(cell) instanceof Double) {
-                                double value = (Double) getCellValue(cell);
-                                int i = (int) value;
+                                double value = (double) getCellValue(cell);
+                                BigDecimal i = new BigDecimal(value);
                                 product.setNameProduct(i+"");
                             }
                         }
@@ -91,8 +89,8 @@ public class ImportExcel {
                                 boolean value = (Boolean) getCellValue(cell);
                                 product.setBarcode(value+"");
                             } else if (getCellValue(cell) instanceof Double) {
-                                double value = (Double) getCellValue(cell);
-                                int i = (int) value;
+                                double value = (double) getCellValue(cell);
+                                BigDecimal i = new BigDecimal(value);
                                 product.setBarcode(i+"");
                             }
                         }
@@ -106,8 +104,8 @@ public class ImportExcel {
                                 product.setSupplier(value+"");
                             } else if (getCellValue(cell) instanceof Double) {
                                 double value = (Double) getCellValue(cell);
-                                int i = (int) value;
-                                product.setSupplier(i+"");
+//                                int i = (int) value;
+                                product.setSupplier(value+"");
                             }
                         }
                         break;
@@ -130,7 +128,7 @@ public class ImportExcel {
 //                        break;
                     case COLUMN_INDEX_PRICE:
                         try{
-                            product.setPrice((Double) getCellValue(cell));
+                            product.setPrice(new BigDecimal((Double) getCellValue(cell)));
                         } catch (Exception e) {
                             stringBuilder.append("Kiểm tra giá tiền dòng: "+cell.getRowIndex()+"\n");
                         }
@@ -140,7 +138,7 @@ public class ImportExcel {
                 }
 
             }
-            if (amountOfNull != 1) {
+            if (product.getNameProduct() != null && product.getPrice() != null && product.getInAmount() != 0 && product.getSupplier() != null && product.getBarcode() != null && product.getExpireDate() != null) {
                 listImportFileExcelList.add(product);
             }
         }

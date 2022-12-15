@@ -2,6 +2,7 @@ package com.vibee.model.result;
 
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.util.Date;
 
 @Setter
@@ -16,5 +17,5 @@ public class GetImportFileExcel {
     private Date expireDate;
     private int inAmount;
 //    private String type;
-    private double price;
+    private BigDecimal price;
 }
