@@ -60,4 +60,10 @@ public interface VImportRepo extends JpaSpecificationExecutor<VImport>,JpaReposi
             "FROM import i JOIN warehouse w ON w.id=i.warehouseId " +
             "JOIN product p ON p.id=w.productId JOIN unit u ON u.id=i.unitId WHERE p.barCode = :barCode AND e.status=1 ORDER BY i.id DESC LIMIT 1", nativeQuery = true)
     GetExportsObject getUnitImportByBarCode(@Param("barCode") String barCode);
+
+    @Query("select count(o) from import o where o.supplierId = ?1")
+    int getAmountImportsOfSupplier(int id);
+
+    @Query("select o from import o where o.supplierId = ?1")
+    List<VImport> getImportsOfSupplier(int id);
 }

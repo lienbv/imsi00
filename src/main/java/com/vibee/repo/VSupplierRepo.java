@@ -43,6 +43,8 @@ public interface VSupplierRepo extends JpaSpecificationExecutor<VSupplier>,JpaRe
     String findbyid(@Param("supplierId") int id);
     List<VSupplier> findByStatus(int status);
 
+    List<VSupplier> findByStatus(int status, Pageable pageable);
+
     @Query("select s.id from supplier s ")
     List<String> findById();
     VSupplier findByIdAndStatus(int id, int status);
