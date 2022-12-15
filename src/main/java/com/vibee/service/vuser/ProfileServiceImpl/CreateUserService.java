@@ -17,11 +17,9 @@ import com.vibee.repo.VUserRoleRepo;
 import com.vibee.service.vuser.IUserService;
 import com.vibee.utils.MessageUtils;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.BindingResult;
 
@@ -33,11 +31,11 @@ import java.util.List;
 @Log4j2
 @Service
 public class CreateUserService implements IUserService {
+
     private final VUserRepo userRepo;
     private final VRoleRepo vRoleRepo;
     private final VUserRoleRepo vUserRoleRepo;
 
-    @Autowired
     public CreateUserService(VUserRepo userRepo, VRoleRepo vRoleRepo, VUserRoleRepo vUserRoleRepo) {
         this.userRepo = userRepo;
         this.vRoleRepo = vRoleRepo;
@@ -138,10 +136,10 @@ public class CreateUserService implements IUserService {
         response.setEmail(vUser.getEmail());
         response.setAddress(vUser.getAddress());
         response.setCccd(vUser.getCccd());
+        response.setPassword(vUser.getPassword());
         return response;
 
     }
-
     @Override
     public CreateUserResponse updateAccount(UpdateAccountRequest request, BindingResult bindingResult) {
         log.info("UpdateUserService :: Start");
@@ -153,8 +151,8 @@ public class CreateUserService implements IUserService {
         String cccd = request.getCccd();
         String address = request.getAddress();
         String numberPhone = request.getNumberPhone();
+        String password = request.getPassword();
         String email = request.getEmail();
-
         VUser vUser = this.userRepo.findById(request.getIdUser());
 
         if (bindingResult.hasErrors()) {
@@ -178,14 +176,6 @@ public class CreateUserService implements IUserService {
                         response.getStatus().setStatus(Status.Fail);
                         return response;
                     }
-                }
-                if (request.getUsername() != null) {
-                    if (users.getId() != vUser.getId()) {
-                        response.getStatus().setMessage(MessageUtils.get(language, "msg.username.exist"));
-                        response.getStatus().setStatus("username");
-                        return response;
-                    }
-
                 }
                 if (cccd.equals(users.getCccd())) {
                     if (users.getId() != vUser.getId()) {
@@ -211,6 +201,7 @@ public class CreateUserService implements IUserService {
             vUser.setNumberPhone(numberPhone);
             vUser.setCccd(cccd);
             vUser.setAddress(address);
+            vUser.setPassword(password);
 
             vUser = this.userRepo.save(vUser);
 
@@ -219,6 +210,7 @@ public class CreateUserService implements IUserService {
             response.setPhoneNumber(vUser.getNumberPhone());
             response.setAddress(vUser.getAddress());
             response.setUsername(vUser.getUsername());
+            response.setPassword(vUser.getPassword());
             response.setEmail(vUser.getEmail());
             response.getStatus().setMessage(MessageUtils.get(language, "msg.update.success"));
             response.getStatus().setStatus(Status.Success);
@@ -243,7 +235,7 @@ public class CreateUserService implements IUserService {
             response.getStatus().setStatus(Status.Fail);
             return response;
         }
-        if (vUser.getStatus() == 1 || vUser.getStatus() == 2) {
+        if (vUser.getStatus() == 2 || vUser.getStatus() == 2) {
             response.getStatus().setMessage(MessageUtils.get(language, "msg.delete.failse"));
             response.getStatus().setStatus(Status.Fail);
             return response;
@@ -263,42 +255,41 @@ public class CreateUserService implements IUserService {
         VUser vUser = userRepo.findById(id);
 
         if (vUser == null) {
-            response.getStatus().setMessage(MessageUtils.get(language, "msg.unLock.failse"));
+            response.getStatus().setMessage(MessageUtils.get(language, "msg.delete.failse"));
             response.getStatus().setStatus(Status.Fail);
             return response;
         }
-        if (vUser.getStatus() == 1 ) {
-            response.getStatus().setMessage(MessageUtils.get(language, "msg.unLock.failse"));
+        if (vUser.getStatus() == 2 || vUser.getStatus() == 2) {
+            response.getStatus().setMessage(MessageUtils.get(language, "msg.delete.failse"));
             response.getStatus().setStatus(Status.Fail);
             return response;
         }
         vUser.setStatus(1);
         this.userRepo.save(vUser);
-        response.getStatus().setMessage(MessageUtils.get(language, "msg.unLock.success"));
+        response.getStatus().setMessage(MessageUtils.get(language, "msg.delete.success"));
         response.getStatus().setStatus(Status.Success);
         return response;
     }
     public BaseResponse lockAccount(int id, String language) {
-        log.info("LockUserService :: Start");
+        log.info("UnlockUserService :: Start");
 
         BaseResponse response = new BaseResponse();
         VUser vUser = userRepo.findById(id);
 
         if (vUser == null) {
-            response.getStatus().setMessage(MessageUtils.get(language, "msg.lock.failse"));
+            response.getStatus().setMessage(MessageUtils.get(language, "msg.delete.failse"));
             response.getStatus().setStatus(Status.Fail);
             return response;
         }
-        if (vUser.getStatus() == 2 ) {
-            response.getStatus().setMessage(MessageUtils.get(language, "msg.lock.failse"));
+        if (vUser.getStatus() == 2 || vUser.getStatus() == 2) {
+            response.getStatus().setMessage(MessageUtils.get(language, "msg.delete.failse"));
             response.getStatus().setStatus(Status.Fail);
             return response;
         }
         vUser.setStatus(2);
         this.userRepo.save(vUser);
-        response.getStatus().setMessage(MessageUtils.get(language, "msg.lock.success"));
+        response.getStatus().setMessage(MessageUtils.get(language, "msg.delete.success"));
         response.getStatus().setStatus(Status.Success);
-        log.info("LockUserService :: End");
         return response;
     }
 
@@ -313,15 +304,15 @@ public class CreateUserService implements IUserService {
         int totalPage = 0;
 
         Page<VUser> findAll=null;
-            if (searchText.equals("") || searchText == null) {
-                Pageable pageable = PageRequest.of(pageNumber, pageSize);
-                findAll = this.userRepo.findByStatusOrStatus(1, 2,pageable);
-                totalPage = findAll.getTotalPages();
-            } else {
-                Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by("status"));
-                findAll = this.userRepo.findByFullnameLikeAndStatusOrStatus("%"+searchText + "%",1,2, pageable);
-                totalPage = findAll.getTotalPages();
-            }
+        if (searchText.equals("") || searchText == null) {
+            Pageable pageable = PageRequest.of(pageNumber, pageSize);
+            findAll = this.userRepo.findByStatusOrStatus(1, 2,pageable);
+            totalPage = findAll.getTotalPages();
+        } else {
+            Pageable pageable = PageRequest.of(pageNumber, pageSize);
+            findAll = this.userRepo.findByFullnameLikeAndStatusOrStatus("%"+searchText + "%",1,2, pageable);
+            totalPage = findAll.getTotalPages();
+        }
         List<UserItems> userItems = new ArrayList<>();
         for (VUser user : findAll.getContent()) {
             UserItems userItem = new UserItems();
@@ -347,6 +338,7 @@ public class CreateUserService implements IUserService {
         return response;
     }
 
+
     private List<UserItems> convertUser(List<VUser> request, String language) {
         List<UserItems> userItems = new ArrayList<>();
         int status = 0;
@@ -369,11 +361,11 @@ public class CreateUserService implements IUserService {
     public String convertStatus(int status, String language) {
         switch (status) {
             case 1:
-                return "Active";
+                return MessageUtils.get(language, "msg.active");
             case 2:
-                return "Inactive";
+                return MessageUtils.get(language, "msg.inactive");
             case 3:
-                return "Not Exits";
+                return MessageUtils.get(language, "msg.noExits");
             default:
                 return "không biết";
         }

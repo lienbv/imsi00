@@ -156,8 +156,16 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
         importInWarehouse.setUnitId(unitId);
         importInWarehouse.setCreator(creator);
         importInWarehouse.setDescription(description);
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+//        String date = null;
+//        try {
+//            date = new SimpleDateFormat("dd/MM/yyyy")
+//                    .format(importInWarehouse.getRangeDates());
+//        } catch (Exception e) {
+//            throw new RuntimeException(e);
+//        }
         try {
-            importInWarehouse.setRangeDates(DataUtils.modifyDateLayout(rangeDates));
+            importInWarehouse.setRangeDates(DataUtils.modifyDateLayoutUpdate(rangeDates));
         } catch (ParseException e) {
             throw new RuntimeException(e);
         }
@@ -167,7 +175,7 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
         importInWarehouse.setProductFile(fileProduct);
         importInWarehouse.setStatus(1);
 
-        this.importRedisRepo.update(String.valueOf(supplierId), importInWarehouse);
+        this.importRedisRepo.update(String.valueOf(supplierId), redisId, importInWarehouse);
 
         response.getStatus().setStatus(Status.Success);
         response.getStatus().setMessage(MessageUtils.get(language, "msg.upload.success"));
@@ -230,6 +238,7 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
             infor.setSupplierName(importInWarehouseRedis.getSupplierName());
             infor.setRangeDate(importInWarehouseRedis.getRangeDates());
             infor.setUnit(importInWarehouseRedis.getUnit());
+            infor.setInAmount(importInWarehouseRedis.getInAmount());
             data.add(infor);
         }
         return data;
@@ -529,7 +538,7 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
     public List<UnitItem> getAllSelectUnitByIdParent(int parent, String language) {
 
         List<UnitItem> response = new ArrayList<>();
-        List<VUnit> vUnits = this.vUnitRepo.findByParentId(parent);
+        List<VUnit> vUnits = this.vUnitRepo.findByParentIdOrIdAndStatus(parent, parent, 1);
 
         for (VUnit vUnit : vUnits) {
             UnitItem unitItem = new UnitItem();
