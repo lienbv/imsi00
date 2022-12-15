@@ -17,4 +17,6 @@ public interface VWarehouseRepo extends JpaRepository<VWarehouse, Integer> {
     VWarehouse getWarehouseByImportId(@Param("importId") int importId);
     List<VWarehouse> findById(int id);
     VWarehouse findByProductId(int id);
+    @Query(value = "SELECT * FROM vibee.v_warehouse w where w.PRODUCT_ID= ?1 order by w.MODIFIED_Date desc limit 1 ", nativeQuery = true)
+    VWarehouse getNumberOfEntries(int idProduct);
 }

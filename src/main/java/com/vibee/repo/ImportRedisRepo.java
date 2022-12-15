@@ -49,8 +49,8 @@ public class ImportRedisRepo {
 
 
 
-    public void update(String key, ImportInWarehouseRedis redis) {
-        this.redisTemplate.opsForHash().put(key, redis.getId(), redis);
+    public void update(String key, String redisId, ImportInWarehouseRedis redis) {
+        this.redisTemplate.opsForHash().put(key,redisId, redis);
         log.info(String.format("User with ID %s updated", redis.getId()));
     }
 

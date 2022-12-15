@@ -39,7 +39,7 @@ public interface VUnitRepo extends JpaRepository<VUnit, Integer>{
 
     List<VUnit> findByParentIdAndStatus(int parent, int status);
 
-    List<VUnit> findByParentId(int parent);
+    List<VUnit> findByParentIdOrIdAndStatus(int parent, int id, int status);
 
     @Query(value = "select max(v.id) from v_unit v where v.PARENT_ID =?1 and v.status=?2", nativeQuery = true)
     int  getMaxIdByParenId(int parent, int status);
@@ -58,4 +58,7 @@ public interface VUnitRepo extends JpaRepository<VUnit, Integer>{
 
     @Query(value="SELECT u FROM unit u JOIN import i ON i.unitId=u.id JOIN warehhouse w ON w.id=i.warehouseId JOIN product p ON p.id = w.productId WHERE u.status=1 AND p.barcode = ?1 ORDER BY i.createdDate DESC LIMIT 1", nativeQuery = true)
     VUnit getUnitByBarCode(String barcode);
+
+    @Query(value = "SELECT * FROM vibee.v_unit v where v.PARENT_ID= ?1 or v.ID = ?2 order by v.AMOUNT desc limit 1 ", nativeQuery = true)
+    VUnit getByIdChild(int parent, int id);
 }
