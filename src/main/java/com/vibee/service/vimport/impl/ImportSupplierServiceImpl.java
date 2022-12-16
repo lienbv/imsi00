@@ -295,6 +295,7 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
                 response.setProductCode(vProduct.getBarCode());
 
                 VWarehouse  vWarehouse = this.vWarehouseRepo.getNumberOfEntries(vProduct.getId());
+                VImport vImport1 = new VImport();
                 if(vWarehouse !=null){
                     vWarehouse.setId(vWarehouse.getId());
                     vWarehouse.setProductId(vWarehouse.getProductId());
@@ -311,6 +312,10 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
                     vWarehouse.setNumberOfEntries(vWarehouse.getNumberOfEntries() + 1);
                     vWarehouse = this.vWarehouseRepo.save(vWarehouse);
 
+                    vImport1  = this.vImportRepo.getVImportBy(vWarehouse.getId());
+                    vImport.setNumberOfEntries(vImport1.getNumberOfEntries()+1);
+
+
                 }else {
                     vWarehouse = new VWarehouse();
                     vWarehouse.setProductId(vProduct.getId());
@@ -324,11 +329,12 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
                     vWarehouse.setNumberOfEntries(1);
 
                     vWarehouse = this.vWarehouseRepo.save(vWarehouse);
+                    vImport.setNumberOfEntries(1);
+
                 }
 
                 uploadFile = this.fileUploadRepo.save(uploadFile);
 
-                vImport = this.vImportRepo.getVImportBy(vWarehouse.getId());
                 vImport.setWarehouseId(vWarehouse.getId());
                 vImport.setCreatedDate(new Date());
                 vImport.setStatus(1);
@@ -342,7 +348,6 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
                 vImport.setUnitId(infor.getUnitId());
                 vImport.setFileId(uploadFile.getId());
                 vImport.setUrlUpload(uploadFile.getFileName());
-                vImport.setNumberOfEntries(vImport.getNumberOfEntries()+1);
 
                 Date date = null;
                 try {
@@ -404,7 +409,6 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
 
                 vWarehouseNew = this.vWarehouseRepo.save(vWarehouseNew);
 
-                vImport = this.vImportRepo.getVImportBy(vWarehouseNew.getId());
                 vImport.setWarehouseId(vWarehouseNew.getId());
                 vImport.setCreatedDate(new Date());
                 vImport.setStatus(1);
