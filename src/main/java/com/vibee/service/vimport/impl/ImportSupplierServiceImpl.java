@@ -16,15 +16,11 @@ import com.vibee.model.request.v_import.ImportInWarehouse;
 import com.vibee.model.response.BaseResponse;
 import com.vibee.model.response.category.SelectionTypeProductItems;
 import com.vibee.model.response.category.SelectionTypeProductItemsResponse;
-import com.vibee.model.response.product.CreateProductResponse;
 import com.vibee.model.response.product.ShowProductByBarcodeResponse;
 import com.vibee.model.response.redis.*;
 import com.vibee.model.response.supplier.ListSupplier;
 import com.vibee.model.response.supplier.SupplierResponse;
-import com.vibee.model.response.v_import.EditImportWarehouse;
-import com.vibee.model.response.v_import.ImportWarehouseItemsResponse;
-import com.vibee.model.response.v_import.ListImportInWarehouseRedis;
-import com.vibee.model.response.v_import.ListImportWarehouseInforResponse;
+import com.vibee.model.response.v_import.*;
 import com.vibee.repo.*;
 import com.vibee.service.vimport.IImportSuppierService;
 import com.vibee.utils.DataUtils;
@@ -194,7 +190,6 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
 
     @Override
     public EditImportWarehouse edit(int key, String redisId, String language) {
-        List<ImportWarehouseInfor> data = new ArrayList<>();
         ImportInWarehouseRedis importInWarehouseRedis = this.importRedisRepo.get(String.valueOf(key), redisId);
 
         EditImportWarehouse infor = new EditImportWarehouse();
@@ -258,9 +253,9 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
     }
 
     @Override
-    public List<ImportWarehouseItemsResponse> done(List<ImportWarehouseInfor> data, String language) {
+    public ImportWarehouseItemsResponse done(List<ImportWarehouseInfor> data, String language) {
         ImportWarehouseItemsResponse response = new ImportWarehouseItemsResponse();
-        List<ImportWarehouseItemsResponse> listAll = new ArrayList<>();
+        List<ImportWarehouseItems> listAll = new ArrayList<>();
         for (ImportWarehouseInfor infor : data) {
             VWarehouse vWarehouseNew = new VWarehouse();
 
@@ -419,14 +414,6 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
                     this.vExportRepo.save(vExport);
 
                 }
-                response.setImportId(vImport.getId());
-                response.setRangeDate(vImport.getExpiredDate());
-                response.setUnitName(infor.getUnit());
-                response.setAmount(infor.getInAmount());
-                response.setQrCode(vImport.getProductCode());
-                response.setInPrice(infor.getInPrice());
-                listAll.add(response);
-
             } else {
 
                 VProduct vProductNew = new VProduct();
@@ -497,20 +484,24 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
                     vExport.setCreatedDate(new Date());
                     this.vExportRepo.save(vExport);
                 }
-                response.setImportId(vImport.getId());
-                response.setRangeDate(vImport.getExpiredDate());
-                response.setUnitName(infor.getUnit());
-                response.setProductCode(vProductNew.getBarCode());
-                response.setAmount(infor.getInAmount());
-                response.setQrCode(vImport.getProductCode());
-                response.setInPrice(infor.getInPrice());
+
+                for (ImportWarehouseItems item: response.getItems()){
+                    item.setImportId(vImport.getId());
+                    item.setRangeDate(vImport.getExpiredDate());
+                    item.setUnitName(infor.getUnit());
+                    item.setAmount(infor.getInAmount());
+                    item.setQrCode(vImport.getProductCode());
+                    item.setInPrice(infor.getInPrice());
+                    item.setProductName(infor.getProductName());
+                    listAll.add(item);
+                }
+                response.setItems(listAll);
                 response.getStatus().setStatus(Status.Success);
                 response.getStatus().setMessage(MessageUtils.get(language, "msg.done-import.success"));
-                listAll.add(response);
             }
             this.importRedisRepo.deleteAll(String.valueOf(infor.getSupplierId()));
         }
-        return listAll;
+        return response;
     }
 
     @Override
@@ -560,46 +551,6 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
         return response;
     }
 
-    public SupplierResponse getNameAllSupplier(int id) {
-        VSupplier vSupplier = this.vSupplierRepo.findByIdAndStatus(id, 1);
-        SupplierResponse response = new SupplierResponse();
-        response.setId(vSupplier.getId());
-        response.setName(vSupplier.getNameSup());
-        return response;
-    }
-
-    public ListSupplier getAllSupplier() {
-        ListSupplier responseList = new ListSupplier();
-        List<VSupplier> findByStatus = this.vSupplierRepo.findByStatus(1);
-        List<SupplierResponse> list = new ArrayList<>();
-
-        for (VSupplier vSupplier : findByStatus) {
-            SupplierResponse response = new SupplierResponse();
-            response.setId(vSupplier.getId());
-            response.setName(vSupplier.getNameSup());
-            list.add(response);
-        }
-        responseList.setItems(list);
-        return responseList;
-    }
-
-    public SelectionTypeProductItemsResponse getAllSelect(String language) {
-
-        SelectionTypeProductItemsResponse response = new SelectionTypeProductItemsResponse();
-        List<SelectionTypeProductItems> list = new ArrayList<>();
-        List<VUnit> vUnits = this.vUnitRepo.findByParentIdAndStatus(0, 1);
-
-        for (VUnit vUnit : vUnits) {
-            SelectionTypeProductItems selectionTypeProductItems = new SelectionTypeProductItems();
-            selectionTypeProductItems.setId(vUnit.getId());
-            selectionTypeProductItems.setName(vUnit.getUnitName());
-            selectionTypeProductItems.setParentId(vUnit.getParentId());
-            list.add(selectionTypeProductItems);
-        }
-        response.setData(list);
-        return response;
-    }
-
     public List<UnitItem> getAllSelectUnitByIdParent(int parent, String language) {
 
         List<UnitItem> response = new ArrayList<>();
@@ -614,16 +565,6 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
             unitItem.setOutPrice(BigDecimal.valueOf(0));
             response.add(unitItem);
         }
-        return response;
-    }
-
-    public UnitItemsResponse findByIdUnit(int id) {
-        UnitItemsResponse response = new UnitItemsResponse();
-        VUnit vUnit = this.vUnitRepo.findById(id);
-        response.setAmount(vUnit.getAmount());
-        response.setId(vUnit.getId());
-        response.setName(vUnit.getUnitName());
-        response.setParentId(vUnit.getParentId());
         return response;
     }
 
