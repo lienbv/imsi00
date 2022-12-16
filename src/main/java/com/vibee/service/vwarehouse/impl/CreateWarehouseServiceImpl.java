@@ -193,9 +193,9 @@ public class CreateWarehouseServiceImpl implements CreateWarehouseService {
     }
 
     @Override
-    public ImportWarehouseItemsResponse save(int supplierCode, String language) {
+    public ImportWarehouseResponse save(int supplierCode, String language) {
         log.info("CreateWarehouseServiceImpl.save start importCode:{}",supplierCode);
-        ImportWarehouseItemsResponse response=new ImportWarehouseItemsResponse();
+        ImportWarehouseResponse response=new ImportWarehouseResponse();
         String key=String.format("import_%s",supplierCode);
         boolean isExist=this.redisAdapter.exists(key);
         if (Boolean.FALSE.equals(isExist)){
@@ -228,7 +228,7 @@ public class CreateWarehouseServiceImpl implements CreateWarehouseService {
             warehouseInfo.setInPrice(result.getInPrice());
             warehouseInfo.setSupplierId(result.getSupplierId());
             warehouseInfo.setProductName(result.getProductName());
-            warehouseInfo.setRangeDate(result.getRangeDates());
+            warehouseInfo.setRangeDate(String.valueOf(CommonUtil.convertStringToDateddMMyyyy(result.getRangeDates())));
             List<UnitItem> unitItems=new ArrayList<>();
             for (ExportResult exportResult:result.getExports()){
                 UnitItem unitItem=new UnitItem();
@@ -245,7 +245,7 @@ public class CreateWarehouseServiceImpl implements CreateWarehouseService {
             warehousesInfo.add(warehouseInfo);
         }
         //call service save to db
-        response=this.importSupplierService.done(warehousesInfo);
+        this.importSupplierService.done(warehousesInfo, language);
 
         //delete key in redis
         this.redisAdapter.delete(key);
