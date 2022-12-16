@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Date;
 import java.util.List;
 
 @Repository
@@ -23,4 +24,8 @@ public interface VWarehouseRepo extends JpaRepository<VWarehouse, Integer> {
     List<VWarehouse> getAllWarehouse(Pageable pageable);
     @Query(value = "SELECT * FROM vibee.v_warehouse w where w.PRODUCT_ID= ?1 order by w.MODIFIED_Date desc limit 1 ", nativeQuery = true)
     VWarehouse getNumberOfEntries(int idProduct);
+    @Query(value = "SELECT * FROM vibee.v_warehouse w where w.PRODUCT_ID = ?1 and  w.CREATED_DATE = ?2",nativeQuery = true)
+    VWarehouse getProductByCreateDate(int idProduct, Date date);
+    @Query(value = "SELECT * FROM vibee.v_warehouse w where w.PRODUCT_ID = ?1 and  w.MODIFIED_Date = ?2", nativeQuery = true)
+    VWarehouse getProductByModifyDate(int idProduct, Date date);
 }

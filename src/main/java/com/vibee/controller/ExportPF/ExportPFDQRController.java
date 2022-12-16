@@ -18,7 +18,7 @@ public class ExportPFDQRController {
     }
 
     @PostMapping("")
-    public BaseResponse printQRCodePDF(@RequestParam(value = "product-code") String productCode,
+    public BaseResponse printQRCodePDF(@RequestParam(value = "productCode") String productCode,
                                        @RequestParam(value = "amount") int amount,
                                        @RequestParam(value = "language", defaultValue = "vi") String language) {
         return this.exportPDFService.printQRCodePDF(productCode, amount, language);

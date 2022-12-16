@@ -155,7 +155,7 @@ public class CreateWarehouseServiceImpl implements CreateWarehouseService {
             List<ExportResult> exportResults=new ArrayList<>();
             result.setBarcode(product.getBarcode());
             result.setInAmount(product.getInAmount());
-            result.setInPrice(BigDecimal.valueOf(product.getPrice()));
+            result.setInPrice(product.getPrice());
             result.setSupplierId(supplierCode);
             result.setProductName(product.getNameProduct());
             result.setRangeDates(CommonUtil.convertDateToStringddMMyyyy(product.getExpireDate()));

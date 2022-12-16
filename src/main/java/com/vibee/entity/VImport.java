@@ -47,7 +47,7 @@ public class VImport {
     @Column(name = "PRODUCT_CODE")
     private String productCode;
     @Column(name = "URL_UPLOAd")
-    private String urlUpload;
+    private int urlUpload;
     @Column(name = "NUMBER_OF_ENTRIES")
     private int numberOfEntries;
 //    @Column

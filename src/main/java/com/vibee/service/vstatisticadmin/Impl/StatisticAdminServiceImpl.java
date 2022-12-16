@@ -11,10 +11,7 @@ import com.vibee.model.request.BaseRequest;
 import com.vibee.model.response.adminstatistic.ReportTopProductResponse;
 import com.vibee.model.response.adminstatistic.StatisticAdminResponse;
 import com.vibee.model.response.adminstatistic.TypeProductResponse;
-import com.vibee.repo.VBillRepo;
-import com.vibee.repo.VDetailBillRepo;
-import com.vibee.repo.VOrderRepo;
-import com.vibee.repo.VProductRepo;
+import com.vibee.repo.*;
 import com.vibee.service.vstatisticadmin.StatisticAdminService;
 import com.vibee.utils.MessageUtils;
 import com.vibee.utils.ProductUtils;
@@ -46,6 +43,9 @@ public class StatisticAdminServiceImpl implements StatisticAdminService {
 
     @Autowired
     private VOrderRepo orderRepo;
+
+    @Autowired
+    private VFileUploadRepo vFileUploadRepo;
 
     @Override
     public StatisticAdminResponse totalPriceOfDay() {
@@ -336,7 +336,7 @@ public class StatisticAdminServiceImpl implements StatisticAdminService {
         List<GetProductItem> items=new ArrayList<GetProductItem>();
         for(VProduct product:products) {
             GetProductItem item=new GetProductItem();
-//            item.setImg(product.getImg());
+            item.setImg(vFileUploadRepo.getURLById(product.getId()));
             item.setProductName(product.getProductName());
             item.setProductCode(product.getId());
             item.setStatusCode(product.getStatus());

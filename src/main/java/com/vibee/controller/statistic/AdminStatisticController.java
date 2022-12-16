@@ -1,4 +1,4 @@
-package com.vibee.controller.staffstatistic;
+package com.vibee.controller.statistic;
 
 import com.vibee.model.item.InterestRateItem;
 import com.vibee.model.request.BaseRequest;
