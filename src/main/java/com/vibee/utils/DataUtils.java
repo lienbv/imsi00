@@ -51,6 +51,11 @@ public class DataUtils {
         Date date = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US).parse(inputDate);
         return new SimpleDateFormat("dd/MM/yyyy").format(date);
     }
+    public static String modifyDateLayoutUpdate(String inputDate) throws ParseException {
+
+        Date date = new SimpleDateFormat("dd/MM/yyyy", Locale.US).parse(inputDate);
+        return new SimpleDateFormat("dd/MM/yyyy").format(date);
+    }
     public static String modifyStringLayout(String inputDate) throws ParseException {
 
         Date date  = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(inputDate);

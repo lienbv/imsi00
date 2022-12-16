@@ -46,6 +46,10 @@ public class VImport {
     private Date expiredDate;
     @Column(name = "PRODUCT_CODE")
     private String productCode;
+    @Column(name = "URL_UPLOAd")
+    private String urlUpload;
+    @Column(name = "NUMBER_OF_ENTRIES")
+    private int numberOfEntries;
 //    @Column
 //    private Date rangeDate;
 }

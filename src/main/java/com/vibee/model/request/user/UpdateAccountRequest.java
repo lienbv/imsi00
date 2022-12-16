@@ -35,5 +35,7 @@ public class UpdateAccountRequest extends BaseRequest {
     @NotNull(message="msg.email.blank")
     @Email(message="msg.email.format")
     private  String email;
+    @NotNull(message="msg.password.blank")
+    private String password;
 
 }

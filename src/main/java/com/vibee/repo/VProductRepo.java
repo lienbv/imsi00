@@ -86,7 +86,7 @@ public interface VProductRepo extends JpaSpecificationExecutor<VProduct>,JpaRepo
 
     public List<VProduct> findTop6ByOrderByCreatedDateDesc();
 
-    VProduct findByBarCodeAndStatusOrStatus(String barcode, int status_1, int status_2);
+    VProduct findByBarCodeAndStatus(String barcode, int status_1);
 
     @Query("select max (p.id) from product p")
     int findMaxId();
