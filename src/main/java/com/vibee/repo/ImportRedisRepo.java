@@ -29,16 +29,6 @@ public class ImportRedisRepo {
     public ImportInWarehouseRedis get(String key, String redisId) {
         return (ImportInWarehouseRedis) this.redisTemplate.opsForHash().get(key, redisId);
     }
-    public boolean getAllListHashKey(String key , String barCode){
-        Long initialSize = redisTemplate.opsForList().size(key);
-        redisTemplate.opsForList().remove(key,0, barCode);
-        Long finalSize = redisTemplate.opsForList().size(key);
-        if(finalSize - initialSize > 0){
-            redisTemplate.opsForList().rightPush(key,barCode);
-            return true;     //Element exists
-        }
-        return false;    //Does not exist
-    }
 
     public Map<String ,ImportInWarehouseRedis> getAll(int key){
         return  this.redisTemplate.opsForHash().entries(key);
@@ -56,7 +46,6 @@ public class ImportRedisRepo {
 
     public void delete(String key, String redisId) {
         this.redisTemplate.opsForHash().delete(key, redisId);
-
         log.info(String.format("User with ID %s deleted", redisId));
     }
     public void deleteAll(String key) {

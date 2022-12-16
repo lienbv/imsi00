@@ -69,6 +69,7 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
         this.vWarehouseRepo = vWarehouseRepo;
         this.vExportRepo = vExportRepo;
     }
+
     @Override
     public BaseResponse importWarehouseOfSupplier(ImportInWarehouse request) {
         BaseResponse response = new BaseResponse();
@@ -87,12 +88,20 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
         String description = request.getDescription();
         String rangeDates = request.getRangeDates();
         String unit = request.getUnit();
-
-        String idRedis = DataUtils.generateIdRedis(5, 5);
-        List<UnitItem> unitItemsRequest=request.getUnits();
-
         int fileProduct = request.getFileId();
-
+        String idRedis = DataUtils.generateIdRedis(5, 5);
+        List<UnitItem> unitItemsRequest = request.getUnits();
+        if (unitItemsRequest.size() != 0) {
+            for (UnitItem unitItem : unitItemsRequest) {
+                if (unitItem.getOutPrice() == null || unitItem.getInPrice() == null ||
+                        unitItem.getOutPrice() == BigDecimal.valueOf(0) || unitItem.getInPrice() == BigDecimal.valueOf(0)) {
+                } else {
+                    importInWarehouse.setExportsItems(unitItemsRequest);
+                }
+            }
+        } else {
+            importInWarehouse.setExportsItems(null);
+        }
         importInWarehouse.setUnit(unit);
         importInWarehouse.setId(idRedis);
         importInWarehouse.setSupplierId(supplierId);
@@ -103,12 +112,13 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
         importInWarehouse.setUnitId(unitId);
         importInWarehouse.setCreator(creator);
         importInWarehouse.setDescription(description);
+
         try {
             importInWarehouse.setRangeDates(DataUtils.modifyDateLayout(rangeDates));
         } catch (ParseException e) {
             throw new RuntimeException(e);
         }
-        importInWarehouse.setExportsItems(unitItemsRequest);
+
         importInWarehouse.setProductName(productName);
         importInWarehouse.setSupplierName(supplierName);
         importInWarehouse.setProductFile(fileProduct);
@@ -121,8 +131,9 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
         return response;
 
     }
+
     @Override
-    public BaseResponse update(ImportInWarehouse request, int key, String redisId){
+    public BaseResponse update(ImportInWarehouse request, int key, String redisId) {
         BaseResponse response = new BaseResponse();
 
         ImportInWarehouseRedis importInWarehouse = this.importRedisRepo.get(String.valueOf(key), redisId);
@@ -142,7 +153,7 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
         String unit = request.getUnit();
 
         String idRedis = DataUtils.generateIdRedis(5, 5);
-        List<UnitItem> unitItemsRequest=request.getUnits();
+        List<UnitItem> unitItemsRequest = request.getUnits();
 
         int fileProduct = request.getFileId();
 
@@ -180,8 +191,9 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
         response.getStatus().setMessage(MessageUtils.get(language, "msg.upload.success"));
         return response;
     }
+
     @Override
-    public EditImportWarehouse edit(int key, String redisId, String language){
+    public EditImportWarehouse edit(int key, String redisId, String language) {
         List<ImportWarehouseInfor> data = new ArrayList<>();
         ImportInWarehouseRedis importInWarehouseRedis = this.importRedisRepo.get(String.valueOf(key), redisId);
 
@@ -210,15 +222,17 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
         response.setData(allList);
         return response;
     }
+
     @Override
     public List<ImportWarehouseInfor> getAllProductImportOfSupplier(int key) {
         ListImportWarehouseInforResponse response = new ListImportWarehouseInforResponse();
         List<ImportWarehouseInfor> data = new ArrayList<>();
         List<ImportInWarehouseRedis> allList = this.importRedisRepo.getAllList(String.valueOf(key));
 
-        for (ImportInWarehouseRedis importInWarehouseRedis: allList){
+        for (ImportInWarehouseRedis importInWarehouseRedis : allList) {
 
             ImportWarehouseInfor infor = new ImportWarehouseInfor();
+            infor.setImage(importInWarehouseRedis.getImg());
             infor.setId(importInWarehouseRedis.getId());
             infor.setProductName(importInWarehouseRedis.getProductName());
             infor.setBarcode(importInWarehouseRedis.getBarcode());
@@ -242,13 +256,14 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
         }
         return data;
     }
-    @Override
-    public ImportWarehouseItemsResponse done(List<ImportWarehouseInfor> data) {
-        ImportWarehouseItemsResponse response = new ImportWarehouseItemsResponse();
 
-        for (ImportWarehouseInfor infor: data) {
+    @Override
+    public List<ImportWarehouseItemsResponse> done(List<ImportWarehouseInfor> data, String language) {
+        ImportWarehouseItemsResponse response = new ImportWarehouseItemsResponse();
+        List<ImportWarehouseItemsResponse> listAll = new ArrayList<>();
+        for (ImportWarehouseInfor infor : data) {
             VWarehouse vWarehouseNew = new VWarehouse();
-            VProduct vProduct = this.vProductRepo.findByBarCodeAndStatus(infor.getBarcode(), 1);
+
             VUnit vUnit = this.vUnitRepo.getByIdChild(infor.getUnitId(), infor.getUnitId());
             VImport vImport = new VImport();
 
@@ -267,35 +282,38 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-
             VUploadFile uploadFile = new VUploadFile();
             uploadFile.setCreator("");
             uploadFile.setCreatedDate(new Date());
             uploadFile.setFileName(qrCode);
             uploadFile.setSize(BigDecimal.valueOf(file.length()));
             uploadFile.setType(contendType);
+            uploadFile.setModifiedDate(new Date());
             uploadFile.setUrl("D:\\be-vibee-dev-new_new\\be-vibee-dev-new_new\\be-vibee-dev-new1\\be-vibee-dev-new\\be-vibee-dev\\be-vibee-dev\\src\\main\\resources" + path);
+            uploadFile = this.fileUploadRepo.save(uploadFile);
+
+            VProduct vProduct = this.vProductRepo.findByBarCodeAndStatus(infor.getBarcode(), 1);
 
             if (vProduct != null) {
-
                 vProduct.setBarCode(vProduct.getBarCode());
                 vProduct.setId(vProduct.getId());
                 vProduct.setProductName(infor.getProductName());
                 vProduct.setProductType(infor.getTypeProductId());
-                vProduct.setCreatedDate(new Date());
+                vProduct.setCreatedDate(vProduct.getCreatedDate());
                 vProduct.setStatus(1);
                 vProduct.setDescription(infor.getDescription());
-                vProduct.setFileId(infor.getProductId());
+                vProduct.setFileId(infor.getImg());
                 vProduct.setCreator(infor.getCreator());
                 vProduct.setSupplierName(infor.getSupplierName());
                 vProduct.setFileId(infor.getImg());
                 vProduct.setStatus(1);
                 vProduct.setProductType(infor.getTypeProductId());
                 vProduct = this.vProductRepo.save(vProduct);
-                response.setProductCode(vProduct.getBarCode());
 
-                VWarehouse  vWarehouse = this.vWarehouseRepo.getNumberOfEntries(vProduct.getId());
-                if(vWarehouse !=null){
+                VWarehouse vWarehouse = this.vWarehouseRepo.findByProductId(vProduct.getId());
+                VImport vImport1 = new VImport();
+                if (vWarehouse != null) {
+
                     vWarehouse.setId(vWarehouse.getId());
                     vWarehouse.setProductId(vWarehouse.getProductId());
                     vWarehouse.setCreatedDate(vWarehouse.getCreatedDate());
@@ -311,51 +329,83 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
                     vWarehouse.setNumberOfEntries(vWarehouse.getNumberOfEntries() + 1);
                     vWarehouse = this.vWarehouseRepo.save(vWarehouse);
 
-                }else {
-                    vWarehouse = new VWarehouse();
-                    vWarehouse.setProductId(vProduct.getId());
-                    vWarehouse.setCreator(infor.getCreator());
+                    vImport1 = this.vImportRepo.getVImportBy(vWarehouse.getId());
+
+                    vImport.setWarehouseId(vWarehouse.getId());
+                    vImport.setCreatedDate(new Date());
+                    vImport.setStatus(1);
+                    vImport.setCreator(infor.getCreator());
+                    vImport.setInAmount((double) infor.getInAmount());
+                    vImport.setInMoney(infor.getInPrice());
+                    vImport.setUpdater(0);
+                    vImport.setUpdatedDate(new Date());
+                    vImport.setSupplierId(infor.getSupplierId());
+                    vImport.setSupplierName(infor.getSupplierName());
+                    vImport.setUnitId(infor.getUnitId());
+                    vImport.setFileId(vProduct.getFileId());
+                    vImport.setUrlUpload(uploadFile.getId());
+                    vImport.setNumberOfEntries(1);
+
+                    Date date = null;
+                    try {
+                        date = new SimpleDateFormat("dd/MM/yyyy")
+                                .parse(infor.getRangeDate());
+                    } catch (ParseException e) {
+                        throw new RuntimeException(e);
+                    }
+                    vImport.setExpiredDate(date);
+                    vImport.setProductCode(qrCode);
+                    vImport.setFileId(uploadFile.getId());
+
+                    this.vImportRepo.save(vImport);
+
+                    vImport.setNumberOfEntries(vImport1.getNumberOfEntries() + 1);
+
+
+                } else {
+//                    VWarehouse vWarehouse1 = this.vWarehouseRepo.getProductByCreateDate(vProduct.getId(), vWarehouse.getCreatedDate());
+//                    VWarehouse vWarehouse2 = this.vWarehouseRepo.getProductByModifyDate(vProduct.getId(), new Date());
+                    VWarehouse vWarehouseNew1 = new VWarehouse();
+                    vWarehouseNew1.setProductId(vProduct.getId());
+                    vWarehouseNew1.setCreator(infor.getCreator());
                     Double inPrice = infor.getInPrice().doubleValue();
-                    vWarehouse.setInPrice(BigDecimal.valueOf(inPrice));
-                    vWarehouse.setCreatedDate(vWarehouse.getCreatedDate());
-                    vWarehouse.setUnitId(infor.getUnitId());
-                    vWarehouse.setInAmount(Math.floor(infor.getInAmount() * vUnit.getAmount()));
-                    vWarehouse.setModifiedBy(infor.getCreator());
-                    vWarehouse.setNumberOfEntries(1);
+                    vWarehouseNew1.setInPrice(BigDecimal.valueOf(inPrice));
+                    vWarehouseNew1.setCreatedDate(new Date());
+                    vWarehouseNew1.setUnitId(infor.getUnitId());
+                    vWarehouseNew1.setInAmount(Math.floor(infor.getInAmount() * vUnit.getAmount()));
+                    vWarehouseNew1.setModifiedBy(infor.getCreator());
+                    vWarehouseNew1.setModifiedDate(new Date());
+                    vWarehouseNew1.setNumberOfEntries(1);
+                    vWarehouseNew1 = this.vWarehouseRepo.save(vWarehouseNew1);
 
-                    vWarehouse = this.vWarehouseRepo.save(vWarehouse);
+                    vImport.setWarehouseId(vWarehouseNew1.getId());
+                    vImport.setCreatedDate(new Date());
+                    vImport.setStatus(1);
+                    vImport.setCreator(infor.getCreator());
+                    vImport.setInAmount((double) infor.getInAmount());
+                    vImport.setInMoney(infor.getInPrice());
+                    vImport.setUpdater(0);
+                    vImport.setUpdatedDate(new Date());
+                    vImport.setSupplierId(infor.getSupplierId());
+                    vImport.setSupplierName(infor.getSupplierName());
+                    vImport.setUnitId(infor.getUnitId());
+                    vImport.setFileId(vProduct.getFileId());
+                    vImport.setUrlUpload(uploadFile.getId());
+                    vImport.setNumberOfEntries(1);
+
+                    Date date = null;
+                    try {
+                        date = new SimpleDateFormat("dd/MM/yyyy")
+                                .parse(infor.getRangeDate());
+                    } catch (ParseException e) {
+                        throw new RuntimeException(e);
+                    }
+                    vImport.setExpiredDate(date);
+                    vImport.setProductCode(qrCode);
+                    vImport.setFileId(uploadFile.getId());
+
+                    this.vImportRepo.save(vImport);
                 }
-
-                uploadFile = this.fileUploadRepo.save(uploadFile);
-
-                vImport = this.vImportRepo.getVImportBy(vWarehouse.getId());
-                vImport.setWarehouseId(vWarehouse.getId());
-                vImport.setCreatedDate(new Date());
-                vImport.setStatus(1);
-                vImport.setCreator(infor.getCreator());
-                vImport.setInAmount((double) infor.getInAmount());
-                vImport.setInMoney(infor.getInPrice());
-                vImport.setUpdater(0);
-                vImport.setUpdatedDate(new Date());
-                vImport.setSupplierId(infor.getSupplierId());
-                vImport.setSupplierName(infor.getSupplierName());
-                vImport.setUnitId(infor.getUnitId());
-                vImport.setFileId(uploadFile.getId());
-                vImport.setUrlUpload(uploadFile.getFileName());
-                vImport.setNumberOfEntries(vImport.getNumberOfEntries()+1);
-
-                Date date = null;
-                try {
-                    date = new SimpleDateFormat("dd/MM/yyyy")
-                            .parse(infor.getRangeDate());
-                } catch (ParseException e) {
-                    throw new RuntimeException(e);
-                }
-                vImport.setExpiredDate(date);
-                vImport.setProductCode(qrCode);
-                vImport.setFileId(uploadFile.getId());
-
-                this.vImportRepo.save(vImport);
 
                 for (UnitItem exportItems : infor.getExportsItems()) {
                     VExport vExport = new VExport();
@@ -372,9 +422,10 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
                 response.setImportId(vImport.getId());
                 response.setRangeDate(vImport.getExpiredDate());
                 response.setUnitName(infor.getUnit());
-                response.setAmount(vWarehouse.getInAmount().intValue());
+                response.setAmount(infor.getInAmount());
                 response.setQrCode(vImport.getProductCode());
-                response.setInPrice(vWarehouse.getInPrice());
+                response.setInPrice(infor.getInPrice());
+                listAll.add(response);
 
             } else {
 
@@ -395,16 +446,18 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
                 vWarehouseNew.setCreator(infor.getCreator());
                 Double inPrice = infor.getInPrice().doubleValue();
                 vWarehouseNew.setInPrice(BigDecimal.valueOf(inPrice));
-                vWarehouseNew.setCreatedDate(vWarehouseNew.getCreatedDate());
+                vWarehouseNew.setCreatedDate(new Date());
                 vWarehouseNew.setUnitId(infor.getUnitId());
                 vWarehouseNew.setInAmount(Math.floor(infor.getInAmount() * vUnit.getAmount()));
                 vWarehouseNew.setModifiedBy(infor.getCreator());
                 vWarehouseNew.setModifiedDate(new Date());
                 vWarehouseNew.setNumberOfEntries(1);
+                vWarehouseNew.setProductId(vProductNew.getId());
+                vWarehouseNew.setOutAmount(Double.valueOf(0));
+                vWarehouseNew.setOutPrice(BigDecimal.valueOf(0));
 
                 vWarehouseNew = this.vWarehouseRepo.save(vWarehouseNew);
 
-                vImport = this.vImportRepo.getVImportBy(vWarehouseNew.getId());
                 vImport.setWarehouseId(vWarehouseNew.getId());
                 vImport.setCreatedDate(new Date());
                 vImport.setStatus(1);
@@ -415,10 +468,12 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
                 vImport.setUpdatedDate(new Date());
                 vImport.setSupplierId(infor.getSupplierId());
                 vImport.setSupplierName(infor.getSupplierName());
-                vImport.setFileId(infor.getImg());
+                vImport.setFileId(vProductNew.getFileId());
                 vImport.setExpiredDate(new Date());
                 vImport.setProductCode(uploadFile.getFileName());
-                vImport.setNumberOfEntries(vImport.getNumberOfEntries()+1);
+                vImport.setNumberOfEntries(1);
+                vImport.setUrlUpload(uploadFile.getId());
+                vImport.setUnitId(infor.getUnitId());
                 Date date = null;
                 try {
                     date = new SimpleDateFormat("dd/mm/yyyy")
@@ -439,25 +494,29 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
                     vExport.setCreator(infor.getCreator());
                     vExport.setOutAmount(0);
                     vExport.setStatus(1);
+                    vExport.setCreatedDate(new Date());
                     this.vExportRepo.save(vExport);
                 }
                 response.setImportId(vImport.getId());
                 response.setRangeDate(vImport.getExpiredDate());
                 response.setUnitName(infor.getUnit());
                 response.setProductCode(vProductNew.getBarCode());
-                response.setAmount(vWarehouseNew.getInAmount().intValue());
+                response.setAmount(infor.getInAmount());
                 response.setQrCode(vImport.getProductCode());
-                response.setInPrice(vWarehouseNew.getInPrice());
+                response.setInPrice(infor.getInPrice());
+                response.getStatus().setStatus(Status.Success);
+                response.getStatus().setMessage(MessageUtils.get(language, "msg.done-import.success"));
+                listAll.add(response);
             }
-
             this.importRedisRepo.deleteAll(String.valueOf(infor.getSupplierId()));
         }
-        return response;
+        return listAll;
     }
+
     @Override
-    public BaseResponse deleteById(int key, String redisId, String language){
-        this.importRedisRepo.delete(String.valueOf(key), redisId);
+    public BaseResponse deleteById(int key, String redisId, String language) {
         BaseResponse response = new BaseResponse();
+        this.importRedisRepo.delete(String.valueOf(key), redisId);
         response.getStatus().setStatus(Status.Success);
         response.getStatus().setMessage(MessageUtils.get(language, "msg.product.failed"));
         return response;
@@ -473,6 +532,7 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
 
         return response;
     }
+
     @Override
     public ShowProductByBarcodeResponse showProductByBarcode(String barcode, String language) {
         ShowProductByBarcodeResponse response = new ShowProductByBarcodeResponse();

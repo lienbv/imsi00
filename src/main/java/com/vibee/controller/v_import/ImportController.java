@@ -63,8 +63,8 @@ public class ImportController {
         return this.importSupplierService.getAllProductImportOfSupplier(key);
     }
     @PostMapping("/done-import")
-    public ImportWarehouseItemsResponse doneImport(@RequestBody List<ImportWarehouseInfor> data ){
-        return this.importSupplierService.done(data);
+    public List<ImportWarehouseItemsResponse> doneImport(@RequestBody List<ImportWarehouseInfor> data,@RequestParam(name = "language") String language ){
+        return this.importSupplierService.done(data, language);
     }
     @PostMapping("/update-import/{key}/{redisId}")
     public BaseResponse update(@RequestBody ImportInWarehouse request,@PathVariable(name = "key") int key, @PathVariable(name = "redisId") String redisId){
