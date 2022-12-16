@@ -504,6 +504,7 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
                 response.setAmount(infor.getInAmount());
                 response.setQrCode(vImport.getProductCode());
                 response.setInPrice(infor.getInPrice());
+                response.setProductName(infor.getProductName());
                 response.getStatus().setStatus(Status.Success);
                 response.getStatus().setMessage(MessageUtils.get(language, "msg.done-import.success"));
                 listAll.add(response);

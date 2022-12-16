@@ -244,7 +244,7 @@ public class CreateWarehouseServiceImpl implements CreateWarehouseService {
             warehousesInfo.add(warehouseInfo);
         }
         //call service save to db
-        this.importSupplierService.done(warehousesInfo);
+        this.importSupplierService.done(warehousesInfo, language);
 
         //delete key in redis
         this.redisAdapter.delete(key);

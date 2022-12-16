@@ -15,4 +15,5 @@ public class ImportWarehouseItemsResponse  extends BaseResponse {
     private int amount;
     private BigDecimal inPrice;
     private Date rangeDate;
+    private String productName;
 }
