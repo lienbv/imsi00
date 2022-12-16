@@ -17,7 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.validation.Valid;
 
 @RestController
-@RequestMapping("/vibee/api/v1/auth/admins/product")
+@RequestMapping("/vibee/api/v1/auth/")
 @CrossOrigin("*")
 public class ProductController {
 
@@ -53,7 +53,7 @@ public class ProductController {
         return this.getProductService.viewManage(getProductRequest);
     }
 
-    @GetMapping("/create/info")
+    @GetMapping("admins/product/create/info")
     public InfoCreateProductResponse info(@RequestParam(name = "language") String languageReq) {
         return this.createProductService.info(languageReq);
     }
