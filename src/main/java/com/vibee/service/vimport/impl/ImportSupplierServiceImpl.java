@@ -190,7 +190,6 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
 
     @Override
     public EditImportWarehouse edit(int key, String redisId, String language) {
-        List<ImportWarehouseInfor> data = new ArrayList<>();
         ImportInWarehouseRedis importInWarehouseRedis = this.importRedisRepo.get(String.valueOf(key), redisId);
 
         EditImportWarehouse infor = new EditImportWarehouse();
