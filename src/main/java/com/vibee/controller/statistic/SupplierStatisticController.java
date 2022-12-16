@@ -30,4 +30,10 @@ public class SupplierStatisticController {
                                                          @RequestParam(value = "record", defaultValue = "10") int record) {
         return this.supplierStatisService.getImportsOfSupplier(id, page, record);
     }
+
+    @GetMapping("import/linechart/{supplier-id}")
+    public ImportOfSupplierResponse getImportLineChart(@PathVariable("supplier-id") int id,
+                                                       @RequestParam(value = "year", defaultValue = "0") int year) {
+        return this.supplierStatisService.getImportLineChart(year, id);
+    }
 }

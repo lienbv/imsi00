@@ -7,6 +7,7 @@ import com.vibee.model.ObjectResponse.GetCharWarehouseObject;
 import com.vibee.model.ObjectResponse.GetExportsObject;
 import com.vibee.model.ObjectResponse.GetWarehousesObject;
 import com.vibee.model.ObjectResponse.ViewStallObject;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -69,6 +70,16 @@ public interface VImportRepo extends JpaSpecificationExecutor<VImport>,JpaReposi
     @Query("select count(o) from import o where o.supplierId = ?1")
     int getAmountImportsOfSupplier(int id);
 
-    @Query("select o from import o where o.supplierId = ?1")
-    List<VImport> getImportsOfSupplier(int id);
+    @Query("select o from import o where o.supplierId = :id")
+    List<VImport> getImportsOfSupplier(@Param("id") int id, Pageable pageable);
+
+
+    @Query("select o from import o where o.supplierId = :id")
+    List<VImport> getImportsOfSupplier(@Param("id") int id);
+
+    @Query("select o from import o where o.supplierId = :id and year(o.createdDate) = :year ")
+    List<VImport> getImportsOfSupplier(@Param("id") int id, @Param("year") int year);
+
+    @Query("select w.productId from import i join warehouse w on i.warehouseId = w.id where i.supplierId = ?1 and year(i.createdDate) = ?2 group by w.id order by SUM(w.numberOfEntries) desc")
+    List<Integer> getWareHouseId(int id, int year, Pageable pageable);
 }
