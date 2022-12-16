@@ -551,46 +551,6 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
         return response;
     }
 
-    public SupplierResponse getNameAllSupplier(int id) {
-        VSupplier vSupplier = this.vSupplierRepo.findByIdAndStatus(id, 1);
-        SupplierResponse response = new SupplierResponse();
-        response.setId(vSupplier.getId());
-        response.setName(vSupplier.getNameSup());
-        return response;
-    }
-
-    public ListSupplier getAllSupplier() {
-        ListSupplier responseList = new ListSupplier();
-        List<VSupplier> findByStatus = this.vSupplierRepo.findByStatus(1);
-        List<SupplierResponse> list = new ArrayList<>();
-
-        for (VSupplier vSupplier : findByStatus) {
-            SupplierResponse response = new SupplierResponse();
-            response.setId(vSupplier.getId());
-            response.setName(vSupplier.getNameSup());
-            list.add(response);
-        }
-        responseList.setItems(list);
-        return responseList;
-    }
-
-    public SelectionTypeProductItemsResponse getAllSelect(String language) {
-
-        SelectionTypeProductItemsResponse response = new SelectionTypeProductItemsResponse();
-        List<SelectionTypeProductItems> list = new ArrayList<>();
-        List<VUnit> vUnits = this.vUnitRepo.findByParentIdAndStatus(0, 1);
-
-        for (VUnit vUnit : vUnits) {
-            SelectionTypeProductItems selectionTypeProductItems = new SelectionTypeProductItems();
-            selectionTypeProductItems.setId(vUnit.getId());
-            selectionTypeProductItems.setName(vUnit.getUnitName());
-            selectionTypeProductItems.setParentId(vUnit.getParentId());
-            list.add(selectionTypeProductItems);
-        }
-        response.setData(list);
-        return response;
-    }
-
     public List<UnitItem> getAllSelectUnitByIdParent(int parent, String language) {
 
         List<UnitItem> response = new ArrayList<>();
@@ -605,16 +565,6 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
             unitItem.setOutPrice(BigDecimal.valueOf(0));
             response.add(unitItem);
         }
-        return response;
-    }
-
-    public UnitItemsResponse findByIdUnit(int id) {
-        UnitItemsResponse response = new UnitItemsResponse();
-        VUnit vUnit = this.vUnitRepo.findById(id);
-        response.setAmount(vUnit.getAmount());
-        response.setId(vUnit.getId());
-        response.setName(vUnit.getUnitName());
-        response.setParentId(vUnit.getParentId());
         return response;
     }
 
