@@ -10,6 +10,7 @@ import com.vibee.model.item.UnitItem;
 import com.vibee.model.request.v_import.CreateImportRequest;
 import com.vibee.model.request.warehouse.CreateWarehouseRequest;
 import com.vibee.model.response.BaseResponse;
+import com.vibee.model.response.auth.LoginResponse;
 import com.vibee.model.response.v_import.CreateImportResponse;
 import com.vibee.model.response.v_import.ImportWarehouseItemsResponse;
 import com.vibee.model.response.warehouse.CreateWarehouseResponse;
@@ -33,6 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.text.ParseException;
@@ -54,6 +56,12 @@ public class CreateWarehouseServiceImpl implements CreateWarehouseService {
     private final RedisAdapter redisAdapter;
     private final IImportSuppierService importSupplierService;
 
+    private final HttpServletRequest servletRequest;
+
+    private static final String TOKEN_PREFIX="Bearer ";
+
+    private final VSupplierRepo supplierRepo;
+
     @Autowired
     public CreateWarehouseServiceImpl(VWarehouseRepo warehouseRepo,
                                       VProductRepo productRepo,
@@ -62,7 +70,10 @@ public class CreateWarehouseServiceImpl implements CreateWarehouseService {
                                       VExportRepo exportRepo,
                                       VImportRepo importRepo,
                                       VUnitRepo unitRepo,
-                                      RedisAdapter redisAdapter, IImportSuppierService importSupplierService) {
+                                      RedisAdapter redisAdapter,
+                                      IImportSuppierService importSupplierService,
+                                      HttpServletRequest servletRequest,
+                                      VSupplierRepo supplierRepo) {
         this.warehouseRepo=warehouseRepo;
         this.productRepo=productRepo;
         this.createImportProductService=createImportProductService;
@@ -72,10 +83,12 @@ public class CreateWarehouseServiceImpl implements CreateWarehouseService {
         this.unitRepo=unitRepo;
         this.redisAdapter=redisAdapter;
         this.importSupplierService = importSupplierService;
+        this.servletRequest = servletRequest;
+        this.supplierRepo = supplierRepo;
     }
     @Override
     public CreateWarehouseResponse create(CreateWarehouseRequest request) {
-        String creator="vibeefirst1910";
+        String creator=this.getUserName();
         String language=request.getLanguage();
         int unitId= request.getUnitId();
         int supplierId=request.getSupplierId();
@@ -227,6 +240,10 @@ public class CreateWarehouseServiceImpl implements CreateWarehouseService {
             warehouseInfo.setInAmount(result.getInAmount());
             warehouseInfo.setInPrice(result.getInPrice());
             warehouseInfo.setSupplierId(result.getSupplierId());
+            String supplierName=this.supplierRepo.findNameById(result.getSupplierId());
+            if (!CommonUtil.isEmptyOrNull(supplierName)){
+                warehouseInfo.setSupplierName(supplierName);
+            }
             warehouseInfo.setProductName(result.getProductName());
             warehouseInfo.setRangeDate(result.getRangeDates());
             List<UnitItem> unitItems=new ArrayList<>();
@@ -242,6 +259,7 @@ public class CreateWarehouseServiceImpl implements CreateWarehouseService {
             warehouseInfo.setUnitId(result.getUnit().getId());
             warehouseInfo.setStatus(1);
             warehouseInfo.setTypeProductId(result.getTypeProduct().getId());
+            warehouseInfo.setCreator(this.getUserName());
             warehousesInfo.add(warehouseInfo);
         }
         //call service save to db
@@ -316,5 +334,19 @@ public class CreateWarehouseServiceImpl implements CreateWarehouseService {
         request.setInPrice(inPrice);
         request.setInAmount(inAmount);
         return request;
+    }
+
+    private String getUserName(){
+        String token=servletRequest.getHeader("Authorization");
+        if (CommonUtil.isEmptyOrNull(token)) {
+            return null;
+        }
+        String key = "expireToken::" + token.substring(TOKEN_PREFIX.length()).hashCode();
+        if (Boolean.FALSE.equals(this.redisAdapter.exists(key))) {
+            return null;
+        }
+        LoginResponse loginResponse=this.redisAdapter.get(key, LoginResponse.class);
+        String username = loginResponse.getUsername();
+        return username;
     }
 }

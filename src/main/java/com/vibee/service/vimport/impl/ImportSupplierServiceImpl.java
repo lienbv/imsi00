@@ -495,20 +495,21 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
 
                 }
 
-                for (ImportWarehouseItems item: items){
-                    item.setImportId(vImport.getId());
-                    item.setRangeDate(vImport.getExpiredDate());
-                    item.setUnitName(infor.getUnit());
-                    item.setAmount(infor.getInAmount());
-                    item.setQrCode(vImport.getProductCode());
-                    item.setInPrice(infor.getInPrice());
-                    item.setProductName(infor.getProductName());
-                    listAll.add(item);
-                }
-                response.setItems(listAll);
-                response.getStatus().setStatus(Status.Success);
-                response.getStatus().setMessage(MessageUtils.get(language, "msg.done-import.success"));
+
             }
+            for (ImportWarehouseItems item: items){
+                item.setImportId(vImport.getId());
+                item.setRangeDate(vImport.getExpiredDate());
+                item.setUnitName(infor.getUnit());
+                item.setAmount(infor.getInAmount());
+                item.setQrCode(vImport.getProductCode());
+                item.setInPrice(infor.getInPrice());
+                item.setProductName(infor.getProductName());
+                listAll.add(item);
+            }
+            response.setItems(listAll);
+            response.getStatus().setStatus(Status.Success);
+            response.getStatus().setMessage(MessageUtils.get(language, "msg.done-import.success"));
 //            this.importRedisRepo.deleteAll(String.valueOf(infor.getSupplierId()));
         }
         return response;
