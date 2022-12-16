@@ -56,7 +56,7 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
 
     private final HttpServletRequest servletRequest;
     private final RedisAdapter redisAdapter;
-
+    private static final String TOKEN_PREFIX="Bearer ";
     @Autowired
     public ImportSupplierServiceImpl(VSupplierRepo vSupplierRepo, VProductRepo vProductRepo,
                                      VTypeProductRepo vTypeProductRepo, VUnitRepo vUnitRepo, VFileUploadRepo fileUploadRepo,
@@ -362,10 +362,10 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
                     vImport.setExpiredDate(date);
                     vImport.setProductCode(qrCode);
                     vImport.setFileId(uploadFile.getId());
-
+                    vImport.setNumberOfEntries(vImport1.getNumberOfEntries() + 1);
                     this.vImportRepo.save(vImport);
 
-                    vImport.setNumberOfEntries(vImport1.getNumberOfEntries() + 1);
+
 
 
                 } else {
@@ -591,7 +591,7 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
         if (CommonUtil.isEmptyOrNull(token)) {
             return null;
         }
-        String key = "expireToken::" + token.hashCode();
+        String key = "expireToken::" + token.substring(TOKEN_PREFIX.length()).hashCode();
         if (Boolean.FALSE.equals(this.redisAdapter.exists(key))) {
             return null;
         }

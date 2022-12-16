@@ -18,7 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 @RestController
-@RequestMapping("/vibee/api/v1/auth/import-warehouse")
+@RequestMapping("/vibee/api/v1/import-warehouse")
 @CrossOrigin("*")
 public class ImportController {
     private final IImportSuppierService importSupplierService;
