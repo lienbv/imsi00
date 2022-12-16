@@ -15,7 +15,7 @@ public interface IImportSuppierService {
     BaseResponse importWarehouseOfSupplier(ImportInWarehouse request);
     BaseResponse update(ImportInWarehouse request, int key, String redisId);
     List<ImportWarehouseInfor> getAllProductImportOfSupplier(int key);
-    ImportWarehouseItemsResponse done(List<ImportWarehouseInfor> data);
+    List<ImportWarehouseItemsResponse> done(List<ImportWarehouseInfor> data, String language);
     BaseResponse deleteById(int key, String redisId, String language);
     BaseResponse deleteAll(int key, String language);
     ShowProductByBarcodeResponse showProductByBarcode(String barcode, String language);
