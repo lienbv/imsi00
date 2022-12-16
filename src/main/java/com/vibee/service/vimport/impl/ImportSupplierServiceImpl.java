@@ -16,15 +16,11 @@ import com.vibee.model.request.v_import.ImportInWarehouse;
 import com.vibee.model.response.BaseResponse;
 import com.vibee.model.response.category.SelectionTypeProductItems;
 import com.vibee.model.response.category.SelectionTypeProductItemsResponse;
-import com.vibee.model.response.product.CreateProductResponse;
 import com.vibee.model.response.product.ShowProductByBarcodeResponse;
 import com.vibee.model.response.redis.*;
 import com.vibee.model.response.supplier.ListSupplier;
 import com.vibee.model.response.supplier.SupplierResponse;
-import com.vibee.model.response.v_import.EditImportWarehouse;
-import com.vibee.model.response.v_import.ImportWarehouseItemsResponse;
-import com.vibee.model.response.v_import.ListImportInWarehouseRedis;
-import com.vibee.model.response.v_import.ListImportWarehouseInforResponse;
+import com.vibee.model.response.v_import.*;
 import com.vibee.repo.*;
 import com.vibee.service.vimport.IImportSuppierService;
 import com.vibee.utils.DataUtils;
@@ -258,9 +254,9 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
     }
 
     @Override
-    public List<ImportWarehouseItemsResponse> done(List<ImportWarehouseInfor> data, String language) {
+    public ImportWarehouseItemsResponse done(List<ImportWarehouseInfor> data, String language) {
         ImportWarehouseItemsResponse response = new ImportWarehouseItemsResponse();
-        List<ImportWarehouseItemsResponse> listAll = new ArrayList<>();
+        List<ImportWarehouseItems> listAll = new ArrayList<>();
         for (ImportWarehouseInfor infor : data) {
             VWarehouse vWarehouseNew = new VWarehouse();
 
@@ -419,14 +415,6 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
                     this.vExportRepo.save(vExport);
 
                 }
-                response.setImportId(vImport.getId());
-                response.setRangeDate(vImport.getExpiredDate());
-                response.setUnitName(infor.getUnit());
-                response.setAmount(infor.getInAmount());
-                response.setQrCode(vImport.getProductCode());
-                response.setInPrice(infor.getInPrice());
-                listAll.add(response);
-
             } else {
 
                 VProduct vProductNew = new VProduct();
@@ -497,21 +485,24 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
                     vExport.setCreatedDate(new Date());
                     this.vExportRepo.save(vExport);
                 }
-                response.setImportId(vImport.getId());
-                response.setRangeDate(vImport.getExpiredDate());
-                response.setUnitName(infor.getUnit());
-                response.setProductCode(vProductNew.getBarCode());
-                response.setAmount(infor.getInAmount());
-                response.setQrCode(vImport.getProductCode());
-                response.setInPrice(infor.getInPrice());
-                response.setProductName(infor.getProductName());
+
+                for (ImportWarehouseItems item: response.getItems()){
+                    item.setImportId(vImport.getId());
+                    item.setRangeDate(vImport.getExpiredDate());
+                    item.setUnitName(infor.getUnit());
+                    item.setAmount(infor.getInAmount());
+                    item.setQrCode(vImport.getProductCode());
+                    item.setInPrice(infor.getInPrice());
+                    item.setProductName(infor.getProductName());
+                    listAll.add(item);
+                }
+                response.setItems(listAll);
                 response.getStatus().setStatus(Status.Success);
                 response.getStatus().setMessage(MessageUtils.get(language, "msg.done-import.success"));
-                listAll.add(response);
             }
             this.importRedisRepo.deleteAll(String.valueOf(infor.getSupplierId()));
         }
-        return listAll;
+        return response;
     }
 
     @Override
