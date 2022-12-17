@@ -30,6 +30,7 @@ import com.vibee.utils.DataUtils;
 import com.vibee.utils.MessageUtils;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
@@ -276,7 +277,7 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
             VImport vImport = new VImport();
 
             String qrCode = DataUtils.generateBarcode(14);
-            String path = qrCode + "qrCode.png";
+            String path = "src/main/resources/static/"+qrCode + "qrCode.png";
             File file = new File(path);
             String charset = "UTF-8";
             Map<EncodeHintType, ErrorCorrectionLevel> hashMap = new HashMap<>();
@@ -297,7 +298,7 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
             uploadFile.setSize(BigDecimal.valueOf(file.length()));
             uploadFile.setType(contendType);
             uploadFile.setModifiedDate(new Date());
-            uploadFile.setUrl("D:\\be-vibee-dev-new_new\\be-vibee-dev-new_new\\be-vibee-dev-new1\\be-vibee-dev-new\\be-vibee-dev\\be-vibee-dev\\src\\main\\resources" + path);
+            uploadFile.setUrl("./resources/static/" + path);
             uploadFile = this.fileUploadRepo.save(uploadFile);
 
             VProduct vProduct = this.vProductRepo.findByBarCodeAndStatus(infor.getBarcode(), 1);
@@ -509,10 +510,11 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
             item.setUnitName(vUnitId.getUnitName());
             item.setQrCode(uploadFile.getUrl());
             listAll.add(item);
-            response.setItems(listAll);
-            response.getStatus().setStatus(Status.Success);
-            response.getStatus().setMessage(MessageUtils.get(language, "msg.done-import.success"));
+
         }
+        response.setItems(listAll);
+        response.getStatus().setStatus(Status.Success);
+        response.getStatus().setMessage(MessageUtils.get(language, "msg.done-import.success"));
         return response;
     }
 

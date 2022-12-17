@@ -263,12 +263,13 @@ public class CreateWarehouseServiceImpl implements CreateWarehouseService {
             warehousesInfo.add(warehouseInfo);
         }
         //call service save to db
-        this.importSupplierService.done(warehousesInfo,language);
+        ImportWarehouseItemsResponse itemsResponse= this.importSupplierService.done(warehousesInfo,language);
 
         //delete key in redis
         this.redisAdapter.delete(key);
 
         //set response and return
+        response.setItems(itemsResponse.getItems());
         response.getStatus().setStatus(Status.Success);
         response.getStatus().setMessage(MessageUtils.get(language,"msg.success.save"));
         return response;
