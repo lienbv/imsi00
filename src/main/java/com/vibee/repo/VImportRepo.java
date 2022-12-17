@@ -70,12 +70,17 @@ public interface VImportRepo extends JpaSpecificationExecutor<VImport>,JpaReposi
     @Query("select count(o) from import o where o.supplierId = ?1")
     int getAmountImportsOfSupplier(int id);
 
-    @Query("select o from import o where o.supplierId = :id")
-    List<VImport> getImportsOfSupplier(@Param("id") int id, Pageable pageable);
+    @Query("select o from import o join warehouse w on o.warehouseId = w.id join product p on p.id = w.productId where o.supplierId = :id and o.createdDate between :startDate and :endDate and p.productName like :nameProduct")
+    List<VImport> getImportsOfSupplier(@Param("id") int id,@Param("startDate") Date startDate,@Param("endDate") Date endDate, @Param("nameProduct") String nameProduct,Pageable pageable);
 
+    @Query("select o from import o join warehouse w on o.warehouseId = w.id join product p on p.id = w.productId where o.supplierId = :id and p.productName like :nameProduct")
+    List<VImport> getImportsOfSupplier(@Param("id") int id, @Param("nameProduct") String nameProduct ,Pageable pageable);
 
-    @Query("select o from import o where o.supplierId = :id")
-    List<VImport> getImportsOfSupplier(@Param("id") int id);
+    @Query("select count(o) from import o join warehouse w on o.warehouseId = w.id join product p on p.id = w.productId where o.supplierId = :id and p.productName like :nameProduct")
+    int getImportsOfSupplierCount(@Param("id") int id, @Param("nameProduct") String nameProduct);
+//
+//    @Query("select o from import o where o.supplierId = :id")
+//    List<VImport> getImportsOfSupplier(@Param("id") int id);
 
     @Query("select o from import o where o.supplierId = :id and year(o.createdDate) = :year ")
     List<VImport> getImportsOfSupplier(@Param("id") int id, @Param("year") int year);
