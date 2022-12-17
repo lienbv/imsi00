@@ -257,6 +257,8 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
         ImportWarehouseItemsResponse response = new ImportWarehouseItemsResponse();
         List<ImportWarehouseItems> listAll = new ArrayList<>();
         for (ImportWarehouseInfor infor : data) {
+            ImportWarehouseItems item = new ImportWarehouseItems();
+
             VWarehouse vWarehouseNew = new VWarehouse();
 
             VUnit vUnit = this.vUnitRepo.getByIdChild(infor.getUnitId(), infor.getUnitId());
@@ -351,11 +353,9 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
                     vImport.setExpiredDate(date);
                     vImport.setProductCode(qrCode);
                     vImport.setFileId(uploadFile.getId());
-
-                    this.vImportRepo.save(vImport);
-
                     vImport.setNumberOfEntries(vImport1.getNumberOfEntries() + 1);
 
+                    this.vImportRepo.save(vImport);
 
                 } else {
 //                    VWarehouse vWarehouse1 = this.vWarehouseRepo.getProductByCreateDate(vProduct.getId(), vWarehouse.getCreatedDate());
@@ -411,6 +411,7 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
                     vExport.setCreator(infor.getCreator());
                     vExport.setOutAmount(0);
                     vExport.setStatus(1);
+                    vExport.setCreatedDate(new Date());
                     this.vExportRepo.save(vExport);
 
                 }
@@ -472,34 +473,34 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
 
                 vImport = this.vImportRepo.save(vImport);
 
-                for (UnitItem itens : infor.getExportsItems()) {
+                for (UnitItem exportItems : infor.getExportsItems()) {
                     VExport vExport = new VExport();
-                    vExport.setUnitId(itens.getUnitId());
+                    vExport.setUnitId(exportItems.getUnitId());
                     vExport.setImportId(vImport.getId());
-                    vExport.setOutPrice(itens.getOutPrice());
-                    vExport.setInPrice(itens.getInPrice());
+                    vExport.setOutPrice(exportItems.getOutPrice());
+                    vExport.setInPrice(exportItems.getInPrice());
                     vExport.setCreator(infor.getCreator());
                     vExport.setOutAmount(0);
                     vExport.setStatus(1);
                     vExport.setCreatedDate(new Date());
                     this.vExportRepo.save(vExport);
+
                 }
 
-                for (ImportWarehouseItems item: response.getItems()){
-                    item.setImportId(vImport.getId());
-                    item.setRangeDate(vImport.getExpiredDate());
-                    item.setUnitName(infor.getUnit());
-                    item.setAmount(infor.getInAmount());
-                    item.setQrCode(vImport.getProductCode());
-                    item.setInPrice(infor.getInPrice());
-                    item.setProductName(infor.getProductName());
-                    listAll.add(item);
-                }
-                response.setItems(listAll);
-                response.getStatus().setStatus(Status.Success);
-                response.getStatus().setMessage(MessageUtils.get(language, "msg.done-import.success"));
             }
-            this.importRedisRepo.deleteAll(String.valueOf(infor.getSupplierId()));
+            item.setImportId(vImport.getId());
+            item.setAmount(infor.getInAmount());
+            item.setInPrice(infor.getInPrice());
+            item.setProductName(infor.getProductName());
+            item.setRangeDate(new Date(infor.getRangeDate()));
+            item.setProductCode(vImport.getProductCode());
+            VUnit vUnitId = this.vUnitRepo.findById(vImport.getUnitId());
+            item.setUnitName(vUnitId.getUnitName());
+            item.setQrCode(uploadFile.getUrl());
+            listAll.add(item);
+            response.setItems(listAll);
+            response.getStatus().setStatus(Status.Success);
+            response.getStatus().setMessage(MessageUtils.get(language, "msg.done-import.success"));
         }
         return response;
     }
