@@ -48,7 +48,7 @@ public class SupplierStatisticServiceImpl implements SupplierStatisService {
     public SupplierStatisticResponse getAll(String nameSearch, int page, int record) {
         log.info("SupplierStatisticServiceImpl-getAll :: Start");
         Pageable pageable = PageRequest.of(page, record);
-        List<VSupplier> suppliers = vSupplierRepo.findByStatus(1, pageable);
+        List<VSupplier> suppliers = vSupplierRepo.findByStatusAndNameSup(1, "%"+nameSearch+"%", pageable);
         SupplierStatisticResponse response = new SupplierStatisticResponse();
         List<SupplierStatisticItem> supplierStatistic = new ArrayList<>();
         for (VSupplier supplier : suppliers) {
@@ -66,7 +66,7 @@ public class SupplierStatisticServiceImpl implements SupplierStatisService {
         }
 
         response.setTotalPages((int) Math.ceil(suppliers.size()/record));
-        response.setTotalItems(suppliers.size());
+        response.setTotalItems(vSupplierRepo.findByStatusAndNameSupCount(1, "%"+nameSearch+"%"));
         response.setPage(page);
         response.setPageSize(record);
         response.setList(supplierStatistic);
@@ -77,12 +77,41 @@ public class SupplierStatisticServiceImpl implements SupplierStatisService {
     }
 
     @Override
-    public ImportOfSupplierResponse getImportsOfSupplier(int id, int page, int record) {
+    public ImportOfSupplierResponse getImportsOfSupplier(int id, int page, int record, String startDate, String endDate, String nameProduct) {
         log.info("SupplierStatisticServiceImpl-getImportsOfSupplier :: Start");
+        Pageable pageable = PageRequest.of(page, record);
+        List<VImport> imports = new ArrayList<>();
+        String nameProductSQL = "%"+nameProduct+"%";
+        Date start = Utiliies.formatStringDateNotTime(startDate);
+        Date end = Utiliies.formatStringDateNotTime(endDate);
+        if (start != null && end != null) {
+            Calendar sDate = Calendar.getInstance();
+            sDate.setTime(start);
+            sDate.set(Calendar.HOUR_OF_DAY, 0);
+            sDate.set(Calendar.MINUTE,1);
+            sDate.set(Calendar.SECOND,0);
+            sDate.set(Calendar.MILLISECOND,0);
+            Calendar eDate = Calendar.getInstance();
+            eDate.setTime(end);
+            eDate.set(Calendar.HOUR_OF_DAY, 23);
+            eDate.set(Calendar.MINUTE, 59);
+            eDate.set(Calendar.SECOND, 59);
+            eDate.set(Calendar.MILLISECOND, 999);
+
+            imports = vImportRepo.getImportsOfSupplier(id, sDate.getTime(), eDate.getTime(), nameProductSQL, pageable);
+        } else if (start == null && end == null) {
+            imports = vImportRepo.getImportsOfSupplier(id, nameProductSQL,pageable);
+        } else if (start == null) {
+            Map<String, Calendar> map = this.getStartAndEndDate(end);
+            imports = vImportRepo.getImportsOfSupplier(id, map.get("startDate").getTime(), map.get("endDate").getTime(), nameProductSQL,pageable);
+        }  else if (end == null) {
+            Map<String, Calendar> map = this.getStartAndEndDate(start);
+            imports = vImportRepo.getImportsOfSupplier(id, map.get("startDate").getTime(), map.get("endDate").getTime(), nameProductSQL,pageable);
+        }
+
         ImportOfSupplierResponse response = new ImportOfSupplierResponse();
         List<ImportOfSupplierItem> importOfSupplier = new ArrayList<>();
-        Pageable pageable = PageRequest.of(page, record);
-        List<VImport> imports =  vImportRepo.getImportsOfSupplier(id, pageable);
+
         BigDecimal totalOfPays = BigDecimal.ZERO;
 
         for (VImport vImport : imports) {
@@ -94,7 +123,11 @@ public class SupplierStatisticServiceImpl implements SupplierStatisService {
             item.setInMoney(vImport.getInMoney());
             item.setInAmount(vImport.getInAmount());
             item.setProductCode(vImport.getProductCode());
-            item.setUnitName(vUnitRepo.findById(vImport.getUnitId()).getUnitName());
+            if (vUnitRepo.findById(vImport.getUnitId()) != null) {
+                item.setUnitName(vUnitRepo.findById(vImport.getUnitId()).getUnitName());
+            } else {
+                item.setUnitName("");
+            }
             item.setTotalPurchasePrice(new BigDecimal(vImport.getInAmount()).multiply(vImport.getInMoney()));
             importOfSupplier.add(item);
             totalOfPays = totalOfPays.add(item.getTotalPurchasePrice());
@@ -102,7 +135,8 @@ public class SupplierStatisticServiceImpl implements SupplierStatisService {
 
         response.setSupplier(vSupplierRepo.findbyid(id));
         response.setTotalPages((int) Math.ceil(imports.size()/record));
-        response.setTotalItems(imports.size());
+        response.setTotalItems(this.vImportRepo.getImportsOfSupplierCount(id, nameProductSQL
+        ));
         response.setPage(page);
         response.setPageSize(record);
         response.setImportsOfSupplier(importOfSupplier);
@@ -197,5 +231,26 @@ public class SupplierStatisticServiceImpl implements SupplierStatisService {
             default:
         }
         return lineChart;
+    }
+
+    public Map<String, Calendar> getStartAndEndDate(Date date) {
+        Calendar sDate = Calendar.getInstance();
+        sDate.setTime(date);
+        sDate.set(Calendar.HOUR_OF_DAY, 0);
+        sDate.set(Calendar.MINUTE,0);
+        sDate.set(Calendar.SECOND,0);
+        sDate.set(Calendar.MILLISECOND,0);
+
+        Calendar eDate = Calendar.getInstance();
+        eDate.setTime(date);
+        eDate.set(Calendar.HOUR_OF_DAY, 23);
+        eDate.set(Calendar.MINUTE, 59);
+        eDate.set(Calendar.SECOND, 59);
+        eDate.set(Calendar.MILLISECOND, 999);
+
+        Map<String, Calendar> map = new HashMap<>();
+        map.put("startDate", sDate);
+        map.put("endDate", eDate);
+        return map;
     }
 }

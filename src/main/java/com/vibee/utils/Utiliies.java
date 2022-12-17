@@ -103,6 +103,15 @@ public class Utiliies {
         }
     }
 
+    public static Date formatStringDateNotTime(String date){
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd");
+            return sdf.parse(date);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     public static LocalDate convertDoubleToLocalDate(double number) {
         double raw = number;
         long days = (long) raw;
