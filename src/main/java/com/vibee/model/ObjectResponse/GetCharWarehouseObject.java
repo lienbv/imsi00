@@ -6,7 +6,7 @@ import java.util.Date;
 public interface GetCharWarehouseObject {
     double getInAmount();
     double getOutAmount();
-    Date getCreateDate();
+    Date getCreatedDate();
     BigDecimal getInPrice();
     BigDecimal getOutPrice();
 }

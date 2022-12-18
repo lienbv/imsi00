@@ -125,9 +125,24 @@ public class CommonUtil {
     }
   }
 
-  public static <T> T stringToBean(String value,Class<T> entity){
-    T t=null;
-    return t;
+  public static <T> T stringToBean(String str, Class<T> clazz) {
+    if (str == null || str.length() <= 0 || clazz == null) {
+      return null;
+    }
+    if (clazz == int.class || clazz == Integer.class) {
+      return (T) Integer.valueOf(str);
+    } else if (clazz == String.class) {
+      return (T) str;
+    } else if (clazz == long.class || clazz == Long.class) {
+      return (T) Long.valueOf(str);
+    } else {
+      ObjectMapper mapper = new ObjectMapper();
+      try {
+        return mapper.readValue(str, clazz);
+      } catch (IOException e) {
+        return null;
+      }
+    }
   }
 
   public static boolean isNullOrEmpty(String str) {

@@ -201,12 +201,20 @@ public class GetWarehouseServiceImpl implements GetWarehouseService {
         Object[] past = (Object[]) lst.get(1);
         BigDecimal inPriced = (BigDecimal) past[2];
         BigDecimal outPriced = (BigDecimal) past[3];
-        BigDecimal compareInMoney=((inPrice.divide(inPriced,2, RoundingMode.HALF_UP)).multiply(BigDecimal.valueOf(100))).subtract(BigDecimal.valueOf(100));
-        BigDecimal compareOutMoney=(outPrice.divide(outPriced,2, RoundingMode.HALF_UP)).multiply(BigDecimal.valueOf(100)).subtract(BigDecimal.valueOf(100));
+        if (inPrice.compareTo(BigDecimal.ZERO) == 0) {
+            response.setCompareInMoney(BigDecimal.ZERO);
+        } else {
+            BigDecimal compareInMoney=((inPrice.divide(inPriced,2, RoundingMode.HALF_UP)).multiply(BigDecimal.valueOf(100))).subtract(BigDecimal.valueOf(100));
+            response.setCompareInMoney(compareInMoney);
+        }
+        if (outPrice.compareTo(BigDecimal.ZERO) == 0) {
+            response.setCompareOutMoney(BigDecimal.ZERO);
+        } else {
+            BigDecimal compareOutMoney=((outPrice.divide(outPriced,2, RoundingMode.HALF_UP)).multiply(BigDecimal.valueOf(100))).subtract(BigDecimal.valueOf(100));
+            response.setCompareOutMoney(compareOutMoney);
+        }
         BigDecimal profited=outPriced.subtract(inPriced);
         BigDecimal compareProfit=(profit.divide(profited,2, RoundingMode.HALF_UP)).multiply(BigDecimal.valueOf(100)).subtract(BigDecimal.valueOf(100));
-        response.setCompareInMoney(compareInMoney);
-        response.setCompareOutMoney(compareOutMoney);
         response.setCompareProfit(compareProfit);
         return response;
     }
@@ -232,7 +240,7 @@ public class GetWarehouseServiceImpl implements GetWarehouseService {
         List<GetCharWareHouseItem> responses=new ArrayList<>();
         for (GetCharWarehouseObject o:lst){
             GetCharWareHouseItem response = new GetCharWareHouseItem();
-            response.setCreateDate(CommonUtil.convertDateToStringddMMyyyy(o.getCreateDate()));
+            response.setCreateDate(CommonUtil.convertDateToStringddMMyyyy(o.getCreatedDate()));
             response.setOutAmount(o.getOutAmount());
             response.setInAmount(o.getInAmount());
             response.setInPrice(o.getInPrice());

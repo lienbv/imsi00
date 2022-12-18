@@ -1,18 +1,19 @@
 package com.vibee.service.vproduct.impl;
 
-import com.vibee.entity.VImport;
-import com.vibee.entity.VProduct;
-import com.vibee.entity.VUploadFile;
-import com.vibee.entity.VWarehouse;
+import com.vibee.entity.*;
 import com.vibee.model.Status;
 import com.vibee.model.item.GetProductItem;
+import com.vibee.model.item.GetTypeProductItem;
+import com.vibee.model.item.PageItem;
 import com.vibee.model.item.SelectExportItem;
 import com.vibee.model.request.product.GetProductRequest;
 import com.vibee.model.request.product.ViewStallRequest;
 import com.vibee.model.response.product.*;
 import com.vibee.model.ObjectResponse.ProductStallObject;
+import com.vibee.model.result.SellOnlineResult;
 import com.vibee.repo.*;
 import com.vibee.service.vproduct.GetProductService;
+import com.vibee.utils.CommonUtil;
 import com.vibee.utils.MessageUtils;
 import com.vibee.utils.ProductUtils;
 import com.vibee.utils.Utiliies;
@@ -40,19 +41,25 @@ public class GetProductServiceImpl implements GetProductService {
     private final VUnitRepo unitRepo;
     private final VFileUploadRepo fileUploadRepo;
     private final VWarehouseRepo vWarehouseRepo;
+    private final VUserRepo userRepo;
+    private final VTypeProductRepo typeProductRepo;
 
     @Autowired
     public GetProductServiceImpl(VImportRepo importRepo,
                                  VExportRepo exportRepo,
                                  VProductRepo productRepo,
                                  VUnitRepo unitRepo,
-                                 VFileUploadRepo fileUploadRepo, VWarehouseRepo vWarehouseRepo) {
+                                 VFileUploadRepo fileUploadRepo, VWarehouseRepo vWarehouseRepo,
+                                 VUserRepo userRepo,
+                                 VTypeProductRepo typeProductRepo) {
         this.importRepo = importRepo;
         this.exportRepo = exportRepo;
         this.productRepo = productRepo;
         this.unitRepo = unitRepo;
         this.fileUploadRepo = fileUploadRepo;
         this.vWarehouseRepo = vWarehouseRepo;
+        this.userRepo = userRepo;
+        this.typeProductRepo = typeProductRepo;
     }
 
     @Override
@@ -167,7 +174,12 @@ public class GetProductServiceImpl implements GetProductService {
             item.setSupName((String) objects[6]);
             item.setStatusCode(statusCode);
             item.setStatusName(ProductUtils.getstatusname(statusCode, language));
-            item.setUnit((int) objects[7]);
+            int unitId = (int) objects[7];
+            if (unitId == 0) {
+                item.setUnit("");
+            } else {
+                item.setUnit(this.unitRepo.getUnitNameByUnitId(unitId));
+            }
             list.add(item);
         }
         return list;
@@ -177,34 +189,55 @@ public class GetProductServiceImpl implements GetProductService {
     public DetailProductResponse detail(int productId, String language) {
         log.info("DetailProductService:: START");
         DetailProductResponse response = new DetailProductResponse();
-        Object item = new DetailProductResponse();
-        item = this.productRepo.findProductById(productId);
-        if (item == null) {
+        VProduct product=this.productRepo.getProduct(productId);
+        VWarehouse warehouse=this.vWarehouseRepo.findByProductId(productId);
+
+        if (product == null) {
             log.error("Product is not exits");
             response.getStatus().setStatus(Status.Fail);
             response.getStatus().setMessage(MessageUtils.get(language, "msg.product.not.already.exit"));
             return response;
         }
-        Object[] objects = (Object[]) item;
-        response.setId(objects[0] != null ? (int) objects[0] : 0);
-        response.setCreatedDate(objects[1] != null ? Utiliies.formatDateTime((Date) objects[1]) : "");
-        response.setCreator(objects[2] != null ? (String) objects[2] : "");
-        response.setStatusName(objects[3] != null ? ProductUtils.getstatusname((Integer) objects[3], language) : "");
-        response.setBarCode(objects[4] != null ? objects[4].toString() : "");
-        response.setDescription(objects[5] != null ? objects[5].toString() : "");
-        response.setCategoryName(objects[6] != null ? objects[6].toString() : "");
-        double inAmount = (Double) objects[7];
-        BigDecimal outAmount = (BigDecimal) objects[8];
+        if (warehouse == null) {
+            log.error("warehouse not found");
+            response.getStatus().setStatus(Status.Fail);
+            response.getStatus().setMessage(MessageUtils.get(language, "msg.warehouse.not.found"));
+            return response;
+        }
+        String creator= this.userRepo.findFullNameByUsername(product.getCreator());
+        if (creator == null) {
+            log.error("creator not found");
+            response.getStatus().setStatus(Status.Fail);
+            response.getStatus().setMessage(MessageUtils.get(language, "msg.creator.not.found"));
+            return response;
+        }
+        String categoryName=this.typeProductRepo.getNameById(product.getProductType());
+        if (categoryName == null) {
+            log.error("categoryName not found");
+            response.getStatus().setStatus(Status.Fail);
+            response.getStatus().setMessage(MessageUtils.get(language, "msg.category.not.found"));
+            return response;
+        }
+        String urlImage=this.fileUploadRepo.getURLById(product.getFileId());
+        response.setId(productId);
+        response.setCreatedDate(Utiliies.formatDateTime(product.getCreatedDate()));
+        response.setCreator(creator);
+        response.setStatusName(ProductUtils.getstatusname(product.getStatus(), language));
+        response.setBarCode(product.getBarCode());
+        response.setDescription(product.getDescription());
+        response.setCategoryName(categoryName);
+        double inAmount = warehouse.getInAmount();
+        double outAmount = warehouse.getOutAmount();
         response.setSumInAmount(inAmount);
         response.setSumOutAmount(outAmount);
-        response.setStatusCode(objects[3] != null ? (Integer) objects[3] : 0);
-        response.setImage(objects[9] != null ? objects[9].toString() : "");
-        response.setName(objects[10] != null ? objects[10].toString() : "");
-        response.setInventory(inAmount - outAmount.doubleValue());
-        response.setImportDate(Utiliies.formatDateTime(this.importRepo.getCreatedDateByProductId(productId)));
-//        response.setSumImport(this.importRepo.countWarehouseByProductId(productId));
-        response.setSupplierNames(this.importRepo.getSupplierNamesByProductId(productId));
-        response.setUnitName(this.unitRepo.getUnitNameByProductId(productId));
+        response.setStatusCode(product.getStatus());
+        response.setImage(urlImage);
+        response.setName(product.getProductName());
+        response.setInventory(inAmount - outAmount);
+        response.setImportDate(Utiliies.formatDateTime(this.importRepo.getCreatedDateByProductId(warehouse.getProductId())));
+        response.setSumImport(warehouse.getNumberOfEntries());
+        response.setSupplierNames(product.getSupplierName() );
+        response.setUnitName(this.unitRepo.getUnitNameByUnitId(warehouse.getUnitId()));
         response.getStatus().setStatus(Status.Success);
         response.getStatus().setMessage(MessageUtils.get(language, "msg.product.detail.success"));
         return response;
@@ -219,4 +252,97 @@ public class GetProductServiceImpl implements GetProductService {
         log.info("selectProductService:: END");
         return response;
     }
+    @Override
+    public InfoUpdateProductResponse infoUpdate(int idProd,String language) {
+        log.info("infoUpdateService :: Start");
+        InfoUpdateProductResponse response=new InfoUpdateProductResponse();
+        List<VTypeProduct> typeProducts=this.typeProductRepo.findByStatus(1);
+        List<GetTypeProductItem> typeProductItems=this.convertItem(typeProducts);
+        VProduct product=this.productRepo.getById(idProd);
+
+        if(product==null) {
+            log.error("infoUpdateService :: Product not found");
+            response.getStatus().setStatus(Status.Fail);
+            response.getStatus().setMessage(MessageUtils.get(language, "product.not.found"));
+            return response;
+        }
+        String urlImage=this.fileUploadRepo.getURLById(product.getFileId());
+        String categoryName=this.typeProductRepo.getById(product.getProductType()).getName();
+        response.setTypeProductItems(typeProductItems);
+        response.setDescription(product.getDescription());
+        response.setNameProd(product.getProductName());
+        response.setImg(urlImage);
+        response.setBarCode(product.getBarCode());
+        response.setIdProd(product.getId());
+        response.setCategoryName(categoryName);
+        response.getStatus().setStatus(Status.Success);
+        response.getStatus().setMessage("");
+        response.setStatusItems(ProductUtils.getStatuss(language));
+        response.setStatusName(ProductUtils.getstatusname(product.getStatus(),language));
+        response.setStatusCode(product.getStatus());
+        log.info("infoUpdateService :: End");
+        return response;
+    }
+
+    @Override
+    public SellOnlineResponse sellOnline(String language, int pageNumber, int pageSize, String search){
+        log.info("sellOnlineService :: Start");
+        SellOnlineResponse response=new SellOnlineResponse();
+        List<SellOnlineResult> sellOnlineResults=new ArrayList<>();
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        List<VProduct> products;
+        long totalPage;
+        if (CommonUtil.isEmptyOrNull(search)){
+            products=this.productRepo.searchProductByName(pageable);
+            totalPage=this.productRepo.countProduct();
+        }else {
+            products=this.productRepo.searchProductByName(search,pageable);
+            totalPage=this.productRepo.countProduct(search);
+        }
+
+        List<VWarehouse> warehouses=this.vWarehouseRepo.getAllWarehouse(pageable);
+        if (products == null) {
+            log.error("sellOnlineService :: warehouse not found");
+            response.getStatus().setStatus(Status.Fail);
+            response.getStatus().setMessage(MessageUtils.get(language, "msg.warehouse.not.found"));
+            return response;
+        }
+        for (VProduct product:products){
+            VWarehouse warehouse=this.vWarehouseRepo.findByProductId(product.getId());
+            VImport sellOnlineItems=this.importRepo.getImportByWarehouseId(warehouse.getId());
+            if(sellOnlineItems==null){
+                continue;
+            }
+            SellOnlineResult sellOnlineResult=new SellOnlineResult();
+            sellOnlineResult.setImportId(sellOnlineItems.getId());
+            sellOnlineResult.setProductCode(sellOnlineItems.getProductCode());
+            sellOnlineResult.setProductName(this.productRepo.getProduct(warehouse.getProductId()).getProductName());
+            sellOnlineResult.setProductQuantity(warehouse.getInAmount()-warehouse.getOutAmount());
+            sellOnlineResult.setProductImage(this.fileUploadRepo.getURLById(sellOnlineItems.getFileId()));
+            sellOnlineResults.add(sellOnlineResult);
+        }
+        PageItem pageItem = new PageItem();
+        pageItem.setPage(pageNumber);
+        pageItem.setPageSize(pageSize);
+        pageItem.setTotalItems(Math.toIntExact(totalPage));
+        pageItem.setTotalPages((int) Math.ceil((double) totalPage / pageSize));
+        response.setSellOnlineResults(sellOnlineResults);
+        response.getStatus().setStatus(Status.Success);
+        response.getStatus().setMessage("");
+        log.info("sellOnlineService :: End");
+        return response;
+    }
+
+    private List<GetTypeProductItem> convertItem(List<VTypeProduct> typeProducts){
+
+        List<GetTypeProductItem> items=new ArrayList<GetTypeProductItem>();
+        for(VTypeProduct product:typeProducts) {
+            GetTypeProductItem item=new GetTypeProductItem();
+            item.setId(product.getId());
+            item.setName(product.getName());
+            items.add(item);
+        }
+        return items;
+    }
+
 }

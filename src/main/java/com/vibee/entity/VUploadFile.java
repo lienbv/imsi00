@@ -12,7 +12,7 @@ import java.util.Date;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity(name = "UploadFile")
+@Entity(name = "uploadFile")
 @Table(name="v_upload_file")
 public class VUploadFile {
     private static final long serialVersionUID = 1L;

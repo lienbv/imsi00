@@ -5,6 +5,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import javax.transaction.Transactional;
@@ -49,4 +50,7 @@ public interface VTypeProductRepo extends JpaRepository<VTypeProduct, Integer> {
 
     @Query("select t from VTypeProduct t where t.id=?1 and t.status=1")
     VTypeProduct getByParentIdAndStatus(int id);
+
+    @Query("SELECT t.name FROM VTypeProduct t WHERE t.id = :id")
+    String getNameById(@Param("id") int id);
 }

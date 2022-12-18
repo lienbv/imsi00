@@ -10,21 +10,23 @@ import com.vibee.model.Status;
 import com.vibee.model.item.*;
 import com.vibee.model.request.product.CreateProductRequest;
 import com.vibee.model.request.product.InfoCreateProductResponse;
+import com.vibee.model.request.product.UpdateProductRequest;
 import com.vibee.model.request.warehouse.CreateWarehouseRequest;
 import com.vibee.model.response.BaseResponse;
 import com.vibee.model.response.product.CreateProductResponse;
 import com.vibee.model.response.product.SelectedProductResponse;
 import com.vibee.model.response.product.SelectedProductResult;
+import com.vibee.model.response.product.UpdateProductResponse;
 import com.vibee.model.response.warehouse.CreateWarehouseResponse;
 import com.vibee.repo.*;
-import com.vibee.service.vproduct.CreateProductService;
+import com.vibee.service.vproduct.SaveProductService;
 import com.vibee.service.vwarehouse.CreateWarehouseService;
 import com.vibee.utils.MessageUtils;
 import com.vibee.utils.Utiliies;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
@@ -33,7 +35,7 @@ import java.util.Date;
 import java.util.List;
 @Log4j2
 @Service
-public class CreateProductServiceImpl implements CreateProductService {
+public class CreateProductServiceImpl implements SaveProductService {
     private final VTypeProductRepo typeProductRepo;
     private final VSupplierRepo supplierRepo;
     private final VUnitRepo unitRepo;
@@ -44,6 +46,7 @@ public class CreateProductServiceImpl implements CreateProductService {
     private final VFileUploadRepo fileUploadRepo;
     private final CreateWarehouseService createWarehouseService;
     private final RedisAdapter redisAdapter;
+    private final VWarehouseRepo warehouseRepo;
     @Autowired
     public CreateProductServiceImpl(VTypeProductRepo typeProductRepo,
                                     VSupplierRepo supplierRepo,
@@ -53,7 +56,9 @@ public class CreateProductServiceImpl implements CreateProductService {
                                     VImportRepo importRepo,
                                     VExportRepo exportRepo,
                                     VFileUploadRepo fileUploadRepo,
-                                    CreateWarehouseService createWarehouseService, RedisAdapter redisAdapter){
+                                    CreateWarehouseService createWarehouseService,
+                                    RedisAdapter redisAdapter,
+                                    VWarehouseRepo warehouseRepo) {
         this.typeProductRepo=typeProductRepo;
         this.supplierRepo=supplierRepo;
         this.unitRepo=unitRepo;
@@ -64,6 +69,7 @@ public class CreateProductServiceImpl implements CreateProductService {
         this.fileUploadRepo=fileUploadRepo;
         this.createWarehouseService=createWarehouseService;
         this.redisAdapter = redisAdapter;
+        this.warehouseRepo = warehouseRepo;
     }
     @Override
     public InfoCreateProductResponse info(String request) {
@@ -362,5 +368,88 @@ public class CreateProductServiceImpl implements CreateProductService {
         this.redisAdapter.set(createProduct.getKey(),0, createProduct);
 
         return null;
+    }
+    @Override
+    public UpdateProductResponse UpdateProduct(UpdateProductRequest request, BindingResult result) {
+        log.info("UpdateProductService:: START");
+        UpdateProductResponse response=new UpdateProductResponse();
+        String language=request.getLanguage();
+        int productIdRequest=request.getProductId();
+        String productNameRequest=request.getProductName();
+        int statusCodeRequest=request.getStatusCode();
+        String descriptionRequest=request.getDescription();
+        int categoryIdRequest=request.getCategoryId();
+        String barCodeRequest=request.getBarCode();
+
+        if(result.hasErrors()) {
+            log.error("Update Product Request is Blank");
+            response.getStatus().setStatus(Status.Fail);
+            response.getStatus().setMessage(MessageUtils.get(language, result.getNestedPath()));
+            return response;
+        }
+        VProduct product=this.productRepo.getById(productIdRequest);
+        if(product==null) {
+            log.error("Update Product Request is Blank");
+            response.getStatus().setStatus(Status.Fail);
+            response.getStatus().setMessage(MessageUtils.get(language, "msg.product.not.already.exit"));
+            return response;
+        }
+
+        VTypeProduct typeProduct=this.typeProductRepo.getById(categoryIdRequest);
+        if(typeProduct==null) {
+            log.error("Category is not Exist");
+            response.getStatus().setStatus(Status.Fail);
+            response.getStatus().setMessage(MessageUtils.get(language,"error.category.not.exist"));
+            return response;
+        }
+        product.setProductName(productNameRequest);
+        product.setProductType(categoryIdRequest);
+        product.setStatus(statusCodeRequest);
+        product.setDescription(descriptionRequest);
+        product.setBarCode(barCodeRequest);
+        VProduct updateProduct=this.productRepo.save(product);
+        if(updateProduct==null) {
+            log.error("update product is failed");
+            response.getStatus().setStatus(Status.Fail);
+            response.getStatus().setMessage(MessageUtils.get(language, "msg.product.update.failed"));
+            return response;
+        }
+        response.setId(product.getId());
+        response.getStatus().setStatus(Status.Success);
+        response.getStatus().setMessage(MessageUtils.get(language, "msg.product.update.success"));
+        log.info("UpdateProductService:: START");
+        return response;
+    }
+
+    @Override
+    public UpdateProductResponse updateUpload(MultipartFile file, int productId, String language) {
+        log.info("UploadProductSerivce :: Start");
+        UpdateProductResponse response=new UpdateProductResponse();
+        VProduct product=this.productRepo.getById(productId);
+        if(product == null ){
+            log.error("Update Product Request is Blank");
+            response.getStatus().setStatus(Status.Fail);
+            response.getStatus().setMessage(MessageUtils.get(language, "msg.update.image.product.failed"));
+            return response;
+        }
+        VUploadFile uploadFile = this.fileUploadRepo.findById(product.getFileId());
+        boolean saveImg=Utiliies.uploadFile(file);
+        if(saveImg==false){
+            log.error("save file is false");
+            response.getStatus().setStatus(Status.Fail);
+            response.getStatus().setMessage(MessageUtils.get(language, "msg.update.image.product.failed"));
+            return response;
+        }
+        if (uploadFile!=null){
+            uploadFile.setUrl("./target/classes/templates/"+file.getOriginalFilename());
+        }else{
+            CreateProductResponse upload=this.upload(file,language);
+            product.setFileId(upload.getId());
+        }
+        VProduct p=this.productRepo.save(product);
+        response.setId(p.getId());
+        response.getStatus().setStatus(Status.Success);
+        response.getStatus().setMessage(MessageUtils.get(language, "msg.product.success"));
+        return response;
     }
 }
