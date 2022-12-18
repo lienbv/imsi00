@@ -19,4 +19,5 @@ public interface PayRepository extends JpaRepository<VPay, Integer>, JpaSpecific
     int getNum(int debit);
     @Query(value = "select * from v_pay v where v.DEBIT_ID=?1 order by v.ACTUAL_DATE_OF_PAYMENT_OF_DEBT desc limit 1", nativeQuery = true)
     VPay getNewDate(int debitId);
+
 }

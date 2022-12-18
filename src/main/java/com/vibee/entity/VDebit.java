@@ -31,7 +31,7 @@ public class VDebit implements Serializable {
     private String fullName;
     @Column(name = "ADDRESS")
     private String address;
-    @Column(name = "TOTAL")
+    @Column(name = "TOTAL_AMOUNT_OWED")
     private BigDecimal totalAmountOwed;
     @Column(name = "CREATOR_PAYER")
     private String creatorPayer;
@@ -41,6 +41,8 @@ public class VDebit implements Serializable {
     private int billId;
     @Column(name = "TYPE_OF_DEBTOR")
     private int typeOfDebtor;
-    @Column(name = "EXPECTED_DATE_OF_PAYMENT_OF_DEBT")
-    private Date expectedDateOfPaymentOfDebt;
+    @Column(name = "DESCRIPTION")
+    private String description;
+    @Column(name = "PHONE_NUMBER")
+    private String phoneNumber;
 }

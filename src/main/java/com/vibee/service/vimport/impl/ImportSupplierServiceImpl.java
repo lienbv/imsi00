@@ -12,9 +12,13 @@ import com.vibee.entity.*;
 import com.vibee.jedis.ImportInWarehouseRedis;
 import com.vibee.model.Status;
 import com.vibee.model.info.ImportWarehouseInfor;
-import com.vibee.model.item.UnitItem;
+import com.vibee.model.item.*;
+import com.vibee.model.request.product.InfoCreateProductResponse;
 import com.vibee.model.request.v_import.ImportInWarehouse;
 import com.vibee.model.response.BaseResponse;
+import com.vibee.model.response.bill.GetTopTen;
+import com.vibee.model.response.category.CategoryImportItems;
+import com.vibee.model.response.category.ListCategoryImportItems;
 import com.vibee.model.response.auth.LoginResponse;
 import com.vibee.model.response.category.SelectionTypeProductItems;
 import com.vibee.model.response.category.SelectionTypeProductItemsResponse;
@@ -146,7 +150,7 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
 
         ImportInWarehouseRedis importInWarehouse = this.importRedisRepo.get(String.valueOf(key), redisId);
 
-        String creator = this.getUserName();
+        String creator = "lienpt";
         String barcode = request.getBarCode();
         BigDecimal inPrice = request.getInPrice();
         int typeProductId = request.getCategoryId();
@@ -320,7 +324,7 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
                 vProduct = this.vProductRepo.save(vProduct);
 
                 VWarehouse vWarehouse = this.vWarehouseRepo.findByProductId(vProduct.getId());
-                VImport vImport1 = new VImport();
+
                 if (vWarehouse != null) {
 
                     vWarehouse.setId(vWarehouse.getId());
@@ -338,7 +342,7 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
                     vWarehouse.setNumberOfEntries(vWarehouse.getNumberOfEntries() + 1);
                     vWarehouse = this.vWarehouseRepo.save(vWarehouse);
 
-                    vImport1 = this.vImportRepo.getVImportBy(vWarehouse.getId());
+                    VImport vImport1 = this.vImportRepo.getVImportBy(vWarehouse.getId());
 
                     vImport.setWarehouseId(vWarehouse.getId());
                     vImport.setCreatedDate(new Date());
@@ -582,11 +586,26 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
         return response;
     }
 
+    public ListCategoryImportItems getCategory(){
+        List<VTypeProduct> findByStatus = this.vTypeProductRepo.findByStatus(1);
+        List<CategoryImportItems> items= new ArrayList<>();
+        ListCategoryImportItems response = new ListCategoryImportItems();
+        for (VTypeProduct vTypeProduct: findByStatus){
+            CategoryImportItems categoryImportItems = new CategoryImportItems();
+            categoryImportItems.setName(vTypeProduct.getName());
+            categoryImportItems.setId(vTypeProduct.getId());
+            categoryImportItems.setDescription(vTypeProduct.getDescription());
+            items.add(categoryImportItems);
+        }
+        response.setItems(items);
+        return response;
+    }
+
     public static void createQR(String data, String path, String charset, Map hashMap, int height, int width) throws WriterException, IOException {
 
-        BitMatrix matrix = new MultiFormatWriter().encode(new String(data.getBytes(charset), charset), BarcodeFormat.QR_CODE, width, height);
+     BitMatrix matrix = new MultiFormatWriter().encode(new String(data.getBytes(charset), charset), BarcodeFormat.QR_CODE, width, height);
 
-        MatrixToImageWriter.writeToFile(matrix, path.substring(path.lastIndexOf('.') + 1), new File(path));
+     MatrixToImageWriter.writeToFile(matrix, path.substring(path.lastIndexOf('.') + 1), new File(path));
     }
 
     private String getUserName(){
