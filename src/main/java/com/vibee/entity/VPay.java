@@ -23,7 +23,7 @@ public class VPay implements Serializable {
     private int id;
     @Column(name = "DEBIT_ID")
     private int debitId;
-    @Column(name = "ACTUAL_DATE")
+    @Column(name = "DATE_PAYMENT")
     private Date actualDateOfPaymentOfDebt;
     @Column(name = "PRICE")
     private BigDecimal price;
@@ -33,4 +33,5 @@ public class VPay implements Serializable {
     private BigDecimal in_Price;
     @Column(name = "NUMBER_OF_PAYOUTS")
     private int numberOfPayOuts;
+    private String creator;
 }

@@ -4,7 +4,7 @@ import com.vibee.model.info.ImportWarehouseInfor;
 import com.vibee.model.item.UnitItem;
 import com.vibee.model.request.v_import.ImportInWarehouse;
 import com.vibee.model.response.BaseResponse;
-import com.vibee.model.response.category.SelectionTypeProductItems;
+import com.vibee.model.response.category.ListCategoryImportItems;
 import com.vibee.model.response.product.CreateProductResponse;
 import com.vibee.model.response.product.ShowProductByBarcodeResponse;
 import com.vibee.model.response.v_import.EditImportWarehouse;
@@ -32,8 +32,8 @@ public class ImportController {
     }
 
     @GetMapping(value = "type-product")
-    public List<SelectionTypeProductItems> getAllSelectType(){
-        return this.typeProductService.getAllSelected();
+    public ListCategoryImportItems getCategory(){
+        return this.importSupplierService.getCategory();
     }
 
     @GetMapping(value = "barcode-product/{barcode}")
