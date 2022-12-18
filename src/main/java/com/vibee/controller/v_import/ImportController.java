@@ -11,21 +11,21 @@ import com.vibee.model.response.v_import.EditImportWarehouse;
 import com.vibee.model.response.v_import.ImportWarehouseItemsResponse;
 import com.vibee.service.vemployee.ITypeProductService;
 import com.vibee.service.vimport.IImportSuppierService;
-import com.vibee.service.vproduct.CreateProductService;
+import com.vibee.service.vproduct.SaveProductService;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/vibee/api/v1/auth/import-warehouse")
+@RequestMapping("/vibee/api/v1/import-warehouse")
 @CrossOrigin("*")
 public class ImportController {
     private final IImportSuppierService importSupplierService;
     private final ITypeProductService typeProductService;
-    private final CreateProductService createProductService;
+    private final SaveProductService createProductService;
 
-    public ImportController(IImportSuppierService importSupplierService, ITypeProductService typeProductService, CreateProductService createProductService) {
+    public ImportController(IImportSuppierService importSupplierService, ITypeProductService typeProductService, SaveProductService createProductService) {
         this.importSupplierService = importSupplierService;
         this.typeProductService = typeProductService;
         this.createProductService = createProductService;

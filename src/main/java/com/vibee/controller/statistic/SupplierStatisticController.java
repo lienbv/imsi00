@@ -27,8 +27,12 @@ public class SupplierStatisticController {
     @GetMapping("/import/{supplier-id}")
     public ImportOfSupplierResponse getImportsOfSupplier(@PathVariable("supplier-id") int id,
                                                          @RequestParam(value = "page", defaultValue = "0") int page,
-                                                         @RequestParam(value = "record", defaultValue = "10") int record) {
-        return this.supplierStatisService.getImportsOfSupplier(id, page, record);
+                                                         @RequestParam(value = "record", defaultValue = "10") int record,
+                                                         @RequestParam(value = "startDate", defaultValue = "") String startDate,
+                                                         @RequestParam(value = "endDate", defaultValue = "") String endDate,
+                                                         @RequestParam(value = "nameProduct", defaultValue = "") String nameProduct
+    ) {
+        return this.supplierStatisService.getImportsOfSupplier(id, page, record, startDate, endDate, nameProduct);
     }
 
     @GetMapping("import/linechart/{supplier-id}")

@@ -12,4 +12,7 @@ public interface GetProductService {
     DetailProductResponse detail(int productId, String language);
     GetHomeSellOnlineResponse selectProduct(String language);
 
+    InfoUpdateProductResponse infoUpdate(int idProd,String language);
+
+    SellOnlineResponse sellOnline(String language, int pageNumber, int pageSize, String search);
 }

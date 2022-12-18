@@ -53,4 +53,7 @@ public interface VUserRepo extends JpaRepository<VUser, Integer> {
     Page<VUser> findByStatusOrStatus(int status_1, int status_2, Pageable pageable);
 
 
+    @Query("SELECT u.fullname FROM user u WHERE u.username= :username")
+    String findFullNameByUsername(@Param("username") String username);
+
 }

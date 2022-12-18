@@ -45,6 +45,12 @@ public interface VSupplierRepo extends JpaSpecificationExecutor<VSupplier>,JpaRe
 
     List<VSupplier> findByStatus(int status, Pageable pageable);
 
+    @Query("select o from supplier o where o.status = ?1 and o.nameSup like ?2")
+    List<VSupplier> findByStatusAndNameSup(int status, String nameSup, Pageable pageable);
+
+    @Query("select count(o) from supplier o where o.status = ?1 and o.nameSup like ?2")
+    int findByStatusAndNameSupCount(int status, String nameSup);
+
     @Query("select s.id from supplier s ")
     List<String> findById();
     VSupplier findByIdAndStatus(int id, int status);
@@ -54,5 +60,11 @@ public interface VSupplierRepo extends JpaSpecificationExecutor<VSupplier>,JpaRe
 
     @Query("select o from supplier o where o.nameSup like ?2 and o.status = ?1")
     List<VSupplier> findBySuppliers(int status,String nameSup);
+
+    @Query("select o.nameSup from supplier o where o.id= :supplierId and o.status = 1")
+    String findNameById(@Param("supplierId") int supplierId);
+
+    @Query("select o from supplier o where o.id= :supplierId and o.status = 1")
+    VSupplier findSupplierById(@Param("supplierId") int supplierId);
 
 }

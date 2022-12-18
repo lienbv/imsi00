@@ -34,7 +34,7 @@ public class UnitController {
         return unitService.save(request);
     }
 
-    @PutMapping("")
+    @PostMapping("/update")
     public VUnit update(@RequestBody UnitRequest request) {
         return unitService.update(request);
     }

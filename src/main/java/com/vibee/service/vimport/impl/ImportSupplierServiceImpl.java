@@ -7,6 +7,7 @@ import com.google.zxing.WriterException;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
+import com.vibee.config.redis.RedisAdapter;
 import com.vibee.entity.*;
 import com.vibee.jedis.ImportInWarehouseRedis;
 import com.vibee.model.Status;
@@ -18,6 +19,7 @@ import com.vibee.model.response.BaseResponse;
 import com.vibee.model.response.bill.GetTopTen;
 import com.vibee.model.response.category.CategoryImportItems;
 import com.vibee.model.response.category.ListCategoryImportItems;
+import com.vibee.model.response.auth.LoginResponse;
 import com.vibee.model.response.category.SelectionTypeProductItems;
 import com.vibee.model.response.category.SelectionTypeProductItemsResponse;
 import com.vibee.model.response.product.ShowProductByBarcodeResponse;
@@ -27,12 +29,15 @@ import com.vibee.model.response.supplier.SupplierResponse;
 import com.vibee.model.response.v_import.*;
 import com.vibee.repo.*;
 import com.vibee.service.vimport.IImportSuppierService;
+import com.vibee.utils.CommonUtil;
 import com.vibee.utils.DataUtils;
 import com.vibee.utils.MessageUtils;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -54,11 +59,16 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
     private final VWarehouseRepo vWarehouseRepo;
     private final VExportRepo vExportRepo;
 
+    private final HttpServletRequest servletRequest;
+    private final RedisAdapter redisAdapter;
+    private static final String TOKEN_PREFIX="Bearer ";
     @Autowired
     public ImportSupplierServiceImpl(VSupplierRepo vSupplierRepo, VProductRepo vProductRepo,
                                      VTypeProductRepo vTypeProductRepo, VUnitRepo vUnitRepo, VFileUploadRepo fileUploadRepo,
                                      VImportRepo vImportRepo, ImportRedisRepo importRedisRepo,
-                                     VWarehouseRepo vWarehouseRepo, VExportRepo vExportRepo) {
+                                     VWarehouseRepo vWarehouseRepo, VExportRepo vExportRepo,
+                                     HttpServletRequest servletRequest,
+                                     RedisAdapter redisAdapter) {
         this.vSupplierRepo = vSupplierRepo;
         this.vProductRepo = vProductRepo;
         this.vTypeProductRepo = vTypeProductRepo;
@@ -68,6 +78,8 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
         this.importRedisRepo = importRedisRepo;
         this.vWarehouseRepo = vWarehouseRepo;
         this.vExportRepo = vExportRepo;
+        this.servletRequest = servletRequest;
+        this.redisAdapter = redisAdapter;
     }
 
     @Override
@@ -75,7 +87,7 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
         BaseResponse response = new BaseResponse();
         ImportInWarehouseRedis importInWarehouse = new ImportInWarehouseRedis();
 
-        String creator = "lienpt";
+        String creator = this.getUserName();
         String barcode = request.getBarCode();
         BigDecimal inPrice = request.getInPrice();
         int typeProductId = request.getCategoryId();
@@ -195,15 +207,8 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
     @Override
     public EditImportWarehouse edit(int key, String redisId, String language) {
         ImportInWarehouseRedis importInWarehouseRedis = this.importRedisRepo.get(String.valueOf(key), redisId);
-        VTypeProduct vTypeProduct = this.vTypeProductRepo.findById(importInWarehouseRedis.getTypeProductId());
 
         EditImportWarehouse infor = new EditImportWarehouse();
-        SelectionTypeProductItems responseType = new SelectionTypeProductItems();
-        List<SelectionTypeProductItems> category= new ArrayList<>();
-
-        responseType.setId(vTypeProduct.getId());
-        responseType.setName(vTypeProduct.getName());
-        responseType.setParentId(vTypeProduct.getParentId());
         infor.setId(redisId);
         infor.setNameProd(importInWarehouseRedis.getProductName());
         infor.setBarCode(importInWarehouseRedis.getBarcode());
@@ -218,11 +223,6 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
         infor.setSupplierName(importInWarehouseRedis.getSupplierName());
         infor.setRangeDates(importInWarehouseRedis.getRangeDates());
         infor.setUnit(importInWarehouseRedis.getUnit());
-        infor.setAmount(importInWarehouseRedis.getInAmount());
-        infor.setCategoryName(vTypeProduct.getName());
-        category.add(responseType);
-
-        infor.setCategory(category);
 
         return infor;
     }
@@ -280,8 +280,8 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
             VUnit vUnit = this.vUnitRepo.getByIdChild(infor.getUnitId(), infor.getUnitId());
             VImport vImport = new VImport();
 
-            String qrCode = DataUtils.generateBarcode(1);
-            String path = qrCode + "qrCode.png";
+            String qrCode = DataUtils.generateBarcode(14);
+            String path = "src/main/resources/static/"+qrCode + "qrCode.png";
             File file = new File(path);
             String charset = "UTF-8";
             Map<EncodeHintType, ErrorCorrectionLevel> hashMap = new HashMap<>();
@@ -296,13 +296,13 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
                 throw new RuntimeException(e);
             }
             VUploadFile uploadFile = new VUploadFile();
-            uploadFile.setCreator("");
+            uploadFile.setCreator(this.getUserName());
             uploadFile.setCreatedDate(new Date());
             uploadFile.setFileName(qrCode);
             uploadFile.setSize(BigDecimal.valueOf(file.length()));
             uploadFile.setType(contendType);
             uploadFile.setModifiedDate(new Date());
-            uploadFile.setUrl("D:\\be-vibee-dev-new_new\\be-vibee-dev-new_new\\be-vibee-dev-new1\\be-vibee-dev-new\\be-vibee-dev\\be-vibee-dev\\src\\main\\resources" + path);
+            uploadFile.setUrl(path);
             uploadFile = this.fileUploadRepo.save(uploadFile);
 
             VProduct vProduct = this.vProductRepo.findByBarCodeAndStatus(infor.getBarcode(), 1);
@@ -374,6 +374,8 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
                     this.vImportRepo.save(vImport);
 
                 } else {
+//                    VWarehouse vWarehouse1 = this.vWarehouseRepo.getProductByCreateDate(vProduct.getId(), vWarehouse.getCreatedDate());
+//                    VWarehouse vWarehouse2 = this.vWarehouseRepo.getProductByModifyDate(vProduct.getId(), new Date());
                     VWarehouse vWarehouseNew1 = new VWarehouse();
                     vWarehouseNew1.setProductId(vProduct.getId());
                     vWarehouseNew1.setCreator(infor.getCreator());
@@ -512,10 +514,11 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
             item.setUnitName(vUnitId.getUnitName());
             item.setQrCode(uploadFile.getUrl());
             listAll.add(item);
-            response.setItems(listAll);
-            response.getStatus().setStatus(Status.Success);
-            response.getStatus().setMessage(MessageUtils.get(language, "msg.done-import.success"));
+
         }
+        response.setItems(listAll);
+        response.getStatus().setStatus(Status.Success);
+        response.getStatus().setMessage(MessageUtils.get(language, "msg.done-import.success"));
         return response;
     }
 
@@ -556,7 +559,7 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
         response.setId(vProduct.getId());
         response.setProductName(vProduct.getProductName());
         response.setSupplierName(response.getSupplierName());
-        response.setCreator("");
+        response.setCreator(this.getUserName());
         response.setStatusCode(vProduct.getStatus());
         response.setBarCode(vProduct.getBarCode());
         response.setCategory(responseType);
@@ -603,5 +606,19 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
      BitMatrix matrix = new MultiFormatWriter().encode(new String(data.getBytes(charset), charset), BarcodeFormat.QR_CODE, width, height);
 
      MatrixToImageWriter.writeToFile(matrix, path.substring(path.lastIndexOf('.') + 1), new File(path));
+    }
+
+    private String getUserName(){
+        String token=servletRequest.getHeader("Authorization");
+        if (CommonUtil.isEmptyOrNull(token)) {
+            return null;
+        }
+        String key = "expireToken::" + token.substring(TOKEN_PREFIX.length()).hashCode();
+        if (Boolean.FALSE.equals(this.redisAdapter.exists(key))) {
+            return null;
+        }
+        LoginResponse loginResponse=this.redisAdapter.get(key, LoginResponse.class);
+        String username = loginResponse.getUsername();
+        return username;
     }
 }
