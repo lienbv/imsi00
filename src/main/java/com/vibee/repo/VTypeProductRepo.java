@@ -49,4 +49,5 @@ public interface VTypeProductRepo extends JpaRepository<VTypeProduct, Integer> {
 
     @Query("select t from VTypeProduct t where t.id=?1 and t.status=1")
     VTypeProduct getByParentIdAndStatus(int id);
+
 }

@@ -4,6 +4,7 @@ import com.vibee.model.info.ImportWarehouseInfor;
 import com.vibee.model.item.UnitItem;
 import com.vibee.model.request.v_import.ImportInWarehouse;
 import com.vibee.model.response.BaseResponse;
+import com.vibee.model.response.category.ListCategoryImportItems;
 import com.vibee.model.response.product.ShowProductByBarcodeResponse;
 import com.vibee.model.response.redis.ImportWarehouseResponse;
 import com.vibee.model.response.v_import.EditImportWarehouse;
@@ -24,4 +25,5 @@ public interface IImportSuppierService {
     EditImportWarehouse edit(int key, String redisId, String language);
     ListImportInWarehouseRedis getAllRedis(int key);
     List<UnitItem> getAllSelectUnitByIdParent(int parent, String language);
+    ListCategoryImportItems getCategory();
 }

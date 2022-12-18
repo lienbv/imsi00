@@ -7,6 +7,7 @@ import com.vibee.model.request.debit.DebitRequest;
 import com.vibee.model.request.debit.ListPayRequest;
 import com.vibee.model.request.debit.PayRequest;
 import com.vibee.model.response.BaseResponse;
+import com.vibee.model.response.bill.GetTopTen;
 import com.vibee.model.response.debit.DebitDetailResponse;
 import com.vibee.model.response.debit.DebitItemsResponse;
 import com.vibee.model.response.debit.DebitOfUserResponse;
@@ -76,7 +77,10 @@ public class DebitController {
         return this.debit.listUserDebit(request);
     }
 
-
+    @GetMapping("/topTen-bill")
+    public GetTopTen getBill(){
+        return this.debit.getBill();
+    }
 
     @GetMapping("/getDetailByBill/{bill}")
     public List<GetDetailBill> getDetailBill(@PathVariable(name = "bill")int bill){

@@ -28,7 +28,7 @@ public class UploadFileService {
         try {
 
             String uuid = UUID.randomUUID().toString();
-            String fileName =file.getOriginalFilename();
+            String fileName = uuid+ file.getOriginalFilename();
             System.out.println(fileName+"fule");
             savedFile = new File(dir, fileName);
             file.transferTo(savedFile);

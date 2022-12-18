@@ -62,6 +62,29 @@ public class ProductUtils {
                 return MessageUtils.get(lang, "msg.active");
         }
     }
+    public static String convertStatus(int status, String language) {
+
+        switch (status) {
+            case 1:
+                return MessageUtils.get(language, "msg.paid");
+            case 2:
+                return MessageUtils.get(language, "msg.unpaid");
+            case 3:
+                return MessageUtils.get(language, "msg.out-of-date");
+            default:
+                return "";
+        }
+    }
+    public static String convertTypeOfDebtor(int status, String language) {
+        switch (status) {
+            case 1:
+                return MessageUtils.get(language, "msg.customer-buy-odd");
+            case 2:
+                return MessageUtils.get(language, "msg.customer-wholesale");
+            default:
+                return "0";
+        }
+    }
 
     public static List<ProductStatusItem> getStatuss(String languge){
         List<ProductStatusItem> productStatusItems=new ArrayList<>();
