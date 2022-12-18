@@ -1,9 +1,7 @@
 package com.vibee.service.vwarehouse.impl;
 
 import com.vibee.config.redis.RedisAdapter;
-import com.vibee.entity.VUnit;
-import com.vibee.entity.VWarehouse;
-import com.vibee.model.ObjectResponse.GetExportsObject;
+import com.vibee.entity.*;
 import com.vibee.model.Status;
 import com.vibee.model.info.ImportWarehouseInfor;
 import com.vibee.model.item.UnitItem;
@@ -15,10 +13,7 @@ import com.vibee.model.response.v_import.CreateImportResponse;
 import com.vibee.model.response.v_import.ImportWarehouseItemsResponse;
 import com.vibee.model.response.warehouse.CreateWarehouseResponse;
 import com.vibee.model.response.warehouse.ImportWarehouseResponse;
-import com.vibee.model.result.ExportResult;
-import com.vibee.model.result.GetImportFileExcel;
-import com.vibee.model.result.GetUnitResult;
-import com.vibee.model.result.ImportWarehouseResult;
+import com.vibee.model.result.*;
 import com.vibee.repo.*;
 import com.vibee.service.excel.ImportExcel;
 import com.vibee.service.vimport.CreateImportProductService;
@@ -31,6 +26,8 @@ import com.vibee.utils.ProductUtils;
 import com.vibee.utils.Utiliies;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -62,6 +59,8 @@ public class CreateWarehouseServiceImpl implements CreateWarehouseService {
 
     private final VSupplierRepo supplierRepo;
 
+    private final VTypeProductRepo typeProductRepo;
+
     @Autowired
     public CreateWarehouseServiceImpl(VWarehouseRepo warehouseRepo,
                                       VProductRepo productRepo,
@@ -73,7 +72,8 @@ public class CreateWarehouseServiceImpl implements CreateWarehouseService {
                                       RedisAdapter redisAdapter,
                                       IImportSuppierService importSupplierService,
                                       HttpServletRequest servletRequest,
-                                      VSupplierRepo supplierRepo) {
+                                      VSupplierRepo supplierRepo,
+                                      VTypeProductRepo typeProductRepo) {
         this.warehouseRepo=warehouseRepo;
         this.productRepo=productRepo;
         this.createImportProductService=createImportProductService;
@@ -85,6 +85,7 @@ public class CreateWarehouseServiceImpl implements CreateWarehouseService {
         this.importSupplierService = importSupplierService;
         this.servletRequest = servletRequest;
         this.supplierRepo = supplierRepo;
+        this.typeProductRepo = typeProductRepo;
     }
     @Override
     public CreateWarehouseResponse create(CreateWarehouseRequest request) {
@@ -176,24 +177,76 @@ public class CreateWarehouseServiceImpl implements CreateWarehouseService {
             count++;
             boolean isExist=this.productRepo.existsByBarcode(product.getBarcode());
             if (Boolean.TRUE.equals(isExist)){
-                List<GetExportsObject> exports=this.exportRepo.getExportsByBarCode(product.getBarcode());
-                VUnit unit=this.unitRepo.getUnitByBarCode(product.getBarcode());
-                for (GetExportsObject export:exports){
-                    ExportResult exportResult=new ExportResult();
-                    exportResult.setInPrice(export.getInPrice());
-                    exportResult.setOutPrice(export.getOutPrice());
-                    exportResult.setUnitName(export.getUnitName());
-                    exportResult.setUnitId(export.getUnit());
-                    exportResults.add(exportResult);
+                Pageable pageable= PageRequest.of(0,1);
+                VProduct vProduct=this.productRepo.getProductByBarCode(product.getBarcode());
+                List<VImport> vImports=this.importRepo.findImportIdByBarcode(vProduct.getId(),pageable);
+                if (vImports==null){
+                    continue;
                 }
-                GetUnitResult unitResult = new GetUnitResult();
-                unitResult.setId(unit.getId());
-                unitResult.setName(unit.getUnitName());
-                unitResult.setStatusCode(unit.getStatus());
-                unitResult.setDescription(unit.getDescription());
-                unitResult.setParentId(unit.getParentId());
-                unitResult.setStatusName(ProductUtils.statusname(unit.getStatus()));
-                result.setUnit(unitResult);
+                VImport vImport=vImports.get(0);
+                List<VExport> exports=this.exportRepo.getExportsByImportId(vImport.getId());
+                List<VUnit> units=null;
+                VUnit u=this.unitRepo.getUnitById(vImport.getUnitId());
+                if (exports.isEmpty() || u==null){
+                    continue;
+                }
+                if (u.getParentId()>0){
+                    units=this.unitRepo.getAllUnitByParentId(u.getParentId());
+                }else{
+                    units=this.unitRepo.getAllUnitByParentId(u.getId());
+                }
+                List<Integer> unitIds=new ArrayList<>();
+                    for (VExport export:exports){
+                        for (VUnit unit:units){
+                            if (unit.getId()==export.getUnitId()){
+                                ExportResult exportResult=new ExportResult();
+                                exportResult.setInPrice(export.getInPrice());
+                                exportResult.setOutPrice(export.getOutPrice());
+                                exportResult.setUnitName(unit.getUnitName());
+                                exportResult.setUnitId(unit.getId());
+                                exportResults.add(exportResult);
+                            }
+                            if (unit.getId()==vImport.getUnitId()){
+                                GetUnitResult unitResult = new GetUnitResult();
+                                unitResult.setId(unit.getId());
+                                unitResult.setName(unit.getUnitName());
+                                unitResult.setStatusCode(unit.getStatus());
+                                unitResult.setDescription(unit.getDescription());
+                                unitResult.setParentId(unit.getParentId());
+                                unitResult.setStatusName(ProductUtils.statusname(unit.getStatus()));
+                                result.setUnit(unitResult);
+                            }
+                        }
+                        unitIds.add(export.getUnitId());
+                    }
+                    List<VUnit> unitList;
+                if (u.getParentId()>0){
+                    unitList=this.unitRepo.getUnitsNotInId(unitIds,u.getParentId());
+                }else{
+                    unitList=this.unitRepo.getUnitsNotInId(unitIds,u.getId());
+                }
+
+                    if (!unitList.isEmpty()){
+                        for (VUnit unit:unitList){
+                            ExportResult exportResult=new ExportResult();
+                            exportResult.setInPrice(BigDecimal.valueOf(0));
+                            exportResult.setOutPrice(BigDecimal.valueOf(0));
+                            exportResult.setUnitName(unit.getUnitName());
+                            exportResult.setUnitId(unit.getId());
+                            exportResults.add(exportResult);
+                        }
+                    }
+                    VTypeProduct typeProduct=this.typeProductRepo.getByParentIdAndStatus(vProduct.getProductType());
+                    if (typeProduct!=null){
+                        GetTypeProductResult typeProductResult=new GetTypeProductResult();
+                        typeProductResult.setId(typeProduct.getId());
+                        typeProductResult.setName(typeProduct.getName());
+                        typeProductResult.setStatusName(ProductUtils.categoryStatus(typeProduct.getStatus(),language));
+                        typeProductResult.setParentId(typeProduct.getParentId());
+                        typeProductResult.setStatusCode(typeProduct.getStatus());
+                        result.setTypeProduct(typeProductResult);
+                    }
+                result.setSupplierId(vImport.getSupplierId());
                 result.setExports(exportResults);
             }
             importWarehouseResults.add(result);

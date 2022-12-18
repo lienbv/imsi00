@@ -41,7 +41,7 @@ public interface VImportRepo extends JpaSpecificationExecutor<VImport>,JpaReposi
     @Query("SELECT i.supplierName FROM import i WHERE i.warehouseId= (SELECT w.id FROM warehouse w WHERE w.productId= :productId)")
     List<String> getSupplierNamesByProductId(@Param("productId") int productId);
 
-    @Query("SELECT sum(i.inAmount) as inAmount, sum(e.outAmount/u.amount) as outAmount, i.createdDate, i.inMoney as inPrice, sum(e.outAmount*e.outPrice) as inPrice\n" +
+    @Query("SELECT sum(i.inAmount) as inAmount, sum(e.outAmount/u.amount) as outAmount, i.createdDate as createdDate, i.inMoney as inPrice, sum(e.outAmount*e.outPrice) as inPrice\n" +
             "from import i join export e on e.importId=i.id join unit u on u.id=e.unitId join warehouse w on i.warehouseId=w.id where w.productId=?1 group by i.id order by i.createdDate")
     List<GetCharWarehouseObject> getCharWarehouseByProductId(int productId);
 
@@ -90,4 +90,7 @@ public interface VImportRepo extends JpaSpecificationExecutor<VImport>,JpaReposi
 
     @Query("select w.productId from import i join warehouse w on i.warehouseId = w.id where i.supplierId = ?1 and year(i.createdDate) = ?2 group by w.id order by SUM(w.numberOfEntries) desc")
     List<Integer> getWareHouseId(int id, int year, Pageable pageable);
+
+    @Query("SELECT i FROM import i WHERE i.warehouseId=(SELECT w.id FROM warehouse w WHERE w.productId = :productId) AND i.status=1 ORDER BY i.createdDate DESC")
+    List<VImport> findImportIdByBarcode (@Param("productId") int productId,Pageable pageable);
 }

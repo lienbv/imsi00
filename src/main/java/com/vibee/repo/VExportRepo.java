@@ -37,4 +37,7 @@ public interface VExportRepo extends JpaRepository<VExport,Integer> {
             "JOIN v_warehouse w ON w.id=i.WAREHOUSE_ID " +
             "JOIN v_product p ON p.id=w.PRODUCT_ID WHERE p.BAR_CODE = :barCode AND e.status=1 ORDER BY i.id DESC LIMIT 1", nativeQuery = true)
     List<GetExportsObject> getExportsByBarCode(@Param("barCode") String barCode);
+
+    @Query("SELECT e FROM export e WHERE e.importId = :importId AND e.status=1")
+    List<VExport> getExportsByImportId(@Param("importId") int importId);
 }

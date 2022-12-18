@@ -64,4 +64,7 @@ public interface VSupplierRepo extends JpaSpecificationExecutor<VSupplier>,JpaRe
     @Query("select o.nameSup from supplier o where o.id= :supplierId and o.status = 1")
     String findNameById(@Param("supplierId") int supplierId);
 
+    @Query("select o from supplier o where o.id= :supplierId and o.status = 1")
+    VSupplier findSupplierById(@Param("supplierId") int supplierId);
+
 }

@@ -29,7 +29,7 @@ public class AccountManagementController {
     }
     @GetMapping (value = "/edit/{id}")
     public CreateUserResponse edit(@PathVariable(name = "id") int id,
-                                   @RequestParam(name= "language",required = false, defaultValue = "") String language) {
+                                   @RequestParam(name= "language",required = false, defaultValue = "vi") String language) {
         return iUserService.edit(id,language);
     }
 
@@ -47,7 +47,7 @@ public class AccountManagementController {
         return response;
     }
     @PostMapping (value = "/lock/{id}")
-    public BaseResponse lock(@PathVariable("id") int id, @RequestParam(name= "language",required = false, defaultValue = "") String language) {
+    public BaseResponse lock(@PathVariable("id") int id, @RequestParam(name= "language",required = false, defaultValue = "vi") String language) {
         BaseResponse response = iUserService.lockAccount(id, language);
         return response;
     }

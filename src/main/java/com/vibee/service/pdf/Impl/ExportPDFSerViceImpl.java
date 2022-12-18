@@ -8,6 +8,7 @@ import com.vibee.service.pdf.ExportPDFQR;
 import com.vibee.service.pdf.ExportPDFService;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -29,16 +30,22 @@ public class ExportPDFSerViceImpl implements ExportPDFService {
     private VUnitRepo vUnitRepo;
 
     @Override
-    public BaseResponse printQRCodePDF(String productCode, int amount, String language) {
+    public ByteArrayResource printQRCodePDF(String productCode, int amount, String language) {
         VImport vImport = importRepo.findByProductCode(productCode);
+        if (vImport == null) {
+            return null;
+        }
         VWarehouse vWarehouse = warehouseRepo.getById(vImport.getWarehouseId());
         VProduct vProduct = vProductRepo.getById(vWarehouse.getProductId());
         VUnit vUnit = vUnitRepo.findById(vImport.getUnitId());
-        VUploadFile uploadFile = uploadFileRepo.getById(vImport.getFileId());
-        ExportPDFQR.export(amount,productCode,vWarehouse.getOutPrice(), vProduct.getProductName(), uploadFile.getUrl(), vUnit.getUnitName());
-        BaseResponse response = new BaseResponse();
-        response.getStatus().setStatus(Status.Success);
-        response.getStatus().setMessage("Success");
-        return  response;
+        if (vWarehouse == null || vProduct == null || vUnit == null) {
+            return null;
+        }
+        VUploadFile uploadFile = uploadFileRepo.getById(vImport.getUrlUpload());
+        if (uploadFile == null) {
+            return null;
+        }
+        ByteArrayResource resource=ExportPDFQR.export(amount,productCode,vWarehouse.getOutPrice(), vProduct.getProductName(), uploadFile.getUrl(), vUnit.getUnitName());
+        return  resource;
     }
 }

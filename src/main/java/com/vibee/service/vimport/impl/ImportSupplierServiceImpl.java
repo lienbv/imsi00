@@ -298,7 +298,7 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
             uploadFile.setSize(BigDecimal.valueOf(file.length()));
             uploadFile.setType(contendType);
             uploadFile.setModifiedDate(new Date());
-            uploadFile.setUrl("./resources/static/" + path);
+            uploadFile.setUrl(path);
             uploadFile = this.fileUploadRepo.save(uploadFile);
 
             VProduct vProduct = this.vProductRepo.findByBarCodeAndStatus(infor.getBarcode(), 1);
