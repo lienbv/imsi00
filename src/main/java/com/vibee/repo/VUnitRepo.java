@@ -61,4 +61,7 @@ public interface VUnitRepo extends JpaRepository<VUnit, Integer>{
 
     @Query(value = "SELECT * FROM vibee.v_unit v where v.PARENT_ID= ?1 or v.ID = ?2 order by v.AMOUNT desc limit 1 ", nativeQuery = true)
     VUnit getByIdChild(int parent, int id);
+
+    @Query("SELECT u FROM unit u WHERE u.parentId= :unitId or u.id= :unitId AND u.status=1 order by u.amount desc")
+    List<VUnit> getAllUnitDESCByParentId(@Param("unitId") int unitId);
 }

@@ -48,7 +48,7 @@ public class SupplierStatisticServiceImpl implements SupplierStatisService {
     public SupplierStatisticResponse getAll(String nameSearch, int page, int record) {
         log.info("SupplierStatisticServiceImpl-getAll :: Start");
         Pageable pageable = PageRequest.of(page, record);
-        List<VSupplier> suppliers = vSupplierRepo.findByStatusAndNameSup(1, "%"+nameSearch+"%", pageable);
+        List<VSupplier> suppliers = vSupplierRepo.findByStatusAndNameSup("%"+nameSearch+"%", pageable);
         SupplierStatisticResponse response = new SupplierStatisticResponse();
         List<SupplierStatisticItem> supplierStatistic = new ArrayList<>();
         for (VSupplier supplier : suppliers) {
@@ -66,7 +66,7 @@ public class SupplierStatisticServiceImpl implements SupplierStatisService {
         }
 
         response.setTotalPages((int) Math.ceil(suppliers.size()/record));
-        response.setTotalItems(vSupplierRepo.findByStatusAndNameSupCount(1, "%"+nameSearch+"%"));
+        response.setTotalItems(vSupplierRepo.findByStatusAndNameSupCount("%"+nameSearch+"%"));
         response.setPage(page);
         response.setPageSize(record);
         response.setList(supplierStatistic);
