@@ -62,6 +62,29 @@ public class ProductUtils {
                 return MessageUtils.get(lang, "msg.active");
         }
     }
+    public static String convertStatus(int status, String language) {
+
+        switch (status) {
+            case 1:
+                return MessageUtils.get(language, "msg.paid");
+            case 2:
+                return MessageUtils.get(language, "msg.unpaid");
+            case 3:
+                return MessageUtils.get(language, "msg.out-of-date");
+            default:
+                return "";
+        }
+    }
+    public static String convertTypeOfDebtor(int status, String language) {
+        switch (status) {
+            case 1:
+                return MessageUtils.get(language, "msg.customer-buy-odd");
+            case 2:
+                return MessageUtils.get(language, "msg.customer-wholesale");
+            default:
+                return "0";
+        }
+    }
 
     public static List<ProductStatusItem> getStatuss(String languge){
         List<ProductStatusItem> productStatusItems=new ArrayList<>();
@@ -70,5 +93,27 @@ public class ProductUtils {
         productStatusItems.add(new ProductStatusItem(3,getstatusname(3,languge)));
         productStatusItems.add(new ProductStatusItem(4,getstatusname(4,languge)));
         return productStatusItems;
+    }
+
+    public String supplierStatus(int status, String language) {
+        switch (status) {
+            case 1:
+                return language.equals("vi") ? "Còn hợp tác" : "co-operate";
+            case 2:
+                return language.equals("vi") ? "Ngừng hợp tác" : "stop cooperating";
+            default:
+                return language.equals("vi") ? "không biết" : "no information";
+        }
+    }
+
+    public static String categoryStatus(int status, String language) {
+        switch (status) {
+            case 1:
+                return language.equals("vi") ? "hoạt động" : "active";
+            case 2:
+                return language.equals("vi") ? "đã đóng" : "inactive";
+            default:
+                return language.equals("vi") ? "không biết" : "no information";
+        }
     }
 }

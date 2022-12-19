@@ -9,15 +9,19 @@ import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
 import com.vibee.utils.Utiliies;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.core.io.ByteArrayResource;
 
 import javax.imageio.ImageIO;
 import javax.xml.bind.DatatypeConverter;
 import java.awt.image.RenderedImage;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.net.URL;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -25,9 +29,10 @@ import java.util.List;
 
 @Log4j2
 public class ExportPDFQR {
-    public static void export(int count, String productCode, BigDecimal price, String productName, String urlQR, String unit) {
+    public static ByteArrayResource  export(int count, String productCode, BigDecimal price, String productName, String urlQR, String unit) {
+        log.info("ExportPDFQR.export start with count: " + count + ", productCode: " + productCode + ", price: " + price + ", productName: " + productName + ", urlQR: " + urlQR + ", unit: " + unit);
         String now = new SimpleDateFormat("MM_dd_yyyy_HH_mm_ss").format(Calendar.getInstance().getTime());
-        String title = "src/main/resources/static/pdf/qrcode/"+productCode+now+".pdf";
+        String title = "src/main/resources/static/qrcode/"+productCode+now+".pdf";
         try (OutputStream outputStream = new FileOutputStream(title)) {
             Document document = new Document(PageSize.A4, 0,0,0,0);
             document.left(0);
@@ -42,10 +47,10 @@ public class ExportPDFQR {
             PdfPTable table = new PdfPTable(5);
             table.setWidthPercentage(70f);
             table.setSpacingBefore(10);
-            String url = urlQR;
-            String[] parts = url.split(",");
-            byte[] data = DatatypeConverter.parseBase64Binary(parts[1]);
-            Image image = Image.getInstance(data);
+//            String url = urlQR;
+//            String[] parts = url.split(",");
+//            byte[] data = DatatypeConverter.parseBase64Binary(parts[1]);
+            Image image = Image.getInstance(urlQR);
             image.scaleToFit(50, 50);
             Chunk chunk = new Chunk(image, 0, 0, true);
 
@@ -90,6 +95,17 @@ public class ExportPDFQR {
             log.error("Invalid export file pdf");
 //            e.printStackTrace();
         }
+        try {
+            Path path = Paths.get(title);
+            ByteArrayResource resource = new ByteArrayResource(Files.readAllBytes(path));
+            log.info("ExportPDFQR.export end");
+            return resource;
+        }catch (Exception e){
+            log.error("error export pdf");
+        }
+        log.info("ExportPDFQR.export end");
+//        return new ByteArrayResource(title.getBytes());
+        return null;
     }
 
     private static void cellNull(PdfPTable table, int count) {

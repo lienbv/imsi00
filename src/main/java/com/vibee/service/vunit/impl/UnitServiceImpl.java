@@ -161,6 +161,7 @@ public class UnitServiceImpl implements UnitService {
         unit.setDescription(request.getDescription());
         unit.setParentId(unitOld.getParentId());
         unit.setCreatedDate(new Date());
+        unit.setStatus(1);
         //unit.setCreator();
 
         VUnit save = unitRepo.save(unit);
@@ -240,17 +241,29 @@ public class UnitServiceImpl implements UnitService {
         log.info("UnitService-getUnitsByUnitSelected :: Start :: unitId = {}", unitId);
         GetExportsByUnitSelectResponse response = new GetExportsByUnitSelectResponse();
         List<ExportResult> results= new ArrayList<>();
-        List<VUnit> units = unitRepo.getAllUnitByParentId(unitId);
+        VUnit unit=this.unitRepo.getById(unitId);
+        List<VUnit> units;
+        if (unit==null){
+            log.error("UnitService-getUnitsByUnitSelected :: End :: Unit is empty");
+            response.getStatus().setMessage(MessageUtils.get(language,"msg.notFound"));
+            response.getStatus().setStatus(Status.Fail);
+            return response;
+        }
+        if (unit.getParentId()==0) {
+            units = unitRepo.getAllUnitByParentId(unitId);
+        }else {
+            units = unitRepo.getAllUnitByParentId(unit.getParentId());
+        }
         if (units.isEmpty()){
             log.error("UnitService-getUnits :: End :: Unit is empty");
             response.getStatus().setMessage(MessageUtils.get(language,"msg.notFound"));
             response.getStatus().setStatus(Status.Fail);
             return response;
         }
-        for (VUnit unit : units) {
+        for (VUnit u : units) {
             ExportResult result = new ExportResult();
-            result.setUnitId(unit.getId());
-            result.setUnitName(unit.getUnitName());
+            result.setUnitId(u.getId());
+            result.setUnitName(u.getUnitName());
             results.add(result);
         }
         response.setResults(results);

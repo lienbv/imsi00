@@ -10,6 +10,8 @@ public class DataUtils {
         String numbers ="0123456789";
         String text ="VB";
         char otp[] = new char[number];
+        Date date = new Date();
+        Calendar c1 = Calendar.getInstance();
 
         Random getOtpNum = new Random();
         for (int i = 0; i < number; i++) {
@@ -19,7 +21,7 @@ public class DataUtils {
         for (int i = 0; i < otp.length; i++) {
             optCode += otp[i];
         }
-        return text+optCode;
+        return text+optCode+date.getTime();
     }
     public static String generateIdRedis( int number, int lowercase){
         String numbers ="0123456789";

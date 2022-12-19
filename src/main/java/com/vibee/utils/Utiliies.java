@@ -1,7 +1,9 @@
 package com.vibee.utils;
 
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -12,14 +14,9 @@ import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
-import java.util.Currency;
-import java.util.Date;
-import java.util.Locale;
-import java.util.Random;
+import java.util.*;
 
 public class Utiliies {
-    @Value("${vibee.url}")
-    private static String url;
 
     public static String convertStatusUser(int status) {
         switch (status) {
@@ -126,8 +123,14 @@ public class Utiliies {
     }
 
     public static boolean uploadFile(MultipartFile file){
+
+        String path = "src/main/resources/static/"+file.getOriginalFilename();
+        File file1 = new File(path);
+        if (file1.exists()) {
+            file1.delete();
+        }
         try {
-            FileCopyUtils.copy(file.getBytes(), new File(url + file.getOriginalFilename()));
+            FileCopyUtils.copy(file.getBytes(), new File(path));
         } catch (IOException e) {
             e.printStackTrace();
             return false;
@@ -136,9 +139,8 @@ public class Utiliies {
     }
 
     public static String getFilePath(String fileName) {
-        return url + fileName;
+        return "src/main/resources/static/" + fileName;
     }
-
     static String generateCode(int idProduct, int idWareHouse, int idImport) {
         String idProductSTR = idProduct+"";
         String idWareHouseSTR = idWareHouse+"";

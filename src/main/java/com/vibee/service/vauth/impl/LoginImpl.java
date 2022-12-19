@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.*;
 
 @Log4j2
@@ -105,12 +106,13 @@ public class LoginImpl implements LoginService {
         response.getStatus().setStatus(Status.Success);
         response.setAccessToken(tokenResponse.getAccess_token());
         response.setRefreshToken(tokenResponse.getRefresh_token());
+        response.setUsername(user.getUsername());
         role=this.roleRepo.findByUserId(user.getId());
         response.setRole(role);
         if (tokenResponse.getAccess_token() != null) {
             String key = "expireToken::" + tokenResponse.getAccess_token().hashCode();
             this.redisAdapter.set(key, 3600, response);
-            System.out.println("authen is exist: " + this.redisAdapter.exists(key));
+            response=this.redisAdapter.get(key,LoginResponse.class);
         }
         log.info("LoginSerivce :: END");
         return response;

@@ -22,7 +22,7 @@ import java.util.List;
 @Transactional
 public interface VImportRepo extends JpaSpecificationExecutor<VImport>,JpaRepository<VImport, Integer> {
 
-    @Query(value = "SELECT sum(v_import.in_amount) as inAmount, sum(v_export.out_amount/v_unit.amount), v_import.in_money, sum(v_export.out_amount*v_export.out_price)" +
+    @Query(value = "SELECT sum(v_import.in_amount) as inAmount, sum(v_export.out_amount/v_unit.amount), v_import.IN_PRICE, sum(v_export.out_amount*v_export.out_price)" +
             "from v_import join v_export on v_export.import_id=v_import.id " +
             "join v_unit on v_unit.id=v_export.id_unit " +
             "join v_warehouse on v_import.warehouse_id=v_warehouse.id  where v_warehouse.product_id= ?1 group by v_import.id order by v_import.created_date desc limit 2",nativeQuery = true)
@@ -35,17 +35,17 @@ public interface VImportRepo extends JpaSpecificationExecutor<VImport>,JpaReposi
             "Import.img as img FROM v_v_import JOIN v_unit ON v_unit.id=v_v_import.id_unit WHERE v_v_import.status = 1 AND v_v_import.id_product = ?1",nativeQuery = true)
     List<ViewStallObject> viewStall(int productId);
 
-    @Query(value="SELECT v_v_import.created_date FROM v_v_import WHERE v_v_import.id_product= ?1 ORDER BY v_v_import.created_date DESC LIMIT 1",nativeQuery = true)
-    Date getCreatedDateByProductId( int productId);
+    @Query(value="SELECT v_import.CREATED_DATE FROM v_import WHERE v_import.WAREHOUSE_ID= ?1 ORDER BY v_import.CREATED_DATE DESC LIMIT 1",nativeQuery = true)
+    Date getCreatedDateByProductId( int warehouseId);
 
     @Query("SELECT i.supplierName FROM import i WHERE i.warehouseId= (SELECT w.id FROM warehouse w WHERE w.productId= :productId)")
     List<String> getSupplierNamesByProductId(@Param("productId") int productId);
 
-    @Query("SELECT sum(i.inAmount) as inAmount, sum(e.outAmount/u.amount) as outAmount, i.createdDate, i.inMoney as inPrice, sum(e.outAmount*e.outPrice) as inPrice\n" +
+    @Query("SELECT sum(i.inAmount) as inAmount, sum(e.outAmount/u.amount) as outAmount, i.createdDate as createdDate, i.inMoney as inPrice, sum(e.outAmount*e.outPrice) as inPrice\n" +
             "from import i join export e on e.importId=i.id join unit u on u.id=e.unitId join warehouse w on i.warehouseId=w.id where w.productId=?1 group by i.id order by i.createdDate")
     List<GetCharWarehouseObject> getCharWarehouseByProductId(int productId);
 
-    @Query(value = "SELECT us.fullname,v_import.id as importId, v_import.created_date as createdDate,ui.unit_name as unitName, v_import.in_money as inPrice, sum(v_import.in_amount) as inAmount, sum(e.out_amount/un.amount) as outAmount, sum(e.out_amount*e.out_price) as outPrice, v_import.status, (sum(v_import.in_amount)-sum(e.out_amount/un.amount)) as inventory,w.number_of_entries as countWarehouse \n" +
+    @Query(value = "SELECT us.fullname,v_import.id as importId, v_import.created_date as createdDate,ui.unit_name as unitName, v_import.IN_PRICE as inPrice, sum(v_import.in_amount) as inAmount, sum(e.out_amount/un.amount) as outAmount, sum(e.out_amount*e.out_price) as outPrice, v_import.status, (sum(v_import.in_amount)-sum(e.out_amount/un.amount)) as inventory,w.number_of_entries as countWarehouse \n" +
             "FROM v_import JOIN v_warehouse as w on w.id=v_import.warehouse_id JOIN v_export as e ON e.import_id=v_import.id \n" +
             "JOIN v_unit as un ON un.id=e.id_unit \n" +
             "JOIN v_unit as ui ON ui.id=v_import.id_unit \n" +
@@ -90,4 +90,7 @@ public interface VImportRepo extends JpaSpecificationExecutor<VImport>,JpaReposi
 
     @Query("select i from import i join warehouse w on i.warehouseId = w.id join product p on p.id = w.productId where p.productName like ?1 and i.expiredDate between ?2 and ?3 order by i.expiredDate desc")
     List<VImport> getImportsByProduct(String nameProduct, Date startDate, Date endDate, Pageable pageable);
+
+    @Query("SELECT i FROM import i WHERE i.warehouseId=(SELECT w.id FROM warehouse w WHERE w.productId = :productId) AND i.status=1 ORDER BY i.createdDate DESC")
+    List<VImport> findImportIdByBarcode (@Param("productId") int productId,Pageable pageable);
 }

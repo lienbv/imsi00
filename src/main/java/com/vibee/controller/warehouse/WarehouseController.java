@@ -3,6 +3,7 @@ package com.vibee.controller.warehouse;
 import com.vibee.model.request.warehouse.GetWarehouseRequest;
 import com.vibee.model.response.BaseResponse;
 import com.vibee.model.response.product.CreateProductResponse;
+import com.vibee.model.response.v_import.ImportWarehouseItemsResponse;
 import com.vibee.model.response.warehouse.GetWarehousesResponse;
 import com.vibee.model.response.warehouse.ImportWarehouseResponse;
 import com.vibee.service.vimport.GetWarehouseService;
@@ -48,7 +49,7 @@ public class WarehouseController {
     }
 
     @PostMapping("/save")
-    public ImportWarehouseResponse save(@RequestParam("language") String language, @RequestParam("supplier") int supplierCode) {
+    public ImportWarehouseItemsResponse save(@RequestParam("language") String language, @RequestParam("supplierId") int supplierCode) {
         return this.createWarehouseService.save(supplierCode,language);
     }
 

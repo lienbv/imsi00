@@ -19,12 +19,12 @@ public class DetailProductResponse extends BaseResponse {
 	private String description;
 	private String image;
 	private double sumInAmount;
-	private BigDecimal sumOutAmount;
+	private double sumOutAmount;
 	private String statusName;
 	private int statusCode;
 	private String barCode;
 	private String categoryName;
-	private List<String> supplierNames;
+	private String supplierNames;
 	private String createdDate;
 	private String creator;
 	private String importDate;

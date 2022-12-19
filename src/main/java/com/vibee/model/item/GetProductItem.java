@@ -16,5 +16,5 @@ public class GetProductItem {
     private String img;
     private String supName;
     private int statusCode;
-    private int unit;
+    private String unit;
 }
