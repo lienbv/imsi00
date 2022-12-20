@@ -54,7 +54,7 @@ public class CloseToExpiredServiceImpl implements CloseToExpiredService {
             item.setIdImport(vImport.getId());
             item.setExpired(vImport.getExpiredDate());
             item.setDateAdded(vImport.getCreatedDate());
-            item.setNameProduct(vProductRepo.getProductById(vWarehouseRepo.getById(vImport.getWarehouseId()).getProductId()).getProductName());
+            item.setNameProduct(vProductRepo.getProduct(vWarehouseRepo.getById(vImport.getWarehouseId()).getProductId()).getProductName());
             item.setList(convertAmountUnit(vImport.getUnitId(), inventory));
             item.setInCome(vImport.getInMoney());
             item.setAmount(convertMess(item.getList()));
@@ -73,12 +73,13 @@ public class CloseToExpiredServiceImpl implements CloseToExpiredService {
     }
 
     public List<Uitem> convertAmountUnit(int unitId, int inventory) {
-        VUnit unit = vUnitRepo.findById(unitId);
+        VUnit unit = vUnitRepo.getUnitById(unitId);
         List<Uitem> uitems = new ArrayList<>();
         if (unit.getParentId() == 0) {
             Uitem uitemParent  = new Uitem();
             uitemParent.setAmount(inventory);
             uitemParent.setNameUnit(unit.getUnitName());
+            uitemParent.setIdUnit(unit.getId());
             uitems.add(uitemParent);
         } else  {
 //            VUnit unitItem = vUnitRepo.findById(unit.getParentId());
@@ -138,4 +139,6 @@ public class CloseToExpiredServiceImpl implements CloseToExpiredService {
         }
         return mess;
     }
+
+//    public List<Uitem>
 }
