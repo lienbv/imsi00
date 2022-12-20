@@ -31,6 +31,9 @@ public interface VImportRepo extends JpaSpecificationExecutor<VImport>,JpaReposi
     @Query("DELETE import i WHERE i.warehouseId= (SELECT w.id FROM warehouse w WHERE w.productId= :productId)")
     int deleteByProductId(@Param("productId") int id);
 
+    @Query(value = "SELECT * FROM v_import WHERE v_import.status=1 AND v_import.warehouse_id= ?1 ORDER BY v_import.EXPIRED_DATE DESC LIMIT 1",nativeQuery = true)
+    VImport getImportByWarehouseId(int warehouseId);
+
     @Query(value = "SELECT Import.ID as id, Import.name_supplier as nameSupplier, (Import.inventory/v_unit.amount) as inventory, Import.ID_UNIT as unitId, " +
             "Import.img as img FROM v_v_import JOIN v_unit ON v_unit.id=v_v_import.id_unit WHERE v_v_import.status = 1 AND v_v_import.id_product = ?1",nativeQuery = true)
     List<ViewStallObject> viewStall(int productId);

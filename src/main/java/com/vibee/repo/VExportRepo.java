@@ -10,6 +10,8 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
+
 @Repository
 public interface VExportRepo extends JpaRepository<VExport,Integer> {
     @Query(value="select export.id as exportId, export.out_price as outPrice, (export.out_amount/unit.amount) as outAmount,unit.unit_name unitName, \n" +
@@ -40,4 +42,7 @@ public interface VExportRepo extends JpaRepository<VExport,Integer> {
 
     @Query("SELECT e FROM export e WHERE e.importId = :importId AND e.status=1")
     List<VExport> getExportsByImportId(@Param("importId") int importId);
+
+    @Query("select SUM(e.outAmount) from export e where e.importId = ?1")
+    Optional<Integer> getSUMAmountByIdImport(int idImport);
 }

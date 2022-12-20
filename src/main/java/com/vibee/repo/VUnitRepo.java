@@ -77,6 +77,6 @@ public interface VUnitRepo extends JpaRepository<VUnit, Integer>{
     @Query("SELECT u FROM unit u WHERE u.id= :unitId AND u.status=1")
     VUnit getUnitById(@Param("unitId") int unitId);
 
-    @Query("SELECT u FROM unit u WHERE u.parentId= :unitId or u.id= :unitId AND u.status=1 order by u.amount desc")
-    List<VUnit> getAllUnitDESCByParentId(@Param("unitId") int unitId);
+    @Query("SELECT u FROM unit u WHERE u.parentId= :unitId or u.id= :unitId AND u.status=1 order by u.amount asc")
+    List<VUnit> getAllUnitASCByParentId(@Param("unitId") int unitId);
 }
