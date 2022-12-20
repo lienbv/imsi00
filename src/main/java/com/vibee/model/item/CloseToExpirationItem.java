@@ -8,6 +8,7 @@ import java.util.List;
 
 @Data
 public class CloseToExpirationItem {
+    private int idImport;
     private String nameProduct;
     private String amount;
     private Date dateAdded;

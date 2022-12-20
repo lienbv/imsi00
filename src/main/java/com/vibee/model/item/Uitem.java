@@ -6,4 +6,5 @@ import lombok.Data;
 public class Uitem {
     private String nameUnit;
     private int amount;
+    private int idUnit;
 }

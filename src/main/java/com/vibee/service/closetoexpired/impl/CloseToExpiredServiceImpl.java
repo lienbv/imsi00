@@ -6,6 +6,7 @@ import com.vibee.entity.VWarehouse;
 import com.vibee.model.Status;
 import com.vibee.model.item.CloseToExpirationItem;
 import com.vibee.model.item.Uitem;
+import com.vibee.model.response.BaseResponse;
 import com.vibee.model.response.expired.CloseToExpiresResponse;
 import com.vibee.repo.*;
 import com.vibee.service.closetoexpired.CloseToExpiredService;
@@ -48,11 +49,13 @@ public class CloseToExpiredServiceImpl implements CloseToExpiredService {
         List<VImport> imports = importRepo.getImportsByProduct("%"+nameSearch+"%", new Date(), calendar.getTime(), pageable);
         List<CloseToExpirationItem> closeToExpirationItems = new ArrayList<>();
         for (VImport vImport : imports) {
+            int inventory = vImport.getInAmount().intValue() - exportRepo.getSUMAmountByIdImport(vImport.getId()).orElse(0).intValue();
             CloseToExpirationItem item = new CloseToExpirationItem();
+            item.setIdImport(vImport.getId());
             item.setExpired(vImport.getExpiredDate());
             item.setDateAdded(vImport.getCreatedDate());
             item.setNameProduct(vProductRepo.getProductById(vWarehouseRepo.getById(vImport.getWarehouseId()).getProductId()).getProductName());
-            item.setList(convertAmountUnit(vImport.getUnitId(), vImport.getInAmount().intValue() - exportRepo.getSUMAmountByIdImport(vImport.getId()).orElse(0).intValue()));
+            item.setList(convertAmountUnit(vImport.getUnitId(), inventory));
             item.setInCome(vImport.getInMoney());
             item.setAmount(convertMess(item.getList()));
             closeToExpirationItems.add(item);
@@ -61,6 +64,12 @@ public class CloseToExpiredServiceImpl implements CloseToExpiredService {
         response.getStatus().setMessage(MessageUtils.get("vi", "msg.success"));
         response.getStatus().setStatus(Status.Success);
         return response;
+    }
+
+    @Override
+    public BaseResponse payment(int idUnit, int amount, int idImport) {
+
+        return null;
     }
 
     public List<Uitem> convertAmountUnit(int unitId, int inventory) {
@@ -88,7 +97,7 @@ public class CloseToExpiredServiceImpl implements CloseToExpiredService {
                 if (unitNow.getParentId() != 0) {
                     Uitem uitemNow  = new Uitem();
                     uitemNow.setNameUnit(unitNow.getUnitName());
-
+                    uitemNow.setIdUnit(unitNow.getId());
                     int resultUnitNow = inventory/unitNow.getAmount(); // tồn kho chia sl unit để ra số lượng cha của unit
                     int resultAmountUnit = resultUnitNow*unitNow.getAmount(); // sl lượng đơn vị từ cha
                     amountParentId = resultUnitNow;
@@ -112,6 +121,7 @@ public class CloseToExpiredServiceImpl implements CloseToExpiredService {
             Uitem uitemNext  = new Uitem();
             uitemNext.setNameUnit(units.get(0).getUnitName());
             uitemNext.setAmount(amountParentId);
+            uitemNext.setIdUnit(units.get(0).getId());
             uitems.add(uitemNext);
         }
         Collections.reverse(uitems);
