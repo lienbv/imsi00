@@ -1,19 +1,17 @@
-package com.vibee.service.closetoexpired.impl;
+package com.vibee.service.expired.impl;
 
 import com.vibee.entity.VImport;
 import com.vibee.entity.VUnit;
-import com.vibee.entity.VWarehouse;
 import com.vibee.model.Status;
 import com.vibee.model.item.CloseToExpirationItem;
+import com.vibee.model.item.ExpirationItem;
 import com.vibee.model.item.Uitem;
-import com.vibee.model.response.BaseResponse;
+import com.vibee.model.response.ExpirationResponse;
 import com.vibee.model.response.expired.CloseToExpiresResponse;
 import com.vibee.repo.*;
-import com.vibee.service.closetoexpired.CloseToExpiredService;
+import com.vibee.service.expired.ExpiredServer;
 import com.vibee.utils.MessageUtils;
 import lombok.extern.log4j.Log4j2;
-import org.checkerframework.checker.units.qual.A;
-import org.checkerframework.checker.units.qual.PolyUnit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -23,8 +21,7 @@ import java.util.*;
 
 @Log4j2
 @Service
-public class CloseToExpiredServiceImpl implements CloseToExpiredService {
-
+public class ExpiredServerImpl implements ExpiredServer {
     @Autowired
     private VImportRepo importRepo;
 
@@ -40,36 +37,31 @@ public class CloseToExpiredServiceImpl implements CloseToExpiredService {
     @Autowired
     private VExportRepo exportRepo;
 
+
     @Override
-    public CloseToExpiresResponse getAll(String nameSearch, int page, int record) {
-        CloseToExpiresResponse response = new CloseToExpiresResponse();
+    public ExpirationResponse getAll(String nameSearch, int page, int record) {
+        ExpirationResponse response = new ExpirationResponse();
         Pageable pageable = PageRequest.of(page, record);
         Calendar calendar = Calendar.getInstance();
         calendar.roll(Calendar.DATE, 7);
-        List<VImport> imports = importRepo.getImportsByProductCloseToExpired("%"+nameSearch+"%", new Date(), calendar.getTime(), pageable);
-        List<CloseToExpirationItem> closeToExpirationItems = new ArrayList<>();
+        List<VImport> imports = importRepo.getImportsByProductExpiration("%"+nameSearch+"%", pageable);
+        List<ExpirationItem> list = new ArrayList<>();
         for (VImport vImport : imports) {
             int inventory = vImport.getInAmount().intValue() - exportRepo.getSUMAmountByIdImport(vImport.getId()).orElse(0).intValue();
-            CloseToExpirationItem item = new CloseToExpirationItem();
+            ExpirationItem item = new ExpirationItem();
             item.setIdImport(vImport.getId());
             item.setExpired(vImport.getExpiredDate());
             item.setDateAdded(vImport.getCreatedDate());
             item.setNameProduct(vProductRepo.getProductById(vWarehouseRepo.getById(vImport.getWarehouseId()).getProductId()).getProductName());
-            item.setList(convertAmountUnit(vImport.getUnitId(), inventory));
+//            item.setList(convertAmountUnit(vImport.getUnitId(), inventory));
             item.setInCome(vImport.getInMoney());
-            item.setAmount(convertMess(item.getList()));
-            closeToExpirationItems.add(item);
+//            item.setAmount(convertMess(item.getList()));
+            list.add(item);
         }
-        response.setCloseToExpirationItems(closeToExpirationItems);
+        response.setList(list);
         response.getStatus().setMessage(MessageUtils.get("vi", "msg.success"));
         response.getStatus().setStatus(Status.Success);
         return response;
-    }
-
-    @Override
-    public BaseResponse payment(int idUnit, int amount, int idImport) {
-
-        return null;
     }
 
     public List<Uitem> convertAmountUnit(int unitId, int inventory) {
