@@ -15,6 +15,7 @@ import org.springframework.stereotype.Repository;
 
 import javax.transaction.Transactional;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 @Transactional
@@ -82,10 +83,10 @@ public interface VProductRepo extends JpaSpecificationExecutor<VProduct>,JpaRepo
     Boolean existsByBarcode(@Param("barcode") String barcode);
 
     @Query("SELECT SUM(p.status) FROM product  p WHERE p.status = 3")
-    public long sumReportBlockProduct();
+    public Optional<Long> sumReportBlockProduct();
 
     @Query("SELECT SUM(p.status) FROM product p WHERE p.status = 2")
-    public long sumReportSoldOutProduct();
+    public Optional<Long> sumReportSoldOutProduct();
 
     public List<VProduct> findTop6ByOrderByCreatedDateDesc();
 

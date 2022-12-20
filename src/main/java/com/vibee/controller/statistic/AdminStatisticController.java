@@ -56,4 +56,6 @@ public class AdminStatisticController {
     public InterestRateItem interestRate(){
         return statisticAdminService.interestRate();
     }
+
+    //
 }

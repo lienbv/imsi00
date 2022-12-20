@@ -161,6 +161,7 @@ public class UnitServiceImpl implements UnitService {
         unit.setDescription(request.getDescription());
         unit.setParentId(unitOld.getParentId());
         unit.setCreatedDate(new Date());
+        unit.setStatus(1);
         //unit.setCreator();
 
         VUnit save = unitRepo.save(unit);
