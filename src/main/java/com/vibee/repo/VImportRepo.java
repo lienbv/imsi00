@@ -91,10 +91,12 @@ public interface VImportRepo extends JpaSpecificationExecutor<VImport>,JpaReposi
     @Query("select w.productId from import i join warehouse w on i.warehouseId = w.id where i.supplierId = ?1 and year(i.createdDate) = ?2 group by w.id order by SUM(w.numberOfEntries) desc")
     List<Integer> getWareHouseId(int id, int year, Pageable pageable);
 
-    @Query("select i from import i join warehouse w on i.warehouseId = w.id join product p on p.id = w.productId where p.productName like ?1 and i.expiredDate between ?2 and ?3 and 0 < (select i.inAmount - SUM(e.outAmount) from export e where e.importId = i.id) order by i.expiredDate desc")
+    //and 0 < (select i.inAmount - SUM(e.outAmount) from export e where e.importId = i.id)
+    @Query("select i from import i join warehouse w on i.warehouseId = w.id join product p on p.id = w.productId where p.productName like ?1 and i.expiredDate between ?2 and ?3 order by i.expiredDate desc")
     List<VImport> getImportsByProductCloseToExpired(String nameProduct, Date startDate, Date endDate, Pageable pageable);
 
-    @Query("select sum(i.id) from import i join warehouse w on i.warehouseId = w.id join product p on p.id = w.productId where p.productName like ?1 and i.expiredDate between ?2 and ?3 and 0 < (select i.inAmount - SUM(e.outAmount) from export e where e.importId = i.id) order by i.expiredDate desc")
+    //and 0 < (select i.inAmount - SUM(e.outAmount) from export e where e.importId = i.id)
+    @Query("select count (i) from import i join warehouse w on i.warehouseId = w.id join product p on p.id = w.productId where p.productName like ?1 and i.expiredDate between ?2 and ?3 order by i.expiredDate desc")
     int getImportsByProductCloseToExpiredAmount(String nameProduct, Date startDate, Date endDate);
 
     @Query("select i from import i join warehouse w on i.warehouseId = w.id join product p on p.id = w.productId where p.productName like ?1 and i.expiredDate < current_date or 0 < (select i.inAmount - SUM(e.outAmount) from export e where e.importId = i.id) order by i.expiredDate desc")
