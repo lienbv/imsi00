@@ -13,6 +13,7 @@ public class CloseToExpirationItem {
     private String amount;
     private Date dateAdded;
     private Date expired;
+    private String creator;
     private BigDecimal inCome;
     private List<Uitem> list;
 }

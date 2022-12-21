@@ -9,4 +9,5 @@ import java.util.List;
 @Data
 public class EditPriceExportRequest extends BaseRequest {
     private List<EditPriceExportItem> list;
+    private int idImport;
 }

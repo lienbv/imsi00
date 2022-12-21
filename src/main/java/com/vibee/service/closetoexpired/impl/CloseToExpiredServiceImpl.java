@@ -1,9 +1,11 @@
 package com.vibee.service.closetoexpired.impl;
 
+import com.vibee.entity.VExport;
 import com.vibee.entity.VImport;
 import com.vibee.entity.VUnit;
 import com.vibee.model.Status;
 import com.vibee.model.item.CloseToExpirationItem;
+import com.vibee.model.item.EditPriceExportItem;
 import com.vibee.model.item.Uitem;
 import com.vibee.model.response.BaseResponse;
 import com.vibee.model.response.expired.CloseToExpiresResponse;
@@ -62,11 +64,16 @@ public class CloseToExpiredServiceImpl implements CloseToExpiredService {
             item.setExpired(vImport.getExpiredDate());
             item.setDateAdded(vImport.getCreatedDate());
             item.setNameProduct(vProductRepo.getProduct(vWarehouseRepo.getById(vImport.getWarehouseId()).getProductId()).getProductName());
-            item.setList(convertAmountUnit(uitems.get(uitems.size()-1).getIdUnit(), inventory));
+            item.setList(convertAmountUnit(uitems.get(uitems.size()-1).getIdUnit(), inventory, uitems));
             item.setInCome(vImport.getInMoney());
+            item.setCreator(vImport.getCreator());
             item.setAmount(convertMess(item.getList()));
             closeToExpirationItems.add(item);
         }
+        response.setPage(page);
+        response.setPageSize(record);
+//        response.setTotalPages();
+        response.setTotalItems(importRepo.getImportsByProductCloseToExpiredAmount("%"+nameSearch+"%", new Date(), calendar.getTime()));
         response.setCloseToExpirationItems(closeToExpirationItems);
         response.getStatus().setMessage(MessageUtils.get("vi", "msg.success"));
         response.getStatus().setStatus(Status.Success);
@@ -75,11 +82,30 @@ public class CloseToExpiredServiceImpl implements CloseToExpiredService {
 
     @Override
     public BaseResponse editPriceExport(EditPriceExportRequest request) {
-
-        return null;
+        BaseResponse response = new BaseResponse();
+        for (EditPriceExportItem item : request.getList()) {
+            VExport export = exportRepo.getById(item.getIdExport());
+            export.setOutPrice(item.getPrice());
+            exportRepo.save(export);
+        }
+        VImport vImport = importRepo.getById(request.getIdImport());
+        vImport.setStatus(3);
+        importRepo.save(vImport);
+        response.getStatus().setMessage(MessageUtils.get("vi", "msg.success"));
+        response.getStatus().setStatus(Status.Success);
+        return response;
     }
 
-    public List<Uitem> convertAmountUnit(int unitId, int inventory) {
+    public int getIdExport(List<Uitem> uitemsExport, int idUnit) {
+        for (Uitem item : uitemsExport) {
+            if (idUnit == item.getIdUnit()) {
+                return item.getIdExport();
+            }
+        }
+        return 0;
+    }
+
+    public List<Uitem> convertAmountUnit(int unitId, int inventory, List<Uitem> uitemsExport) {
         VUnit unit = vUnitRepo.getUnitById(unitId);
         List<Uitem> uitems = new ArrayList<>();
         if (unit.getParentId() == 0) {
@@ -87,6 +113,7 @@ public class CloseToExpiredServiceImpl implements CloseToExpiredService {
             uitemParent.setAmount(inventory);
             uitemParent.setNameUnit(unit.getUnitName());
             uitemParent.setIdUnit(unit.getId());
+            uitemParent.setIdExport(this.getIdExport(uitemsExport, unit.getId()));
             uitems.add(uitemParent);
         } else  {
             List<VUnit>  units = vUnitRepo.getAllUnitASCByParentId(unit.getParentId());
@@ -105,6 +132,7 @@ public class CloseToExpiredServiceImpl implements CloseToExpiredService {
                     Uitem uitemNow  = new Uitem();
                     uitemNow.setNameUnit(unitNow.getUnitName());
                     uitemNow.setIdUnit(unitNow.getId());
+                    uitemNow.setIdExport(this.getIdExport(uitemsExport, unitNow.getId()));
                     int resultUnitNow = inventory/unitNow.getAmount(); // tồn kho chia sl unit để ra số lượng cha của unit
                     int resultAmountUnit = resultUnitNow*unitNow.getAmount(); // sl lượng đơn vị từ cha
                     amountParentId = resultUnitNow;
@@ -129,6 +157,7 @@ public class CloseToExpiredServiceImpl implements CloseToExpiredService {
             uitemNext.setNameUnit(units.get(0).getUnitName());
             uitemNext.setAmount(amountParentId);
             uitemNext.setIdUnit(units.get(0).getId());
+            uitemNext.setIdExport(this.getIdExport(uitemsExport, units.get(0).getId()));
             uitems.add(uitemNext);
         }
         Collections.reverse(uitems);
@@ -140,7 +169,7 @@ public class CloseToExpiredServiceImpl implements CloseToExpiredService {
         for (int i = 0; i < uitems.size(); i++) {
             mess = mess + uitems.get(i).getAmount()+" "+uitems.get(i).getNameUnit()+" ";
             if (i != uitems.size()-1) {
-                mess = mess + "lẻ ";
+                mess = mess + "/ ";
             }
         }
         return mess;

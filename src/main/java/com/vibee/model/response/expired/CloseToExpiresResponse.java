@@ -9,4 +9,9 @@ import java.util.List;
 @Data
 public class CloseToExpiresResponse extends BaseResponse {
     private List<CloseToExpirationItem> closeToExpirationItems;
+
+    private int page;
+    private int pageSize;
+    private int totalItems;
+    private int totalPages;
 }
