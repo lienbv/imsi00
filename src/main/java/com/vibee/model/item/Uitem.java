@@ -1,10 +1,21 @@
 package com.vibee.model.item;
 
-import lombok.Data;
+import lombok.*;
 
-@Data
+@Getter
+@Setter
 public class Uitem {
     private String nameUnit;
     private int amount;
     private int idUnit;
+
+    public Uitem() {
+
+    }
+
+    public Uitem(String nameUnit, int amount, int idUnit) {
+        this.nameUnit = nameUnit;
+        this.amount = amount;
+        this.idUnit = idUnit;
+    }
 }

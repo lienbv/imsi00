@@ -2,6 +2,7 @@ package com.vibee.controller.expried;
 
 import com.vibee.model.response.BaseResponse;
 import com.vibee.model.response.expired.CloseToExpiresResponse;
+import com.vibee.model.request.expired.EditPriceExportRequest;
 import com.vibee.service.closetoexpired.CloseToExpiredService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -25,11 +26,7 @@ public class CloseToExpirationController {
     }
 
     @GetMapping("/payment")
-    public BaseResponse payment(
-            @RequestParam(value = "idUnit") int idUnit,
-            @RequestParam(value = "amount") int amount,
-            @RequestParam(value = "idImport") int idImport
-    ) {
+    public BaseResponse payment(@RequestBody EditPriceExportRequest request) {
         return null;
     }
 }

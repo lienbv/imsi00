@@ -4,6 +4,7 @@ import com.vibee.entity.VExport;
 import com.vibee.model.ObjectResponse.ExportStallObject;
 import com.vibee.model.ObjectResponse.GetExportsObject;
 import com.vibee.model.ObjectResponse.SelectExportStallObject;
+import com.vibee.model.item.Uitem;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -45,4 +46,7 @@ public interface VExportRepo extends JpaRepository<VExport,Integer> {
 
     @Query("select SUM(e.outAmount) from export e where e.importId = ?1")
     Optional<Integer> getSUMAmountByIdImport(int idImport);
+
+    @Query("select new com.vibee.model.item.Uitem(u.unitName, e.outAmount, u.id) from export e join unit u on u.id = e.unitId where e.importId = ?1 order by u.amount asc")
+    List<Uitem> getAmountExportOfImport(int idImport);
 }
