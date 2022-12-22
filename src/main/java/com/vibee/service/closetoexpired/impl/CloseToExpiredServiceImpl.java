@@ -3,6 +3,7 @@ package com.vibee.service.closetoexpired.impl;
 import com.vibee.entity.VExport;
 import com.vibee.entity.VImport;
 import com.vibee.entity.VUnit;
+import com.vibee.jedis.Export;
 import com.vibee.model.Status;
 import com.vibee.model.item.CloseToExpirationItem;
 import com.vibee.model.item.EditPriceExportItem;
@@ -55,19 +56,28 @@ public class CloseToExpiredServiceImpl implements CloseToExpiredService {
             int inventory = 0;
 
             List<Uitem> uitems = exportRepo.getAmountExportOfImport(vImport.getId());
-
-            if (uitems != null && !uitems.isEmpty()) {
+            CloseToExpirationItem item = new CloseToExpirationItem();
+            if (uitems.size() != 0) {
                 inventory = this.convertUnitImport(vImport.getInAmount().intValue(), vImport.getUnitId()) - this.convertUnitExport(uitems);
+                item.setList(convertAmountUnit(uitems.get(uitems.size()-1).getIdUnit(), inventory, uitems));
             } else {
                 inventory = vImport.getInAmount().intValue();
+                List<Uitem> ab = new ArrayList<>();
+                VExport export = exportRepo.getAmountByIdImport(vImport.getId());
+                Uitem uitem = new Uitem();
+                uitem.setIdUnit(vImport.getUnitId());
+//                uitem.setOutPrice(export.getOutPrice());
+//                uitem.setIdExport(export.getId());
+                uitem.setAmount(vImport.getInAmount().intValue());
+                uitem.setNameUnit(vUnitRepo.findById(vImport.getUnitId()).getUnitName());
+                ab.add(uitem);
+                item.setList(ab);
             }
 
-            CloseToExpirationItem item = new CloseToExpirationItem();
             item.setIdImport(vImport.getId());
             item.setExpired(vImport.getExpiredDate());
             item.setDateAdded(vImport.getCreatedDate());
             item.setNameProduct(vProductRepo.getProduct(vWarehouseRepo.getById(vImport.getWarehouseId()).getProductId()).getProductName());
-            item.setList(convertAmountUnit(uitems.get(uitems.size()-1).getIdUnit(), inventory, uitems));
             item.setInCome(vImport.getInMoney());
             item.setCreator(vImport.getCreator());
             item.setAmount(convertMess(item.getList()));
@@ -88,8 +98,12 @@ public class CloseToExpiredServiceImpl implements CloseToExpiredService {
         BaseResponse response = new BaseResponse();
         for (EditPriceExportItem item : request.getList()) {
             VExport export = exportRepo.getById(item.getIdExport());
-            export.setOutPrice(item.getPrice());
-            exportRepo.save(export);
+            if (export == null) {
+
+            } else {
+                export.setOutPrice(item.getPrice());
+                exportRepo.save(export);
+            }
         }
         VImport vImport = importRepo.getById(request.getIdImport());
         vImport.setStatus(3);
