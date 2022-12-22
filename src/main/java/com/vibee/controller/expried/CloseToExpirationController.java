@@ -25,7 +25,7 @@ public class CloseToExpirationController {
         return this.closeToExpiredService.getAll(nameSearch, page, record);
     }
 
-    @GetMapping("/edit-price-export")
+    @PostMapping("/edit-price-export")
     public BaseResponse payment(@RequestBody EditPriceExportRequest request) {
         return this.closeToExpiredService.editPriceExport(request);
     }
