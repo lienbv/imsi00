@@ -112,4 +112,18 @@ public interface VProductRepo extends JpaSpecificationExecutor<VProduct>,JpaRepo
 
     @Query("SELECT p FROM product p WHERE p.status=1 AND p.barCode = :barCode")
     VProduct getProductByBarCode(@Param("barCode") String barCode);
+    @Query(value = "SELECT count(p.id) from v_product p join v_type_product t \n" +
+            "on p.TYPE_PRODUCT = t.ID join v_warehouse w on p.ID = w.PRODUCT_ID \n" +
+            "join v_import i on i.WAREHOUSE_ID = w.ID join v_export e on e.IMPORT_ID = i.ID\n" +
+            "join v_unit u on u.ID = w.UNIT_ID \n" +
+            "where t.ID=?1 \n" +
+            "having sum(w.IN_AMOUNT) - sum(w.OUT_AMOUNT) >0" , nativeQuery = true)
+    String amountProductByType(int idType);
+    @Query(value = "SELECT count(p.id) from v_product p join v_type_product t \n" +
+            "on p.TYPE_PRODUCT = t.ID join v_warehouse w on p.ID = w.PRODUCT_ID \n" +
+            "join v_import i on i.WAREHOUSE_ID = w.ID join v_export e on e.IMPORT_ID = i.ID\n" +
+            "join v_unit u on u.ID = w.UNIT_ID \n" +
+            "where t.PARENT_ID=?1 \n" +
+            "having sum(w.IN_AMOUNT) - sum(w.OUT_AMOUNT) >0" , nativeQuery = true)
+    String amountProductByType1(int idType);
 }

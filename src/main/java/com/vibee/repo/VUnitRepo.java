@@ -24,23 +24,25 @@ public interface VUnitRepo extends JpaRepository<VUnit, Integer>{
     @Query("SELECT u FROM unit u WHERE u.status=1")
     List<VUnit> getAllUnits();
 
-
-
     @Query(value="SELECT unit.unit_name FROM unit where unit.id =(select import.id_unit from import where import.id_product=?1 order by warehouse.created_date asc limit 1)",nativeQuery = true)
     String getUnitNameByProductId(int productId);
 
     @Query(value="SELECT unit.id FROM unit where unit.id =(select import.id_unit from import where import.id_product=?1 order by warehouse.created_date asc limit 1)",nativeQuery = true)
     int getUnitIdById(int productId);
+
     List<VUnit> findByParentIdOrStatus(int parentId, int status);
+
     List<VUnit> findByStatus(int status);
+
     VUnit findById(int id);
+
+    VUnit findByIdAndStatus(int id, int status);
+
     @Query(value = "select * from v_unit where id =?1 or PARENT_ID=?2 or id= (select PARENT_ID from v_unit where v_unit.id=?3)", nativeQuery = true)
     List<VUnit> getAllById(int id, int parentId, int id_1);
 
     List<VUnit> findByParentIdAndStatus(int parent, int status);
 
-//    @Query("select max(u.amount) from unit u where u.parentId = :unitId or u.id= :unitId and v.status=1")
-//    int getMaxIdByParenId(@Param("parentId") int parent);
     List<VUnit> findByParentId(int parent);
     List<VUnit> findByParentIdOrIdAndStatus(int parent, int id, int status);
 
@@ -76,4 +78,6 @@ public interface VUnitRepo extends JpaRepository<VUnit, Integer>{
 
     @Query("SELECT u FROM unit u WHERE u.id= :unitId AND u.status=1")
     VUnit getUnitById(@Param("unitId") int unitId);
+    @Query(value = "select * from vibee.v_unit where PARENT_ID=?1 or id =?2 or id =?1 order by amount asc", nativeQuery = true)
+    List<VUnit> getVUnit(int parent, int id_1, int id_2);
 }

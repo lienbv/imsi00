@@ -3,9 +3,7 @@ import com.vibee.entity.VRole;
 import com.vibee.entity.VUser;
 import com.vibee.entity.VUserRole;
 import com.vibee.model.Status;
-import com.vibee.model.item.CredentialItem;
 import com.vibee.model.item.UserItems;
-import com.vibee.model.request.auth.CreateAccountRequest;
 import com.vibee.model.request.user.CheckAccountRequest;
 import com.vibee.model.request.user.UpdateAccountRequest;
 import com.vibee.model.request.v_unit.GetOrderByStringRequest;
@@ -16,9 +14,6 @@ import com.vibee.model.response.user.GetUserItemsResponse;
 import com.vibee.repo.VRoleRepo;
 import com.vibee.repo.VUserRepo;
 import com.vibee.repo.VUserRoleRepo;
-import com.vibee.service.vauth.CreateAccountKeycloakService;
-import com.vibee.service.vauth.UpdatePasswordKeycloakService;
-import com.vibee.service.vcall.CallRealmAdminCli;
 import com.vibee.service.vuser.IUserService;
 import com.vibee.utils.MessageUtils;
 import lombok.extern.log4j.Log4j2;
@@ -29,7 +24,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.validation.BindingResult;
 
 import javax.validation.Valid;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 @Log4j2
 @Service
@@ -38,19 +35,11 @@ public class CreateUserService implements IUserService {
     private final VUserRepo userRepo;
     private final VRoleRepo vRoleRepo;
     private final VUserRoleRepo vUserRoleRepo;
-    private final CreateAccountKeycloakService createAccount;
-    private final UpdatePasswordKeycloakService updatePasswordKeycloakService;
 
-    public CreateUserService(VUserRepo userRepo,
-                             VRoleRepo vRoleRepo,
-                             VUserRoleRepo vUserRoleRepo,
-                             CreateAccountKeycloakService createAccount,
-                             UpdatePasswordKeycloakService updatePasswordKeycloakService) {
+    public CreateUserService(VUserRepo userRepo, VRoleRepo vRoleRepo, VUserRoleRepo vUserRoleRepo) {
         this.userRepo = userRepo;
         this.vRoleRepo = vRoleRepo;
         this.vUserRoleRepo = vUserRoleRepo;
-        this.createAccount = createAccount;
-        this.updatePasswordKeycloakService = updatePasswordKeycloakService;
     }
 
     @Override
@@ -118,28 +107,7 @@ public class CreateUserService implements IUserService {
         vUserRole.setUserId(crtuser.getId());
         vUserRole.setRoleId(roles.getId());
         this.vUserRoleRepo.save(vUserRole);
-        List<CredentialItem> credentialItems = new ArrayList<>();
-        List<String> rolesList = new ArrayList<>();
-        CreateAccountRequest createAccountRequest = new CreateAccountRequest();
-        createAccountRequest.setUsername(username);
-        createAccountRequest.setFirstName(fullname);
-        createAccountRequest.setLastName(fullname);
-        createAccountRequest.setEmail(email);
-        createAccountRequest.setEnabled(true);
-        CredentialItem credentialItem = new CredentialItem();
-        credentialItem.setTemporary(false);
-        credentialItem.setType("password");
-        credentialItem.setValue(password);
-        credentialItems.add(credentialItem);
-        createAccountRequest.setCredentials(credentialItems);
-        rolesList.add("STAFF");
-        createAccountRequest.setRealmRoles(rolesList);
-        BaseResponse authResponse= this.createAccount.createAccount(createAccountRequest, language);
-        if (authResponse.getStatus().getStatus().equals(Status.Fail)) {
-            response.getStatus().setMessage(MessageUtils.get(language, "msg.create.account.fail"));
-            response.getStatus().setStatus(Status.Fail);
-            return response;
-        }
+
         response.setNameRole(roles.getName());
         response.setFullname(crtuser.getFullname());
         response.setPhoneNumber(crtuser.getNumberPhone());
@@ -234,16 +202,7 @@ public class CreateUserService implements IUserService {
             vUser.setCccd(cccd);
             vUser.setAddress(address);
             vUser.setPassword(password);
-            CredentialItem credentialItem = new CredentialItem();
-            credentialItem.setTemporary(false);
-            credentialItem.setType("password");
-            credentialItem.setValue(password);
-            BaseResponse authResponse = this.updatePasswordKeycloakService.updatePassword(credentialItem, language);
-            if (authResponse.getStatus().getStatus().equals(Status.Fail)) {
-                response.getStatus().setMessage(MessageUtils.get(language, "msg.update.password.fail"));
-                response.getStatus().setStatus(Status.Fail);
-                return response;
-            }
+
             vUser = this.userRepo.save(vUser);
 
             response.setFullname(vUser.getFullname());

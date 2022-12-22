@@ -2,6 +2,7 @@ package com.vibee.service.vimport;
 
 import com.vibee.model.info.ImportWarehouseInfor;
 import com.vibee.model.item.UnitItem;
+import com.vibee.model.request.product.InfoCreateProductResponse;
 import com.vibee.model.request.v_import.ImportInWarehouse;
 import com.vibee.model.response.BaseResponse;
 import com.vibee.model.response.category.ListCategoryImportItems;
@@ -26,4 +27,5 @@ public interface IImportSuppierService {
     ListImportInWarehouseRedis getAllRedis(int key);
     List<UnitItem> getAllSelectUnitByIdParent(int parent, String language);
     ListCategoryImportItems getCategory();
+    InfoCreateProductResponse info(String request);
 }

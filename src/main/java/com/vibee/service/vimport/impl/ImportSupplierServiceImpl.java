@@ -7,6 +7,7 @@ import com.google.zxing.WriterException;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
+import com.groupdocs.signature.internal.a.in;
 import com.vibee.config.redis.RedisAdapter;
 import com.vibee.entity.*;
 import com.vibee.jedis.ImportInWarehouseRedis;
@@ -114,6 +115,9 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
         } else {
             importInWarehouse.setExportsItems(null);
         }
+        if(inPrice == null|| inPrice==BigDecimal.valueOf(0)){
+            importInWarehouse.setInPrice(BigDecimal.valueOf(0));
+        }
         importInWarehouse.setUnit(unit);
         importInWarehouse.setId(idRedis);
         importInWarehouse.setSupplierId(supplierId);
@@ -179,13 +183,7 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
         importInWarehouse.setUnitId(unitId);
         importInWarehouse.setCreator(creator);
         importInWarehouse.setDescription(description);
-//        String date = null;
-//        try {
-//            date = new SimpleDateFormat("dd/MM/yyyy")
-//                    .format(importInWarehouse.getRangeDates());
-//        } catch (Exception e) {
-//            throw new RuntimeException(e);
-//        }
+
         try {
             importInWarehouse.setRangeDates(DataUtils.modifyDateLayoutUpdate(rangeDates));
         } catch (ParseException e) {
@@ -209,6 +207,21 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
         ImportInWarehouseRedis importInWarehouseRedis = this.importRedisRepo.get(String.valueOf(key), redisId);
 
         EditImportWarehouse infor = new EditImportWarehouse();
+        VTypeProduct vTypeProduct = this.vTypeProductRepo.findById(importInWarehouseRedis.getTypeProductId());
+        VUnit vUnit = this.vUnitRepo.findById(importInWarehouseRedis.getUnitId());
+        VUploadFile vUploadFile = this.fileUploadRepo.findById(importInWarehouseRedis.getProductFile());
+        if(vTypeProduct == null){
+            log.error("Type product is null");
+            return null;
+        }
+        if(vUnit == null){
+            log.error("Unit product is null");
+            return null;
+        }
+        if(vUploadFile == null){
+            log.error("Upload file product is null");
+            return null;
+        }
         infor.setId(redisId);
         infor.setNameProd(importInWarehouseRedis.getProductName());
         infor.setBarCode(importInWarehouseRedis.getBarcode());
@@ -223,6 +236,13 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
         infor.setSupplierName(importInWarehouseRedis.getSupplierName());
         infor.setRangeDates(importInWarehouseRedis.getRangeDates());
         infor.setUnit(importInWarehouseRedis.getUnit());
+        infor.setCategoryName(vTypeProduct.getName());
+        infor.setAmount(importInWarehouseRedis.getInAmount());
+        infor.setAmountUnit(vUnit.getAmount());
+        infor.setDescription(vUnit.getDescription());
+        infor.setUrlUpload(vUploadFile.getUrl());
+        infor.setNameUploadFile(vUploadFile.getFileName());
+        infor.setUnits(importInWarehouseRedis.getExportsItems());
 
         return infor;
     }
@@ -263,6 +283,7 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
             infor.setRangeDate(importInWarehouseRedis.getRangeDates());
             infor.setUnit(importInWarehouseRedis.getUnit());
             infor.setInAmount(importInWarehouseRedis.getInAmount());
+
             data.add(infor);
         }
         return data;
@@ -273,6 +294,7 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
         ImportWarehouseItemsResponse response = new ImportWarehouseItemsResponse();
         List<ImportWarehouseItems> listAll = new ArrayList<>();
         for (ImportWarehouseInfor infor : data) {
+
             ImportWarehouseItems item = new ImportWarehouseItems();
 
             VWarehouse vWarehouseNew = new VWarehouse();
@@ -288,7 +310,7 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
             hashMap.put(EncodeHintType.ERROR_CORRECTION, ErrorCorrectionLevel.L);
             String contendType = "";
             try {
-                createQR(qrCode, path, charset, hashMap, 200, 200);
+                createQR(qrCode, path, charset, hashMap, 400, 400);
                 contendType = Files.probeContentType(file.toPath());
             } catch (WriterException e) {
                 throw new RuntimeException(e);
@@ -331,8 +353,10 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
                     vWarehouse.setProductId(vWarehouse.getProductId());
                     vWarehouse.setCreatedDate(vWarehouse.getCreatedDate());
                     vWarehouse.setCreator(infor.getCreator());
+
                     Double inPrice = infor.getInPrice().doubleValue();
                     Double oldPrice = vWarehouse.getInPrice().doubleValue();
+
                     vWarehouse.setInPrice(BigDecimal.valueOf(inPrice + oldPrice));
                     vWarehouse.setCreatedDate(vWarehouse.getCreatedDate());
                     vWarehouse.setUnitId(infor.getUnitId());
@@ -374,12 +398,13 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
                     this.vImportRepo.save(vImport);
 
                 } else {
-//                    VWarehouse vWarehouse1 = this.vWarehouseRepo.getProductByCreateDate(vProduct.getId(), vWarehouse.getCreatedDate());
-//                    VWarehouse vWarehouse2 = this.vWarehouseRepo.getProductByModifyDate(vProduct.getId(), new Date());
                     VWarehouse vWarehouseNew1 = new VWarehouse();
                     vWarehouseNew1.setProductId(vProduct.getId());
                     vWarehouseNew1.setCreator(infor.getCreator());
                     Double inPrice = infor.getInPrice().doubleValue();
+                    if(infor.getInPrice()==BigDecimal.valueOf(0) || infor.getInPrice()== null){
+                        vWarehouseNew1.setInPrice(BigDecimal.valueOf(0));
+                    }
                     vWarehouseNew1.setInPrice(BigDecimal.valueOf(inPrice));
                     vWarehouseNew1.setCreatedDate(new Date());
                     vWarehouseNew1.setUnitId(infor.getUnitId());
@@ -419,6 +444,9 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
                 }
 
                 for (UnitItem exportItems : infor.getExportsItems()) {
+                    if(exportItems.getInPrice()== BigDecimal.valueOf(0)){
+                        return null;
+                    }
                     VExport vExport = new VExport();
                     vExport.setUnitId(exportItems.getUnitId());
                     vExport.setImportId(vImport.getId());
@@ -449,6 +477,9 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
 
                 vWarehouseNew.setCreator(infor.getCreator());
                 Double inPrice = infor.getInPrice().doubleValue();
+                if(infor.getInPrice()==BigDecimal.valueOf(0) || infor.getInPrice()== null){
+                    vWarehouseNew.setInPrice(BigDecimal.valueOf(0));
+                }
                 vWarehouseNew.setInPrice(BigDecimal.valueOf(inPrice));
                 vWarehouseNew.setCreatedDate(new Date());
                 vWarehouseNew.setUnitId(infor.getUnitId());
@@ -568,22 +599,64 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
 
         return response;
     }
+    @Override
+    public InfoCreateProductResponse info(String request) {
+        log.info("infoService :: Start");
+        String language=request;
+        InfoCreateProductResponse response=new InfoCreateProductResponse();
+        List<VTypeProduct> typeProducts=this.vTypeProductRepo.findByStatus(1);
+        List<GetTypeProductItem> typeProductItems=this.convertItem(typeProducts);
+        List<VSupplier> suppliers=this.vSupplierRepo.findByStatus(1);
+        List<GetSupplierItem> supplierItems=this.convertItems(suppliers);
+        List<VUnit> units=this.vUnitRepo.findByStatus(1);
+        List<InfoUnitItem> unitItems=this.convertUnitItems(units);
+        response.setUnitItems(unitItems);
+        response.setItems(supplierItems);
+        response.setTypeProductItems(typeProductItems);
+        response.getStatus().setStatus(Status.Success);
+        response.getStatus().setMessage("");
+        log.info("infoService :: End");
+        return response;
+    }
 
-    public List<UnitItem> getAllSelectUnitByIdParent(int parent, String language) {
+    public List<UnitItem> getAllSelectUnitByIdParent(int id, String language) {
 
         List<UnitItem> response = new ArrayList<>();
-        List<VUnit> vUnits = this.vUnitRepo.findByParentIdOrIdAndStatus(parent, parent, 1);
+        VUnit unit = this.vUnitRepo.findByIdAndStatus(id, 1);
+        List<VUnit> vUnits = new ArrayList<>();
 
-        for (VUnit vUnit : vUnits) {
-            UnitItem unitItem = new UnitItem();
-            unitItem.setUnitName(vUnit.getUnitName());
-            unitItem.setUnitId(vUnit.getId());
-            unitItem.setAmount(vUnit.getAmount());
-            unitItem.setInPrice(BigDecimal.valueOf(0));
-            unitItem.setOutPrice(BigDecimal.valueOf(0));
-            response.add(unitItem);
+        if(unit.getParentId()==0){
+            vUnits = this.vUnitRepo.getVUnit(unit.getId(), id, 0);
+
+            for (VUnit vUnit : vUnits) {
+                UnitItem unitItem = new UnitItem();
+                unitItem.setUnitName(vUnit.getUnitName());
+                unitItem.setUnitId(vUnit.getId());
+                unitItem.setAmount(vUnit.getAmount());
+                unitItem.setInPrice(BigDecimal.valueOf(0));
+                unitItem.setOutPrice(BigDecimal.valueOf(0));
+                response.add(unitItem);
+            }
+            return response;
+        }else {
+            vUnits = this.vUnitRepo.getVUnit(unit.getParentId(), id, unit.getParentId());
+
+            for (VUnit vUnit : vUnits) {
+                UnitItem unitItem = new UnitItem();
+                if(unit.getAmount() <= vUnit.getAmount()) {
+                    unitItem.setUnitName(vUnit.getUnitName());
+                    unitItem.setUnitId(vUnit.getId());
+                    unitItem.setAmount(vUnit.getAmount());
+                    unitItem.setInPrice(BigDecimal.valueOf(0));
+                    unitItem.setOutPrice(BigDecimal.valueOf(0));
+                    response.add(unitItem);
+                }
+            }
+
+            return response;
         }
-        return response;
+
+
     }
 
     public ListCategoryImportItems getCategory(){
@@ -621,4 +694,42 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
         String username = loginResponse.getUsername();
         return username;
     }
+
+    private List<GetSupplierItem> convertItems(List<VSupplier> suppliers){
+        List<GetSupplierItem> items=new ArrayList<GetSupplierItem>();
+        for(VSupplier supplier:suppliers) {
+            GetSupplierItem item=new GetSupplierItem();
+            item.setId(supplier.getId());
+            item.setName(supplier.getNameSup());
+            items.add(item);
+        }
+        return items;
+    }
+
+    private List<GetTypeProductItem> convertItem(List<VTypeProduct> typeProducts){
+
+        List<GetTypeProductItem> items=new ArrayList<GetTypeProductItem>();
+        for(VTypeProduct product:typeProducts) {
+            GetTypeProductItem item=new GetTypeProductItem();
+            item.setId(product.getId());
+            item.setName(product.getName());
+            items.add(item);
+        }
+        return items;
+    }
+
+    private List<InfoUnitItem> convertUnitItems(List<VUnit> units){
+        List<InfoUnitItem> unitItems=new ArrayList<>();
+        for(VUnit unit:units){
+            InfoUnitItem item=new InfoUnitItem();
+            item.setParentId(unit.getParentId());
+            item.setUnitId(unit.getId());
+            item.setAmount(unit.getAmount());
+            item.setDescription(unit.getDescription());
+            item.setUnitName(unit.getUnitName());
+            unitItems.add(item);
+        }
+        return unitItems;
+    }
+
 }
