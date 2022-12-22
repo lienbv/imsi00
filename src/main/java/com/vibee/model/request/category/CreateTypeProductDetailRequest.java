@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 public class CreateTypeProductDetailRequest extends BaseRequest {
-    private int id;
+    private String id;
     private String name;
     private String description;
 }

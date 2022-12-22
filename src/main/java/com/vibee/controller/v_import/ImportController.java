@@ -2,6 +2,7 @@ package com.vibee.controller.v_import;
 
 import com.vibee.model.info.ImportWarehouseInfor;
 import com.vibee.model.item.UnitItem;
+import com.vibee.model.request.product.InfoCreateProductResponse;
 import com.vibee.model.request.v_import.ImportInWarehouse;
 import com.vibee.model.response.BaseResponse;
 import com.vibee.model.response.category.ListCategoryImportItems;
@@ -18,7 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 @RestController
-@RequestMapping("/vibee/api/v1/import-warehouse")
+@RequestMapping("${vibee.config}/import-warehouse")
 @CrossOrigin("*")
 public class ImportController {
     private final IImportSuppierService importSupplierService;
@@ -77,5 +78,9 @@ public class ImportController {
     @GetMapping("/unitId-parent/{parent}")
     public List<UnitItem> getAllSelectUnitByIdParent(@PathVariable(name = "parent") int parent, @RequestParam(name = "language") String language){
         return this.importSupplierService.getAllSelectUnitByIdParent(parent, language);
+    }
+    @GetMapping("/create/info")
+    public InfoCreateProductResponse info(@RequestParam(name = "language") String languageReq) {
+        return this.importSupplierService.info(languageReq);
     }
 }

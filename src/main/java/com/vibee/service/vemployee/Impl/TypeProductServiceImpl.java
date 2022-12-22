@@ -291,10 +291,9 @@ public class TypeProductServiceImpl implements ITypeProductService {
                 return response;
             } else {
                 List<VTypeProduct> typeProducts = this.typeProductRepo.findId(id);
-//                amountProduct = this.productRepo.amountProductByType(id);
-//                amountProduct1 = this.productRepo.amountProductByType1(id);
-                 amountProduct ="10";
-                 amountProduct1 = "20";
+                amountProduct = this.productRepo.amountProductByType(id);
+                amountProduct1 = this.productRepo.amountProductByType1(id);
+
                 for (VTypeProduct p : typeProducts) {
                     if (p.getParentId() == 0) {
                         if (amountProduct1 == null) {
@@ -432,7 +431,7 @@ public class TypeProductServiceImpl implements ITypeProductService {
         BaseResponse response = new BaseResponse();
         String name = request.getName();
         String decription = request.getDescription();
-        int id = request.getId();
+        String id = request.getId();
 
         String language = request.getLanguage();
 
@@ -442,7 +441,10 @@ public class TypeProductServiceImpl implements ITypeProductService {
         typeProduct.setCreatedDate(new Date());
         typeProduct.setStatus(1);
         typeProduct.setDescription(decription);
-        typeProduct.setParentId(id);
+        if(id==null){
+            typeProduct.setParentId(0);
+        }
+        typeProduct.setParentId(Integer.parseInt(id));
         this.typeProductRepo.save(typeProduct);
         response.getStatus().setStatus(Status.Success);
         response.getStatus().setMessage(MessageUtils.get(language, "msg.typeProduct.success"));

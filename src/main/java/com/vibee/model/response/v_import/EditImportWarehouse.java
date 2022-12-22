@@ -1,12 +1,8 @@
 package com.vibee.model.response.v_import;
 
-import com.vibee.model.item.GetTypeProductItem;
 import com.vibee.model.item.UnitItem;
-import com.vibee.model.response.category.SelectionTypeProductItems;
 import lombok.Data;
-
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
 @Data
 public class EditImportWarehouse {
@@ -25,5 +21,10 @@ public class EditImportWarehouse {
     private String rangeDates;
     private String supplierName;
     private String categoryName;
-    private List<SelectionTypeProductItems> category;
+    private int amountUnit;
+    private String descriptionUnit;
+    private String nameUploadFile;
+    private String urlUpload;
+
+//    private List<SelectionTypeProductItems> category;
 }

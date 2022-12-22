@@ -3,7 +3,6 @@ package com.vibee.service.debit;
 import com.vibee.entity.*;
 import com.vibee.model.ObjectResponse.DebitObjectPayResponse;
 import com.vibee.model.ObjectResponse.DetailBillOfDetailDebit;
-import com.vibee.model.ObjectResponse.GetDebitOfUserObject;
 import com.vibee.model.Status;
 import com.vibee.model.item.BillItems;
 import com.vibee.model.item.DebitItems;

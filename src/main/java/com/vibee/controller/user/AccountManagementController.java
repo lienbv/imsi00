@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 
 @RestController
-@RequestMapping("/vibee/api/v1/user")
+@RequestMapping("${vibee.config}/user")
 @CrossOrigin("*")
 public class AccountManagementController {
 
