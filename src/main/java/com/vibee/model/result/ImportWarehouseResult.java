@@ -24,6 +24,7 @@ public class ImportWarehouseResult {
         private GetTypeProductResult typeProduct;
         private int inAmount;
         private GetUnitResult unit;
+        private List<GetUnitResult> units;
         private String qrCode;
         private int supplierId;
         private String creator;

@@ -53,7 +53,13 @@ public class ResourceServerConfig extends GlobalMethodSecurityConfiguration {
 
 	@Bean
 	WebSecurityCustomizer webSecurityCustomizer() {
-		return (web) -> web.ignoring().antMatchers("/**");
+		return (web) -> web.ignoring().antMatchers("/swagger-ui.html/**",
+				"/swagger-resources/**",
+				"/webjars/**",
+				"/swagger-ui.html#!/**",
+				"/actuator/**",
+				"/vibee/api/v1/auth/**",
+				"/vibee/api/v1/file/**");
 	}
 	
 }

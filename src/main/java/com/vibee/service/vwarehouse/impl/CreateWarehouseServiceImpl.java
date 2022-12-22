@@ -196,6 +196,7 @@ public class CreateWarehouseServiceImpl implements CreateWarehouseService {
                     units=this.unitRepo.getAllUnitByParentId(u.getId());
                 }
                 List<Integer> unitIds=new ArrayList<>();
+                List<GetUnitResult> unitsResult=new ArrayList<>();
                     for (VExport export:exports){
                         for (VUnit unit:units){
                             if (unit.getId()==export.getUnitId()){
@@ -216,6 +217,14 @@ public class CreateWarehouseServiceImpl implements CreateWarehouseService {
                                 unitResult.setStatusName(ProductUtils.statusname(unit.getStatus()));
                                 result.setUnit(unitResult);
                             }
+                            GetUnitResult unitResult = new GetUnitResult();
+                            unitResult.setId(unit.getId());
+                            unitResult.setName(unit.getUnitName());
+                            unitResult.setStatusCode(unit.getStatus());
+                            unitResult.setDescription(unit.getDescription());
+                            unitResult.setParentId(unit.getParentId());
+                            unitResult.setStatusName(ProductUtils.statusname(unit.getStatus()));
+                            unitsResult.add(unitResult);
                         }
                         unitIds.add(export.getUnitId());
                     }
@@ -248,6 +257,7 @@ public class CreateWarehouseServiceImpl implements CreateWarehouseService {
                     }
                 result.setSupplierId(vImport.getSupplierId());
                 result.setExports(exportResults);
+                result.setUnits(unitsResult);
             }
             importWarehouseResults.add(result);
         }

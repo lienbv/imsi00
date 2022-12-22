@@ -18,4 +18,5 @@ public class ExportResult {
     private String unitName;
     private int inventory;
     private int exportId;
+    private int amount;
 }

@@ -113,6 +113,9 @@ public interface VProductRepo extends JpaSpecificationExecutor<VProduct>,JpaRepo
 
     @Query("SELECT p FROM product p WHERE p.status=1 AND p.barCode = :barCode")
     VProduct getProductByBarCode(@Param("barCode") String barCode);
+
+    @Query("SELECT p FROM product p WHERE p.status=1 AND p.id=(SELECT w.productId FROM warehouse w WHERE w.id= :warehouseId)")
+    VProduct getProductByWarehouseId(@Param("warehouseId") int warehouseId);
     @Query(value = "SELECT count(p.id) from v_product p join v_type_product t \n" +
             "on p.TYPE_PRODUCT = t.ID join v_warehouse w on p.ID = w.PRODUCT_ID \n" +
             "join v_import i on i.WAREHOUSE_ID = w.ID join v_export e on e.IMPORT_ID = i.ID\n" +
