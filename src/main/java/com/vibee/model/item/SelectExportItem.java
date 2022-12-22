@@ -15,7 +15,8 @@ public class SelectExportItem {
     private int exportId;
     private int unitId;
     private String unitName;
-    private int inventory;
+    private double inventory;
     private BigDecimal outPrice;
     private int amount;
+    private int unitAmount;
 }

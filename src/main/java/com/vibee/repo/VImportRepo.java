@@ -93,4 +93,18 @@ public interface VImportRepo extends JpaSpecificationExecutor<VImport>,JpaReposi
 
     @Query("SELECT i FROM import i WHERE i.warehouseId=(SELECT w.id FROM warehouse w WHERE w.productId = :productId) AND i.status=1 ORDER BY i.createdDate DESC")
     List<VImport> findImportIdByBarcode (@Param("productId") int productId,Pageable pageable);
+
+    @Query("SELECT i FROM import i WHERE i.productCode like :productCode% AND i.status=1")
+    List<VImport> findImportByProductCode (@Param("productCode") String productId);
+
+    @Query("SELECT i FROM import i WHERE i.id not in :ids AND i.status=1")
+    List<VImport> getImportByNotIds (@Param("ids") List<Integer> importIds);
+
+    @Query("SELECT i FROM import i WHERE i.id in :ids AND i.status=1")
+    List<VImport> getImportByIds (@Param("ids") List<Integer> importIds);
+    @Query("SELECT i.warehouseId FROM import i WHERE i.productCode like :productCode% AND i.status=1")
+    List<Integer> getWarehouseIdByProductCode (@Param("productCode") String productId);
+
+    @Query("SELECT i FROM import i WHERE i.status=1")
+    List<VImport> getImportIsActive ();
 }

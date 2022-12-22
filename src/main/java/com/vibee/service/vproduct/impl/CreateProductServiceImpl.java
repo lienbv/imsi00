@@ -251,19 +251,56 @@ public class CreateProductServiceImpl implements SaveProductService {
             response.getStatus().setMessage(MessageUtils.get(language,"msg.error.product.not.found"));
             return response;
         }
-        ProductStallObject productStall=this.productRepo.searchProductByImport(productCode);
-        List<SelectExportStallObject> exportStalls=this.exportRepo.getExportsByProduct(productCode);
-
-
-
+        VImport importProduct=this.importRepo.findByProductCode(productCode);
+        if (importProduct==null){
+            log.error("import product is not exist");
+            response.getStatus().setStatus(Status.Fail);
+            response.getStatus().setMessage(MessageUtils.get(language,"msg.error.product.not.found"));
+            return response;
+        }
+        VWarehouse warehouse=this.warehouseRepo.getById(importProduct.getWarehouseId());
+        if (warehouse==null){
+            log.error("warehouse is not exist");
+            response.getStatus().setStatus(Status.Fail);
+            response.getStatus().setMessage(MessageUtils.get(language,"msg.error.product.not.found"));
+            return response;
+        }
+        VUnit unitWarehouse=this.unitRepo.getById(warehouse.getUnitId());
+        if (unitWarehouse==null){
+            log.error("unit warehouse is not exist");
+            response.getStatus().setStatus(Status.Fail);
+            response.getStatus().setMessage(MessageUtils.get(language,"msg.error.product.not.found"));
+            return response;
+        }
+        List<VExport> exports=this.exportRepo.getExportsByImportId(importProduct.getId());
+        if (exports==null){
+            log.error("exports is not exist");
+            response.getStatus().setStatus(Status.Fail);
+            response.getStatus().setMessage(MessageUtils.get(language,"msg.error.product.not.found"));
+            return response;
+        }
+        VProduct product=this.productRepo.getById(warehouse.getProductId());
+        if (product==null){
+            log.error("product is not exist");
+            response.getStatus().setStatus(Status.Fail);
+            response.getStatus().setMessage(MessageUtils.get(language,"msg.error.product.not.found"));
+            return response;
+        }
         List<SelectExportItem> items=new ArrayList<>();
-        for (SelectExportStallObject exportStall:exportStalls){
+        for (VExport export:exports){
+            VUnit unitExport=this.unitRepo.getById(export.getUnitId());
             SelectExportItem item=new SelectExportItem();
-            item.setInventory(exportStall.getInventory().intValue());
-            item.setOutPrice(exportStall.getOutPrice());
-            item.setUnitName(exportStall.getUnitName());
-            item.setUnitId(exportStall.getUnitId());
-            item.setExportId(exportStall.getExportId());
+            item.setInventory(warehouse.getInAmount()-warehouse.getOutAmount());
+            if (export.getOutPrice()==null){
+                item.setOutPrice(BigDecimal.valueOf(0));
+            }else{
+                item.setOutPrice(export.getOutPrice());
+            }
+            item.setUnitName(unitExport.getUnitName());
+            item.setUnitId(export.getUnitId());
+            item.setExportId(export.getId());
+            item.setAmount(unitExport.getAmount());
+            item.setUnitAmount(unitWarehouse.getAmount());
             items.add(item);
         }
         SelectExportItem item=new SelectExportItem();
@@ -272,11 +309,15 @@ public class CreateProductServiceImpl implements SaveProductService {
                 if(items.get(i).getAmount()<items.get(i).getAmount()){
                     item=items.get(i);
                     items.get(i).setAmount(items.get(j).getAmount());
-                    items.get(i).setInventory(items.get(j).getInventory());
+                    items.get(i).setInventory(items.get(j).getInventory()/items.get(j).getUnitAmount()*items.get(i).getAmount());
                     items.get(i).setUnitId(items.get(j).getUnitId());
                     items.get(i).setUnitName(items.get(j).getUnitName());
                     items.get(i).setExportId(items.get(j).getExportId());
-                    items.get(i).setOutPrice(items.get(j).getOutPrice());
+                    if (items.get(j).getOutPrice()==null){
+                        items.get(i).setOutPrice(BigDecimal.valueOf(0));
+                    }else{
+                        items.get(i).setOutPrice(items.get(j).getOutPrice());
+                    }
                     items.get(j).setAmount(item.getAmount());
                     items.get(j).setInventory(item.getInventory());
                     items.get(j).setUnitId(item.getUnitId());
@@ -288,22 +329,23 @@ public class CreateProductServiceImpl implements SaveProductService {
         }
 
         SelectedProductResult result=new SelectedProductResult();
-        result.setImportId(productStall.getImportId());
+        result.setImportId(importProduct.getId());
         result.setAmount(1);
-        result.setProductName(productStall.getProductName());
-        result.setImg(productStall.getImg());
-        result.setBarCode(productStall.getBarCode());
+        result.setProductName(product.getProductName());
+        result.setImg(this.fileUploadRepo.getURLById(product.getFileId()));
+        result.setBarCode(product.getBarCode());
+        result.setProductCode(productCode);
         result.setItems(items);
         //lưu vào redis
         CreateProduct createProduct = new CreateProduct();
 
-        createProduct.setImportId(productStall.getImportId());
+        createProduct.setImportId(importProduct.getId());
         createProduct.setAmount(1);
-        createProduct.setProductName(productStall.getProductName());
-        createProduct.setImg(productStall.getImg());
-        createProduct.setBarCode(productStall.getBarCode());
+        createProduct.setProductName(product.getProductName());
+        createProduct.setImg(result.getImg());
+        createProduct.setBarCode(result.getBarCode());
         createProduct.setItems(items);
-        createProduct.setProductId(productStall.getProductId());
+        createProduct.setProductId(product.getId());
         createProduct.setKey(cartCode);
 
         this.redisAdapter.set(cartCode,0, createProduct);

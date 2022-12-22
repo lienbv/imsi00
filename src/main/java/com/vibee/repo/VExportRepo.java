@@ -17,9 +17,10 @@ public interface VExportRepo extends JpaRepository<VExport,Integer> {
             "where v_export.id_warehouse = ?1 AND export.status=1 group by v_export.id",nativeQuery = true)
     List<ExportStallObject> viewStall( int warehouseId);
 
-    @Query(value="select v_export.id as exportId, v_export.out_price as outPrice,v_unit.unit_name unitName,\n" +
+    @Query(value="select v_export.id as exportId, v_export.out_price as outPrice,v_unit.unit_name unitName,unit.amount as unitAmount,\n" +
             " v_unit.id as unitId, ((v_warehouse.in_amount-v_warehouse.out_amount)/v_unit.amount) as inventory, v_unit.amount as amount  from v_unit join v_export on v_unit.id=v_export.id_unit \n" +
-            " join v_import on v_import.id=v_export.import_id\n" +
+            " join v_import on v_import.id=v_export.import_id " +
+            " join v_unit as unit on unit.id=v_warehouse.UNIT_ID \n" +
             " join v_warehouse on v_warehouse.id=v_import.warehouse_id \n" +
             "where v_import.product_code =?1 AND v_export.status=1 group by v_export.id",nativeQuery = true)
     List<SelectExportStallObject> getExportsByProduct(String productCode);
@@ -40,4 +41,5 @@ public interface VExportRepo extends JpaRepository<VExport,Integer> {
 
     @Query("SELECT e FROM export e WHERE e.importId = :importId AND e.status=1")
     List<VExport> getExportsByImportId(@Param("importId") int importId);
+
 }
