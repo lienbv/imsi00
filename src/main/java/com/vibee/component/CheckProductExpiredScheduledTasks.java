@@ -17,7 +17,7 @@ public class CheckProductExpiredScheduledTasks {
     @Autowired
     private VImportRepo vImportRepo;
 
-    @Scheduled(cron = "0 0/1 16 * * ?")
+    @Scheduled(cron = "0 0 12 * * ?")
     public void checkImport() {
        log.info("checking import.............");
         Map<String, Calendar> map = this.getStartAndEndDate(new Date());
