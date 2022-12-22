@@ -21,7 +21,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
-@RequestMapping("/vibee/api/v1/auth")
+@RequestMapping("${vibee.config}/debit")
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 public class DebitController {
     private final DebitImpl debit;
@@ -37,10 +37,6 @@ public class DebitController {
     @PostMapping("updateDebit/{idDebit}")
     public BaseResponse updateDebit(@PathVariable(name = "idDebit")int idDebit, @Valid @RequestBody DebitRequest request, BindingResult bindingResult){
         return this.debit.updateDebit( idDebit, request, bindingResult);
-    }
-    @PostMapping("total")
-    public BigDecimal totalAmountOwed(@RequestBody ListPayRequest total){
-        return  this.debit.totalAmountOwed(total);
     }
 
     @GetMapping("findAll/{idUser}")

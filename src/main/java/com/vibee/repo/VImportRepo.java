@@ -31,6 +31,9 @@ public interface VImportRepo extends JpaSpecificationExecutor<VImport>,JpaReposi
     @Query("DELETE import i WHERE i.warehouseId= (SELECT w.id FROM warehouse w WHERE w.productId= :productId)")
     int deleteByProductId(@Param("productId") int id);
 
+    @Query(value = "SELECT * FROM v_import WHERE v_import.status=1 AND v_import.warehouse_id= ?1 ORDER BY v_import.EXPIRED_DATE DESC LIMIT 1",nativeQuery = true)
+    VImport getImportByWarehouseId(int warehouseId);
+
     @Query(value = "SELECT Import.ID as id, Import.name_supplier as nameSupplier, (Import.inventory/v_unit.amount) as inventory, Import.ID_UNIT as unitId, " +
             "Import.img as img FROM v_v_import JOIN v_unit ON v_unit.id=v_v_import.id_unit WHERE v_v_import.status = 1 AND v_v_import.id_product = ?1",nativeQuery = true)
     List<ViewStallObject> viewStall(int productId);
@@ -63,9 +66,6 @@ public interface VImportRepo extends JpaSpecificationExecutor<VImport>,JpaReposi
             "FROM import i JOIN warehouse w ON w.id=i.warehouseId " +
             "JOIN product p ON p.id=w.productId JOIN unit u ON u.id=i.unitId WHERE p.barCode = :barCode AND e.status=1 ORDER BY i.id DESC LIMIT 1", nativeQuery = true)
     GetExportsObject getUnitImportByBarCode(@Param("barCode") String barCode);
-
-    @Query(value = "SELECT * FROM v_import WHERE v_import.status=1 AND v_import.warehouse_id= ?1 ORDER BY v_import.EXPIRED_DATE DESC LIMIT 1",nativeQuery = true)
-    VImport getImportByWarehouseId(int warehouseId);
     @Query(value = "select * from v_import v where v.WAREHOUSE_ID = ?1 order by v.UPDATE_DATE desc limit 1", nativeQuery = true)
     VImport getVImportBy(int warehouse);
 
@@ -91,6 +91,18 @@ public interface VImportRepo extends JpaSpecificationExecutor<VImport>,JpaReposi
     @Query("select w.productId from import i join warehouse w on i.warehouseId = w.id where i.supplierId = ?1 and year(i.createdDate) = ?2 group by w.id order by SUM(w.numberOfEntries) desc")
     List<Integer> getWareHouseId(int id, int year, Pageable pageable);
 
+    //and 0 < (select i.inAmount - SUM(e.outAmount) from export e where e.importId = i.id)
+    @Query("select i from import i join warehouse w on i.warehouseId = w.id join product p on p.id = w.productId where p.productName like ?1 and i.expiredDate between ?2 and ?3 order by i.expiredDate desc")
+    List<VImport> getImportsByProductCloseToExpired(String nameProduct, Date startDate, Date endDate, Pageable pageable);
+
+    //and 0 < (select i.inAmount - SUM(e.outAmount) from export e where e.importId = i.id)
+    @Query("select count (i) from import i join warehouse w on i.warehouseId = w.id join product p on p.id = w.productId where p.productName like ?1 and i.expiredDate between ?2 and ?3 order by i.expiredDate desc")
+    int getImportsByProductCloseToExpiredAmount(String nameProduct, Date startDate, Date endDate);
+
+    //and 0 < (select i.inAmount - SUM(e.outAmount) from export e where e.importId = i.id)
+    @Query("select i from import i join warehouse w on i.warehouseId = w.id join product p on p.id = w.productId where p.productName like ?1 and i.status = 0 order by i.expiredDate desc")
+    List<VImport> getImportsByProductExpiration(String nameProduct, Pageable pageable);
+
     @Query("SELECT i FROM import i WHERE i.warehouseId=(SELECT w.id FROM warehouse w WHERE w.productId = :productId) AND i.status=1 ORDER BY i.createdDate DESC")
     List<VImport> findImportIdByBarcode (@Param("productId") int productId,Pageable pageable);
 
@@ -107,4 +119,8 @@ public interface VImportRepo extends JpaSpecificationExecutor<VImport>,JpaReposi
 
     @Query("SELECT i FROM import i WHERE i.status=1")
     List<VImport> getImportIsActive ();
+
+    @Query("select i from import i where i.expiredDate between ?1 and ?2")
+    List<VImport> getImportsByDateCheckExpired(Date startDate, Date endDate);
+
 }

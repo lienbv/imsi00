@@ -4,12 +4,15 @@ import com.vibee.entity.VExport;
 import com.vibee.model.ObjectResponse.ExportStallObject;
 import com.vibee.model.ObjectResponse.GetExportsObject;
 import com.vibee.model.ObjectResponse.SelectExportStallObject;
+import com.vibee.model.item.Uitem;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
+
 @Repository
 public interface VExportRepo extends JpaRepository<VExport,Integer> {
     @Query(value="select export.id as exportId, export.out_price as outPrice, (export.out_amount/unit.amount) as outAmount,unit.unit_name unitName, \n" +
@@ -42,4 +45,12 @@ public interface VExportRepo extends JpaRepository<VExport,Integer> {
     @Query("SELECT e FROM export e WHERE e.importId = :importId AND e.status=1")
     List<VExport> getExportsByImportId(@Param("importId") int importId);
 
+    @Query("select SUM(e.outAmount) from export e where e.importId = ?1")
+    Optional<Integer> getSUMAmountByIdImport(int idImport);
+
+    @Query("select new com.vibee.model.item.Uitem(u.unitName, e.outAmount, u.id, e.id, e.outPrice) from export e join unit u on u.id = e.unitId where e.importId = ?1 order by u.amount asc")
+    List<Uitem> getAmountExportOfImport(int idImport);
+
+    @Query("select e from export e where e.importId = ?1")
+    VExport getAmountByIdImport(int idImport);
 }

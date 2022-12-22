@@ -17,7 +17,8 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.validation.Valid;
 
 @RestController
-@RequestMapping("/vibee/api/v1/product")
+//@RequestMapping("/vibee/api/v1/product")
+@RequestMapping("${vibee.config}/product")
 @CrossOrigin("*")
 public class ProductController {
 
