@@ -277,8 +277,8 @@ public class StatisticAdminServiceImpl implements StatisticAdminService {
         log.info("AdminStatisticResponse :: Start");
         long block_product, sold_out = 0;
 
-        block_product = this.productRepo.sumReportBlockProduct();
-        sold_out = this.productRepo.sumReportSoldOutProduct();
+        block_product = this.productRepo.sumReportBlockProduct().orElse(0L);
+        sold_out = this.productRepo.sumReportSoldOutProduct().orElse(0L);
 
         response = new StatisticAdminResponse(block_product, sold_out);
         response.getStatus().setMessage(MessageUtils.get(request.getLanguage(), "msg.success"));
