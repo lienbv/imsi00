@@ -6,5 +6,5 @@ import com.vibee.model.response.BaseResponse;
 
 public interface AddBillService {
     BaseResponse add(TransactionBillRequest request);
-    BaseResponse saveRedis(ViewBillRequest request);
+    BaseResponse saveRedis(TransactionBillRequest request);
 }

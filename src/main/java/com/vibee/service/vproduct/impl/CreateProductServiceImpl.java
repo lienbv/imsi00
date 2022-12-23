@@ -273,7 +273,7 @@ public class CreateProductServiceImpl implements SaveProductService {
             return response;
         }
         List<VExport> exports=this.exportRepo.getExportsByImportId(importProduct.getId());
-        if (exports==null){
+        if (exports==null || exports.size()==0){
             log.error("exports is not exist");
             response.getStatus().setStatus(Status.Fail);
             response.getStatus().setMessage(MessageUtils.get(language,"msg.error.product.not.found"));
@@ -327,7 +327,6 @@ public class CreateProductServiceImpl implements SaveProductService {
                 }
             }
         }
-
         SelectedProductResult result=new SelectedProductResult();
         result.setImportId(importProduct.getId());
         result.setAmount(1);
@@ -336,6 +335,7 @@ public class CreateProductServiceImpl implements SaveProductService {
         result.setBarCode(product.getBarCode());
         result.setProductCode(productCode);
         result.setItems(items);
+        result.setExportSelected(items.get(0));
         //lưu vào redis
         CreateProduct createProduct = new CreateProduct();
 
