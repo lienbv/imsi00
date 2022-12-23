@@ -1,6 +1,7 @@
 package com.vibee.model.request.bill;
 
 import com.vibee.model.request.BaseRequest;
+import com.vibee.model.response.product.SelectedProductResult;
 import com.vibee.model.result.TransactionBillResult;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -19,5 +20,5 @@ public class TransactionBillRequest extends BaseRequest {
     private String paymentMethod;
     private String transactionType;
     private String cartCode;
-//    private List<TransactionBillResult> results;
+    private List<SelectedProductResult> exportSelected;
 }
