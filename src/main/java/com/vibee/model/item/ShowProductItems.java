@@ -1,6 +1,6 @@
 package com.vibee.model.item;
 
-import com.vibee.model.ObjectResponse.SelectExportStallObject;
+import com.vibee.model.info.ExportInfor;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -22,5 +22,5 @@ public class ShowProductItems {
     private int importID;
     private int files;
     private int fileImport;
-    List<SelectExportStallObject> unit;
+    private List<ExportInfor> unit;
 }

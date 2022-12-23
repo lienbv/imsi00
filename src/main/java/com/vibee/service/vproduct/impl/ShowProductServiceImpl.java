@@ -3,6 +3,7 @@ package com.vibee.service.vproduct.impl;
 import com.vibee.entity.VUploadFile;
 import com.vibee.model.ObjectResponse.SelectExportStallObject;
 import com.vibee.model.ObjectResponse.ShowProductStaff;
+import com.vibee.model.info.ExportInfor;
 import com.vibee.model.item.ShowProductItems;
 import com.vibee.model.response.product.ShowListProduct;
 import com.vibee.repo.*;
@@ -48,6 +49,7 @@ public class ShowProductServiceImpl implements ShowListProductImp {
         List<ShowProductItems> items = new ArrayList<>();
         ShowListProduct response = new ShowListProduct();
         for (ShowProductStaff item: showProduct){
+            List<ExportInfor> unit = new ArrayList<>();
             List<SelectExportStallObject> exportStalls=this.vExportRepo.getExportsId(item.getImportID());
             ShowProductItems req = new ShowProductItems();
             req.setId(item.getId());
@@ -61,7 +63,17 @@ public class ShowProductServiceImpl implements ShowListProductImp {
             req.setFileImport(item.getFileImport());
             req.setQrCode(item.getQrCode());
             req.setImportID(item.getImportID());
-//            req.setUnit(exportStalls);
+            for (SelectExportStallObject exports: exportStalls){
+                ExportInfor export = new ExportInfor();
+                export.setExportId(exports.getExportId());
+                export.setInventory(exports.getInventory());
+                export.setAmount(exports.getAmount());
+                export.setUnitId(exports.getUnitId());
+                export.setOutPrice(exports.getOutPrice());
+                export.setUnitName(export.getUnitName());
+                unit.add(export);
+            }
+            req.setUnit(unit);
             items.add(req);
         }
         response.setItems(items);
