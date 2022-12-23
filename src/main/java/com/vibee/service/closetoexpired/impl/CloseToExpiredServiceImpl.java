@@ -132,8 +132,8 @@ public class CloseToExpiredServiceImpl implements CloseToExpiredService {
     }
 
     public List<Uitem> convertAmountUnit(int unitId, int inventory, List<Uitem> uitemsExport) {
-        VUnit unit = vUnitRepo.getUnitById(unitId);
         List<Uitem> uitems = new ArrayList<>();
+        VUnit unit = vUnitRepo.getUnitById(unitId);
         if (unit.getParentId() == 0) {
             Uitem uitemParent  = new Uitem();
             uitemParent.setAmount(inventory);
@@ -166,7 +166,7 @@ public class CloseToExpiredServiceImpl implements CloseToExpiredService {
                     amountParentId = resultUnitNow;
                     int residual = inventory - resultAmountUnit; // lấy sl phần dư unit hiện tại
 
-                    if (residual == 0) {
+                    if (residual == 0 ) {
                         VUnit unitNext = units.get(i-1);
                         inventory = inventory/(unitNow.getAmount()/unitNext.getAmount());
                         continue;
@@ -256,7 +256,9 @@ public class CloseToExpiredServiceImpl implements CloseToExpiredService {
                     index++;
                 }
             }
-
+            if (index==0){
+                return result;
+            }
             for (int i = index-1; i < list.size(); i++) {
                 if (list.get(i).getId() != list.get(list.size() - 1).getId()) {
                     VUnit unitNow = vUnitRepo.findById(list.get(i).getId());

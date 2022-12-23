@@ -197,6 +197,17 @@ public class CreateWarehouseServiceImpl implements CreateWarehouseService {
                 }
                 List<Integer> unitIds=new ArrayList<>();
                 List<GetUnitResult> unitsResult=new ArrayList<>();
+                for (VUnit unit:units){
+                    GetUnitResult unitResult = new GetUnitResult();
+                    unitResult.setId(unit.getId());
+                    unitResult.setName(unit.getUnitName());
+                    unitResult.setStatusCode(unit.getStatus());
+                    unitResult.setDescription(unit.getDescription());
+                    unitResult.setParentId(unit.getParentId());
+                    unitResult.setAmount(unit.getAmount());
+                    unitResult.setStatusName(ProductUtils.statusname(unit.getStatus()));
+                    unitsResult.add(unitResult);
+                }
                     for (VExport export:exports){
                         for (VUnit unit:units){
                             if (unit.getId()==export.getUnitId()){
@@ -204,6 +215,7 @@ public class CreateWarehouseServiceImpl implements CreateWarehouseService {
                                 exportResult.setInPrice(export.getInPrice());
                                 exportResult.setOutPrice(export.getOutPrice());
                                 exportResult.setUnitName(unit.getUnitName());
+                                exportResult.setAmount(unit.getAmount());
                                 exportResult.setUnitId(unit.getId());
                                 exportResults.add(exportResult);
                             }
@@ -217,14 +229,6 @@ public class CreateWarehouseServiceImpl implements CreateWarehouseService {
                                 unitResult.setStatusName(ProductUtils.statusname(unit.getStatus()));
                                 result.setUnit(unitResult);
                             }
-                            GetUnitResult unitResult = new GetUnitResult();
-                            unitResult.setId(unit.getId());
-                            unitResult.setName(unit.getUnitName());
-                            unitResult.setStatusCode(unit.getStatus());
-                            unitResult.setDescription(unit.getDescription());
-                            unitResult.setParentId(unit.getParentId());
-                            unitResult.setStatusName(ProductUtils.statusname(unit.getStatus()));
-                            unitsResult.add(unitResult);
                         }
                         unitIds.add(export.getUnitId());
                     }
@@ -242,6 +246,7 @@ public class CreateWarehouseServiceImpl implements CreateWarehouseService {
                             exportResult.setOutPrice(BigDecimal.valueOf(0));
                             exportResult.setUnitName(unit.getUnitName());
                             exportResult.setUnitId(unit.getId());
+                            exportResult.setAmount(unit.getAmount());
                             exportResults.add(exportResult);
                         }
                     }
@@ -261,6 +266,7 @@ public class CreateWarehouseServiceImpl implements CreateWarehouseService {
             }
             importWarehouseResults.add(result);
         }
+
         response.setProducts(importWarehouseResults);
         response.getStatus().setStatus(Status.Success);
         response.getStatus().setMessage(MessageUtils.get(language,"msg.success.import.file"));
