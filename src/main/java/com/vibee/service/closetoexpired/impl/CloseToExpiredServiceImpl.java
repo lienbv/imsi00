@@ -65,12 +65,12 @@ public class CloseToExpiredServiceImpl implements CloseToExpiredService {
                 List<Uitem> ab = new ArrayList<>();
                 VExport export = exportRepo.getAmountByIdImport(vImport.getId());
                 Uitem uitem = new Uitem();
-                uitem.setIdUnit(vImport.getUnitId());
-//                uitem.setOutPrice(export.getOutPrice());
-//                uitem.setIdExport(export.getId());
-                uitem.setAmount(vImport.getInAmount().intValue());
-                uitem.setNameUnit(vUnitRepo.findById(vImport.getUnitId()).getUnitName());
-                ab.add(uitem);
+//                uitem.setIdUnit(vImport.getUnitId());
+////                uitem.setOutPrice(export.getOutPrice());
+////                uitem.setIdExport(export.getId());
+//                uitem.setAmount(vImport.getInAmount().intValue());
+//                uitem.setNameUnit(vUnitRepo.findById(vImport.getUnitId()).getUnitName());
+//                ab.add(uitem);
                 item.setList(ab);
             }
 
