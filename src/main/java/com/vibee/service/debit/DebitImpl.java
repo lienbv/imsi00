@@ -313,7 +313,6 @@ public class DebitImpl {
             response.setUnitName(vUnit.getUnitName());
             response.setPrice(detailBill.getPriceDetailBill());
             getDetailBillList.add(response);
-//            getDetailBills.setDebitItems(getDetailBillList);
         }
         return getDetailBillList;
     }
@@ -343,15 +342,15 @@ public class DebitImpl {
         DebitOfUserResponse response = new DebitOfUserResponse();
         int totalPage = 0;
 
-        Page<VDebit> findAll = null;
+        Page<VBill> findAll = null;
         if (typeFilter.equals("none") && valueFilter.equals("none")) {
             if (searchText.equals("") || searchText == null) {
                 Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by("status"));
-                findAll = this.debitRepository.findAll(pageable);
+                findAll = this.billRepo.findByStatus(10,pageable);
                 totalPage = findAll.getTotalPages();
             } else {
                 Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by("status"));
-                findAll = this.debitRepository.findByFullNameLikeOrPhoneNumberLike("%"+searchText +"%","%"+searchText +"%", pageable);
+                findAll = this.billRepo.findByFullNameLikeOrPhoneNumberLikeAndStatus("%"+searchText +"%","%"+searchText +"%", 10, pageable);
                 totalPage = findAll.getTotalPages();
             }
 
@@ -368,11 +367,11 @@ public class DebitImpl {
                 pageable = PageRequest.of(pageNumber, pageSize, Sort.by(typeFilter).descending());
             }
             if (searchText.equals("") || searchText == null) {
-                findAll = this.debitRepository.findAll(pageable);
+                findAll = this.billRepo.findAll(pageable);
                 totalPage = findAll.getTotalPages();
 
             } else {
-                findAll = this.debitRepository.findByFullNameLikeOrPhoneNumberLike("%"+searchText +"%", "%"+searchText +"%", pageable);
+                findAll = this.billRepo.findByFullNameLikeOrPhoneNumberLikeAndStatus("%"+searchText +"%","%"+searchText +"%", 10, pageable);
                 totalPage = findAll.getTotalPages();
             }
 
@@ -388,62 +387,62 @@ public class DebitImpl {
         return response;
 
     }
-
-    public DebitItemsResponse findAll(int idUser, DebitPageRequest request) {
-        int pageNumber = request.getPageNumber();
-        int pageSize = request.getPageSize();
-        String searchText = request.getSearchText();
-        String typeFilter = request.getFilter().getTypeFilter();
-        String valueFilter = request.getFilter().getValueFilter();
-        String language = request.getLanguage();
-        DebitItemsResponse response = new DebitItemsResponse();
-        int totalPage = 0;
-        VUser vUser = this.vUserRepo.findById(idUser);
-
-        Page<VDebit> findAll = null;
-        if (typeFilter.equals("none") && valueFilter.equals("none")) {
-            if (searchText.equals("") || searchText == null) {
-                Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by("status"));
-                findAll = this.debitRepository.findByUserId(vUser.getId(), pageable);
-                totalPage = findAll.getTotalPages();
-            } else {
-                Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by("status"));
-//                findAll = this.debitRepository.findByFullNameOrPhoneNumberContainingIgnoreCase(searchText, searchText, pageable);
-                totalPage = findAll.getTotalPages();
-            }
-
-        } else {
-            if (!typeFilter.equals("id") && !typeFilter.equals("address") && !typeFilter.equals("fullname") && !typeFilter.equals("creator") &&
-                    !typeFilter.equals("price") && !typeFilter.equals("debitDate") && !typeFilter.equals("phoneNumber") && !typeFilter.equals("status")) {
-                response.getStatus().setStatus(Status.Fail);
-                response.getStatus().setMessage(MessageUtils.get(language, "error.invalid.filter"));
-            }
-            Pageable pageable = null;
-            if (valueFilter.equals("asc")) {
-                pageable = PageRequest.of(pageNumber, pageSize, Sort.by(typeFilter).ascending());
-            } else {
-                pageable = PageRequest.of(pageNumber, pageSize, Sort.by(typeFilter).descending());
-            }
-            if (searchText.equals("") || searchText == null) {
-                findAll = this.debitRepository.findByUserId(vUser.getId(), pageable);
-                totalPage = findAll.getTotalPages();
-
-            } else {
-//                findAll = this.debitRepository.findByFullNameOrPhoneNumberContainingIgnoreCase(searchText, searchText, pageable);
-                totalPage = findAll.getTotalPages();
-            }
-
-        }
-        response.setItems(this.convertEntityToResponse(findAll.getContent(), language));
-        response.setPage(pageNumber);
-        response.setPageSize(pageSize);
-        response.setTotalPages(totalPage);
-        response.setTotalItems((int) findAll.getTotalElements());
-        response.getStatus().setMessage(MessageUtils.get(language, "Success"));
-        response.getStatus().setStatus(Status.Success);
-        return response;
-
-    }
+//
+//    public DebitItemsResponse findAll(int idUser, DebitPageRequest request) {
+//        int pageNumber = request.getPageNumber();
+//        int pageSize = request.getPageSize();
+//        String searchText = request.getSearchText();
+//        String typeFilter = request.getFilter().getTypeFilter();
+//        String valueFilter = request.getFilter().getValueFilter();
+//        String language = request.getLanguage();
+//        DebitItemsResponse response = new DebitItemsResponse();
+//        int totalPage = 0;
+//        VUser vUser = this.vUserRepo.findById(idUser);
+//
+//        Page<VBill> findAll = null;
+//        if (typeFilter.equals("none") && valueFilter.equals("none")) {
+//            if (searchText.equals("") || searchText == null) {
+//                Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by("status"));
+////                findAll = this.debitRepository.findByUserId(vUser.getId(), pageable);
+//                totalPage = findAll.getTotalPages();
+//            } else {
+//                Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by("status"));
+////                findAll = this.debitRepository.findByFullNameOrPhoneNumberContainingIgnoreCase(searchText, searchText, pageable);
+//                totalPage = findAll.getTotalPages();
+//            }
+//
+//        } else {
+//            if (!typeFilter.equals("id") && !typeFilter.equals("address") && !typeFilter.equals("fullname") && !typeFilter.equals("creator") &&
+//                    !typeFilter.equals("price") && !typeFilter.equals("debitDate") && !typeFilter.equals("phoneNumber") && !typeFilter.equals("status")) {
+//                response.getStatus().setStatus(Status.Fail);
+//                response.getStatus().setMessage(MessageUtils.get(language, "error.invalid.filter"));
+//            }
+//            Pageable pageable = null;
+//            if (valueFilter.equals("asc")) {
+//                pageable = PageRequest.of(pageNumber, pageSize, Sort.by(typeFilter).ascending());
+//            } else {
+//                pageable = PageRequest.of(pageNumber, pageSize, Sort.by(typeFilter).descending());
+//            }
+//            if (searchText.equals("") || searchText == null) {
+//                findAll = this.debitRepository.findByUserId(vUser.getId(), pageable);
+//                totalPage = findAll.getTotalPages();
+//
+//            } else {
+////                findAll = this.debitRepository.findByFullNameOrPhoneNumberContainingIgnoreCase(searchText, searchText, pageable);
+//                totalPage = findAll.getTotalPages();
+//            }
+//
+//        }
+//        response.setItems(this.convertEntityToResponse(findAll.getContent(), language));
+//        response.setPage(pageNumber);
+//        response.setPageSize(pageSize);
+//        response.setTotalPages(totalPage);
+//        response.setTotalItems((int) findAll.getTotalElements());
+//        response.getStatus().setMessage(MessageUtils.get(language, "Success"));
+//        response.getStatus().setStatus(Status.Success);
+//        return response;
+//
+//    }
 
     public DebitDetailResponse findByIdDebitOfDebitDetail(int idDebit) {
         VDebit debit = this.debitRepository.findById(idDebit);
@@ -470,43 +469,37 @@ public class DebitImpl {
         return response;
     }
 
-    private List<DebitItems> convertEntityToResponse(List<VDebit> debits, String language) {
+    private List<DebitItems> convertEntityToResponse(List<VBill> debits, String language) {
         List<DebitItems> debitItemsList = new ArrayList<>();
 
-        for (VDebit debit : debits) {
+        for (VBill debit : debits) {
             DebitItems items = new DebitItems();
-            VUser user = this.vUserRepo.findById(debit.getUserId());
 
             items.setId(debit.getId());
-            items.setDebitDate(debit.getDebitDate());
-            items.setCreatorDebtor(debit.getCreatorDebtor());
-            items.setFullName(user.getFullname());
-            items.setPhoneNumber(user.getNumberPhone());
-            items.setTotalAmountOwed(debit.getTotalAmountOwed());
-            items.setCreatorPayer(debit.getCreatorPayer());
+            items.setDebitDate(debit.getCreatedDate());
+            items.setCreatorDebtor(debit.getCreator());
+            items.setFullName(debit.getFullName());
+            items.setPhoneNumber(debit.getPhoneNumber());
+            items.setTotalAmountOwed(debit.getPrice());
             items.setStatusCode(ProductUtils.convertStatus(debit.getStatus(), language));
-            items.setBillId(debit.getBillId());
-            items.setAddress(user.getAddress());
-            items.setTypeOfDebtor(ProductUtils.convertTypeOfDebtor(debit.getTypeOfDebtor(), language));
+            items.setAddress(debit.getAddress());
             debitItemsList.add(items);
         }
         return debitItemsList;
     }
-    private List<DebitUserItems> convertEntityToResponseOfPayAndDebit(List<VDebit> debits, String language) {
+    private List<DebitUserItems> convertEntityToResponseOfPayAndDebit(List<VBill> debits, String language) {
         List<DebitUserItems> debitItemsList = new ArrayList<>();
         List<PayItems> payItems = new ArrayList<>();
 
-        for (VDebit debit : debits) {
+        for (VBill debit : debits) {
             DebitUserItems items = new DebitUserItems();
             items.setId(debit.getId());
-            items.setDebtDate(debit.getDebitDate());
-            items.setCreator(debit.getCreatorDebtor());
+            items.setDebtDate(debit.getCreatedDate());
+            items.setCreator(debit.getCreator());
             items.setFullName(debit.getFullName());
             items.setPhoneNumber(debit.getPhoneNumber());
-            items.setTotal(debit.getTotalAmountOwed());
+            items.setTotal(debit.getPrice());
             items.setStatusCode(ProductUtils.convertStatus(debit.getStatus(), language));
-            items.setIdBill(debit.getBillId());
-            items.setTypeDebt(ProductUtils.convertTypeOfDebtor(debit.getTypeOfDebtor(), language));
 
             List<VPay> getAllPay = this.payRepository.findByDebitId(debit.getId());
             if(getAllPay!=null){

@@ -16,6 +16,7 @@ import com.vibee.service.vproduct.SaveProductService;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -82,5 +83,9 @@ public class ImportController {
     @GetMapping("/create/info")
     public InfoCreateProductResponse info(@RequestParam(name = "language") String languageReq) {
         return this.importSupplierService.info(languageReq);
+    }
+    @GetMapping("/getPriceChild/{parent}/{inPrice}/{amount}")
+    public List<UnitItem> getPriceChild(@PathVariable(name = "parent") int parent, @PathVariable(name = "inPrice") BigDecimal inPrice,@PathVariable(name = "amount") int amount, @RequestParam(name = "language") String language){
+        return this.importSupplierService.getAllPrice(parent,inPrice,amount, language);
     }
 }

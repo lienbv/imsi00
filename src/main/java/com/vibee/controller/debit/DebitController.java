@@ -39,22 +39,22 @@ public class DebitController {
         return this.debit.updateDebit( idDebit, request, bindingResult);
     }
 
-    @GetMapping("findAll/{idUser}")
-    public DebitItemsResponse findAll(@RequestParam(name = "pagenumber") int pageNumberReq,
-                                      @RequestParam(name = "pagesize") int pageSizeReq,
-                                      @RequestParam(name = "typefilter") String typeFilterReq,
-                                      @RequestParam(name = "valuefilter") String valueFilterReq,
-                                      @RequestParam(name= "language") String languageReq,
-                                      @RequestParam(name = "search") String searchReq,
-                                      @PathVariable(name = "idUser")int idUser){
-        DebitPageRequest request = new DebitPageRequest();
-        request.setPageNumber(pageNumberReq);
-        request.setPageSize(pageSizeReq);
-        request.setFilter(new FilterItem(typeFilterReq, valueFilterReq));
-        request.setLanguage(languageReq);
-        request.setSearchText(searchReq);
-        return this.debit.findAll(idUser,request);
-    }
+//    @GetMapping("findAll/{idUser}")
+//    public DebitItemsResponse findAll(@RequestParam(name = "pagenumber") int pageNumberReq,
+//                                      @RequestParam(name = "pagesize") int pageSizeReq,
+//                                      @RequestParam(name = "typefilter") String typeFilterReq,
+//                                      @RequestParam(name = "valuefilter") String valueFilterReq,
+//                                      @RequestParam(name= "language") String languageReq,
+//                                      @RequestParam(name = "search") String searchReq,
+//                                      @PathVariable(name = "idUser")int idUser){
+//        DebitPageRequest request = new DebitPageRequest();
+//        request.setPageNumber(pageNumberReq);
+//        request.setPageSize(pageSizeReq);
+//        request.setFilter(new FilterItem(typeFilterReq, valueFilterReq));
+//        request.setLanguage(languageReq);
+//        request.setSearchText(searchReq);
+//        return this.debit.findAll(idUser,request);
+//    }
     @GetMapping("listUserDebit")
     public DebitOfUserResponse listUserDebit(
 

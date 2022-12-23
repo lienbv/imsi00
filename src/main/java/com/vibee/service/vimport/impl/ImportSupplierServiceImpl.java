@@ -1,5 +1,9 @@
 package com.vibee.service.vimport.impl;
 
+import com.aspose.barcode.EncodeTypes;
+import com.aspose.barcode.FontStyle;
+import com.aspose.barcode.generation.BarcodeGenerator;
+import com.aspose.barcode.generation.FontUnit;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.EncodeHintType;
 import com.google.zxing.MultiFormatWriter;
@@ -39,6 +43,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -46,6 +51,7 @@ import java.nio.file.Files;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.List;
 
 @Log4j2
 @Service
@@ -88,6 +94,7 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
         BaseResponse response = new BaseResponse();
         ImportInWarehouseRedis importInWarehouse = new ImportInWarehouseRedis();
 
+        String id= request.getId();
         String creator = this.getUserName();
         String barcode = request.getBarCode();
         BigDecimal inPrice = request.getInPrice();
@@ -103,23 +110,14 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
         String unit = request.getUnit();
         int fileProduct = request.getFileId();
         String idRedis = DataUtils.generateIdRedis(5, 5);
+        id = idRedis;
         List<UnitItem> unitItemsRequest = request.getUnits();
-        if (unitItemsRequest.size() != 0) {
-            for (UnitItem unitItem : unitItemsRequest) {
-                if (unitItem.getOutPrice() == null || unitItem.getInPrice() == null ||
-                        unitItem.getOutPrice() == BigDecimal.valueOf(0) || unitItem.getInPrice() == BigDecimal.valueOf(0)) {
-                } else {
-                    importInWarehouse.setExportsItems(unitItemsRequest);
-                }
-            }
-        } else {
-            importInWarehouse.setExportsItems(null);
-        }
+
         if(inPrice == null|| inPrice==BigDecimal.valueOf(0)){
             importInWarehouse.setInPrice(BigDecimal.valueOf(0));
         }
         importInWarehouse.setUnit(unit);
-        importInWarehouse.setId(idRedis);
+        importInWarehouse.setId(id);
         importInWarehouse.setSupplierId(supplierId);
         importInWarehouse.setBarcode(barcode);
         importInWarehouse.setInPrice(inPrice);
@@ -128,6 +126,7 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
         importInWarehouse.setUnitId(unitId);
         importInWarehouse.setCreator(creator);
         importInWarehouse.setDescription(description);
+        importInWarehouse.setExportsItems(unitItemsRequest);
 
         try {
             importInWarehouse.setRangeDates(DataUtils.modifyDateLayout(rangeDates));
@@ -152,7 +151,9 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
     public BaseResponse update(ImportInWarehouse request, int key, String redisId) {
         BaseResponse response = new BaseResponse();
 
-        ImportInWarehouseRedis importInWarehouse = this.importRedisRepo.get(String.valueOf(key), redisId);
+        String id = request.getId();
+        id = redisId;
+        ImportInWarehouseRedis importInWarehouse = this.importRedisRepo.get(String.valueOf(key), id);
 
         String creator = "lienpt";
         String barcode = request.getBarCode();
@@ -168,13 +169,13 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
         String rangeDates = request.getRangeDates();
         String unit = request.getUnit();
 
-        String idRedis = DataUtils.generateIdRedis(5, 5);
+
         List<UnitItem> unitItemsRequest = request.getUnits();
 
         int fileProduct = request.getFileId();
 
         importInWarehouse.setUnit(unit);
-        importInWarehouse.setId(idRedis);
+        importInWarehouse.setId(importInWarehouse.getId());
         importInWarehouse.setSupplierId(supplierId);
         importInWarehouse.setBarcode(barcode);
         importInWarehouse.setInPrice(inPrice);
@@ -205,11 +206,11 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
     @Override
     public EditImportWarehouse edit(int key, String redisId, String language) {
         ImportInWarehouseRedis importInWarehouseRedis = this.importRedisRepo.get(String.valueOf(key), redisId);
+        System.out.println(importInWarehouseRedis +" dòng 546");
 
         EditImportWarehouse infor = new EditImportWarehouse();
         VTypeProduct vTypeProduct = this.vTypeProductRepo.findById(importInWarehouseRedis.getTypeProductId());
         VUnit vUnit = this.vUnitRepo.findById(importInWarehouseRedis.getUnitId());
-        VUploadFile vUploadFile = this.fileUploadRepo.findById(importInWarehouseRedis.getProductFile());
         if(vTypeProduct == null){
             log.error("Type product is null");
             return null;
@@ -218,10 +219,7 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
             log.error("Unit product is null");
             return null;
         }
-        if(vUploadFile == null){
-            log.error("Upload file product is null");
-            return null;
-        }
+
         infor.setId(redisId);
         infor.setNameProd(importInWarehouseRedis.getProductName());
         infor.setBarCode(importInWarehouseRedis.getBarcode());
@@ -240,8 +238,6 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
         infor.setAmount(importInWarehouseRedis.getInAmount());
         infor.setAmountUnit(vUnit.getAmount());
         infor.setDescription(vUnit.getDescription());
-        infor.setUrlUpload(vUploadFile.getUrl());
-        infor.setNameUploadFile(vUploadFile.getFileName());
         infor.setUnits(importInWarehouseRedis.getExportsItems());
 
         return infor;
@@ -302,8 +298,8 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
             VUnit vUnit = this.vUnitRepo.getByIdChild(infor.getUnitId(), infor.getUnitId());
             VImport vImport = new VImport();
 
-            String qrCode = DataUtils.generateBarcode(14);
-            String path = "src/main/resources/static/"+qrCode + "qrCode.png";
+            String qrCode = DataUtils.generateBarcode(1);
+            String path = "D:\\vibee_ new\\vibee (1)\\vibee\\src\\assets\\image\\"+qrCode + "qrCode.png";
             File file = new File(path);
             String charset = "UTF-8";
             Map<EncodeHintType, ErrorCorrectionLevel> hashMap = new HashMap<>();
@@ -359,7 +355,7 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
 
                     vWarehouse.setInPrice(BigDecimal.valueOf(inPrice + oldPrice));
                     vWarehouse.setCreatedDate(vWarehouse.getCreatedDate());
-                    vWarehouse.setUnitId(infor.getUnitId());
+                    vWarehouse.setUnitId(vUnit.getId());
                     vWarehouse.setInAmount(Math.floor(infor.getInAmount() * vUnit.getAmount()) + vWarehouse.getInAmount());
                     vWarehouse.setModifiedBy(infor.getCreator());
                     vWarehouse.setModifiedDate(new Date());
@@ -424,7 +420,7 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
                     vImport.setUpdatedDate(new Date());
                     vImport.setSupplierId(infor.getSupplierId());
                     vImport.setSupplierName(infor.getSupplierName());
-                    vImport.setUnitId(infor.getUnitId());
+                    vImport.setUnitId(vUnit.getId());
                     vImport.setFileId(vProduct.getFileId());
                     vImport.setUrlUpload(uploadFile.getId());
                     vImport.setNumberOfEntries(1);
@@ -444,10 +440,11 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
                 }
 
                 for (UnitItem exportItems : infor.getExportsItems()) {
-                    if(exportItems.getInPrice()== BigDecimal.valueOf(0)){
-                        return null;
-                    }
+
                     VExport vExport = new VExport();
+                    if(exportItems.getOutPrice()== BigDecimal.valueOf(0) || exportItems.getOutPrice() == null){
+                        vExport.setOutPrice(BigDecimal.valueOf(0));
+                    }
                     vExport.setUnitId(exportItems.getUnitId());
                     vExport.setImportId(vImport.getId());
                     vExport.setOutPrice(exportItems.getOutPrice());
@@ -482,7 +479,7 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
                 }
                 vWarehouseNew.setInPrice(BigDecimal.valueOf(inPrice));
                 vWarehouseNew.setCreatedDate(new Date());
-                vWarehouseNew.setUnitId(infor.getUnitId());
+                vWarehouseNew.setUnitId(vUnit.getId());
                 vWarehouseNew.setInAmount(Math.floor(infor.getInAmount() * vUnit.getAmount()));
                 vWarehouseNew.setModifiedBy(infor.getCreator());
                 vWarehouseNew.setModifiedDate(new Date());
@@ -521,7 +518,13 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
                 vImport = this.vImportRepo.save(vImport);
 
                 for (UnitItem exportItems : infor.getExportsItems()) {
+                    if(exportItems.getOutPrice()== BigDecimal.valueOf(0)){
+                        return null;
+                    }
                     VExport vExport = new VExport();
+                    if(exportItems.getOutPrice()== BigDecimal.valueOf(0) || exportItems.getOutPrice() == null){
+                        vExport.setOutPrice(BigDecimal.valueOf(0));
+                    }
                     vExport.setUnitId(exportItems.getUnitId());
                     vExport.setImportId(vImport.getId());
                     vExport.setOutPrice(exportItems.getOutPrice());
@@ -658,6 +661,50 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
 
 
     }
+    public List<UnitItem> getAllPrice(int id, BigDecimal inPrice, int amount, String language) {
+
+        List<UnitItem> response = new ArrayList<>();
+        VUnit unit = this.vUnitRepo.findByIdAndStatus(id, 1);
+        List<VUnit> vUnits = new ArrayList<>();
+        vUnits = this.vUnitRepo.getVUnit(unit.getParentId(), id, unit.getParentId());
+
+        if(unit.getParentId()==0){
+            vUnits = this.vUnitRepo.getVUnit(unit.getId(), id, 0);
+
+            for (VUnit vUnit : vUnits) {
+                Double inprice = (inPrice.doubleValue()/ amount);
+                Double inPriceChild = inprice/ vUnit.getAmount();
+                UnitItem unitItem = new UnitItem();
+                unitItem.setUnitName(vUnit.getUnitName());
+                unitItem.setUnitId(vUnit.getId());
+                unitItem.setAmount(vUnit.getAmount());
+                unitItem.setInPrice(BigDecimal.valueOf(inPriceChild));
+                unitItem.setOutPrice(BigDecimal.valueOf(0));
+                response.add(unitItem);
+            }
+            return response;
+        }else {
+            vUnits = this.vUnitRepo.getVUnit(unit.getParentId(), id, unit.getParentId());
+
+            for (VUnit vUnit : vUnits) {
+                Double inprice = (inPrice.doubleValue()/ unit.getAmount());
+                Double inPriceChild = inprice/ vUnit.getAmount();
+                UnitItem unitItem = new UnitItem();
+                if(unit.getAmount() <= vUnit.getAmount()) {
+                    unitItem.setUnitName(vUnit.getUnitName());
+                    unitItem.setUnitId(vUnit.getId());
+                    unitItem.setAmount(vUnit.getAmount());
+                    unitItem.setInPrice(BigDecimal.valueOf(inPriceChild));
+                    unitItem.setOutPrice(BigDecimal.valueOf(0));
+                    response.add(unitItem);
+                }
+            }
+
+            return response;
+        }
+
+    }
+
 
     public ListCategoryImportItems getCategory(){
         List<VTypeProduct> findByStatus = this.vTypeProductRepo.findByStatus(1);
@@ -676,9 +723,15 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
 
     public static void createQR(String data, String path, String charset, Map hashMap, int height, int width) throws WriterException, IOException {
 
-     BitMatrix matrix = new MultiFormatWriter().encode(new String(data.getBytes(charset), charset), BarcodeFormat.QR_CODE, width, height);
-
-     MatrixToImageWriter.writeToFile(matrix, path.substring(path.lastIndexOf('.') + 1), new File(path));
+        BarcodeGenerator generator = new BarcodeGenerator(EncodeTypes.QR, data);
+// set resolution
+        generator.getParameters().setResolution(400);
+// generate barcode
+        generator.save(path);
+//
+//        BitMatrix matrix = new MultiFormatWriter().encode(new String(data.getBytes(charset), charset), BarcodeFormat.QR_CODE, width, height);
+//
+//        MatrixToImageWriter.writeToFile(matrix, path.substring(path.lastIndexOf('.') + 1), new File(path));
     }
 
     private String getUserName(){
