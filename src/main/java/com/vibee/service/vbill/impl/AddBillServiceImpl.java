@@ -9,6 +9,7 @@ import com.vibee.model.Status;
 import com.vibee.model.request.bill.TransactionBillRequest;
 import com.vibee.model.request.bill.ViewBillRequest;
 import com.vibee.model.response.BaseResponse;
+import com.vibee.model.response.product.SelectedProductResult;
 import com.vibee.model.result.CreateDetailBillResult;
 import com.vibee.model.result.TransactionBillResult;
 import com.vibee.repo.VBillRepo;
@@ -56,19 +57,6 @@ public class AddBillServiceImpl implements AddBillService {
         String paymentMethod= request.getPaymentMethod();
         String transactionType= request.getTransactionType();
         String language=request.getLanguage();
-//        List<CreateDetailBillResult> createDetailBillResults=this.redisAdapter.get(request.getCartCode(),List.class);
-        List<CreateDetailBillResult> createDetailBillResults= null;
-        try {
-            createDetailBillResults = this.redisAdapter.gets(request.getCartCode(), CreateDetailBillResult.class);
-        } catch (Exception e) {
-            createDetailBillResults=null;
-        }
-        if(createDetailBillResults==null || createDetailBillResults.size()==0){
-            response.getStatus().setStatus(Status.Fail);
-            response.getStatus().setMessage(MessageUtils.get("bill.not.found",language));
-            return response;
-        }
-
         VBill bill=new VBill();
         bill.setCreatedDate(new Date());
         bill.setCreator(creator);
@@ -80,20 +68,20 @@ public class AddBillServiceImpl implements AddBillService {
         bill.setTotalPriceDebt(BigDecimal.valueOf(0));
         bill=billRepo.save(bill);
         List<VDetailBill> detailBills=new ArrayList<>();
-        for (CreateDetailBillResult result:createDetailBillResults){
+        for (SelectedProductResult result:request.getExportSelected()){
             VDetailBill detailBill=new VDetailBill();
-            BigDecimal price=result.getExport().getOutPrice().divide(BigDecimal.valueOf(result.getAmount()));
+            BigDecimal price=result.getExportSelected().getOutPrice().divide(BigDecimal.valueOf(result.getAmount()));
             sumPrice=sumPrice.add(price);
             detailBill.setPrice(price);
             detailBill.setBillId(bill.getId());
             detailBill.setAmount(result.getAmount());
             detailBill.setCreator(creator);
-            detailBill.setUnitId(result.getUnitId());
+            detailBill.setUnitId(result.getExportSelected().getUnitId());
             detailBill.setStatus(1);
             detailBill.setCreatedDate(new Date());
             detailBill.setImportId(result.getImportId());
             detailBills.add(detailBill);
-            VExport export=this.exportRepo.getById(result.getExport().getExportId());
+            VExport export=this.exportRepo.getById(result.getExportSelected().getExportId());
             export.setOutAmount(export.getOutAmount()+result.getAmount());
             this.exportRepo.save(export);
             VWarehouse warehouse=this.warehouseRepo.getWarehouseByImportId(result.getImportId());
@@ -116,16 +104,15 @@ public class AddBillServiceImpl implements AddBillService {
     }
 
     @Override
-    public BaseResponse saveRedis(ViewBillRequest request) {
+    public BaseResponse saveRedis(TransactionBillRequest request) {
         BaseResponse response=new BaseResponse();
         String language=request.getLanguage();
         String cartCode=request.getCartCode();
-        List<CreateDetailBillResult> results=request.getDetailBills();
         boolean isExist=this.redisAdapter.exists(cartCode);
         if (isExist){
             this.redisAdapter.delete(cartCode);
         }
-        this.redisAdapter.set(cartCode,84600,results);
+        this.redisAdapter.set(cartCode,84600,request);
 //        this.redisAdapter.sets(cartCode,84600,results);
         response.getStatus().setMessage(MessageUtils.get(language,"msg.success.save.redis"));
         response.getStatus().setStatus(Status.Success);

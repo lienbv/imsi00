@@ -21,4 +21,5 @@ public class SelectedProductResult {
     private int amount;
     private String productCode;
     private List<SelectExportItem> items;
+    private SelectExportItem exportSelected;
 }

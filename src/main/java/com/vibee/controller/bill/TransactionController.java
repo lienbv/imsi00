@@ -24,7 +24,7 @@ public class TransactionController {
     }
 
     @PostMapping("/save-bill")
-    public BaseResponse save(@RequestBody ViewBillRequest request){
+    public BaseResponse save(@RequestBody TransactionBillRequest request){
         return this.addBillService.saveRedis(request);
     }
 }

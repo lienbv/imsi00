@@ -1,6 +1,7 @@
 package com.vibee.service.vstatisticadmin.Impl;
 
 import com.vibee.entity.VBill;
+import com.vibee.entity.VImport;
 import com.vibee.entity.VProduct;
 import com.vibee.entity.VTypeProduct;
 import com.vibee.model.Status;
@@ -46,6 +47,9 @@ public class StatisticAdminServiceImpl implements StatisticAdminService {
 
     @Autowired
     private VFileUploadRepo vFileUploadRepo;
+
+    @Autowired
+    private VImportRepo  importRepo;
 
     @Override
     public StatisticAdminResponse totalPriceOfDay() {
@@ -177,6 +181,8 @@ public class StatisticAdminServiceImpl implements StatisticAdminService {
         StatisticAdminResponse response = new StatisticAdminResponse();
         log.info("AdminStatisticResponse :: Start");
 
+//        System.out.println(startDate+"-"+endDate);
+
         Calendar sDate = Calendar.getInstance();
         sDate.setTime(stringToDate(startDate));
         sDate.set(Calendar.HOUR_OF_DAY, 0);
@@ -219,7 +225,7 @@ public class StatisticAdminServiceImpl implements StatisticAdminService {
                 statisticBill.setSales(sales);
                 statisticBill.setAmount(quantity);
                 sDateBill.roll(Calendar.DATE, 1);
-                statisticBill.setDate(sDateBill.getTime());
+                statisticBill.setDate(Utiliies.formatDate(sDateBill.getTime()));
                 statisticOfDay.add(statisticBill);
                 sales = BigDecimal.ZERO;
                 quantity = 0;
@@ -241,8 +247,8 @@ public class StatisticAdminServiceImpl implements StatisticAdminService {
             }
             statisticBill.setSales(sales);
             statisticBill.setAmount(quantity);
-            sDateBill.roll(Calendar.DATE, 1);
-            statisticBill.setDate(sDateBill.getTime());
+//            sDateBill.roll(Calendar.DATE, 1);
+            statisticBill.setDate(Utiliies.formatDate(sDateBill.getTime()));
             statisticOfDay.add(statisticBill);
         }
 
@@ -281,6 +287,13 @@ public class StatisticAdminServiceImpl implements StatisticAdminService {
         sold_out = this.productRepo.sumReportSoldOutProduct().orElse(0L);
 
         response = new StatisticAdminResponse(block_product, sold_out);
+        Calendar calendar = Calendar.getInstance();
+        int importsCloseToExpired = importRepo.getImportsByProductCloseToExpiredCount("%%", new Date(), new Date(calendar.getTimeInMillis() + 1209600000));
+        int importsExpired = importRepo.getImportsByProductExpiration();
+
+        response.setTotalCloseToExpired(importsCloseToExpired);
+        response.setTotalExpired(importsExpired);
+
         response.getStatus().setMessage(MessageUtils.get(request.getLanguage(), "msg.success"));
         response.getStatus().setStatus(Status.Success);
 

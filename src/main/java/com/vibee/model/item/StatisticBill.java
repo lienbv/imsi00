@@ -13,7 +13,7 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 public class StatisticBill {
-    private Date date;
+    private String date;
     private float amount;
     private BigDecimal sales;
 }
