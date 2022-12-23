@@ -1,5 +1,6 @@
 package com.vibee.service.debit;
 
+import com.vibee.config.redis.RedisAdapter;
 import com.vibee.entity.*;
 import com.vibee.model.ObjectResponse.DebitObjectPayResponse;
 import com.vibee.model.ObjectResponse.DetailBillOfDetailDebit;
@@ -8,16 +9,16 @@ import com.vibee.model.item.BillItems;
 import com.vibee.model.item.DebitItems;
 import com.vibee.model.item.DebitUserItems;
 import com.vibee.model.item.PayItems;
+import com.vibee.model.request.bill.debtRequest;
 import com.vibee.model.request.debit.DebitPageRequest;
 import com.vibee.model.request.debit.DebitRequest;
-import com.vibee.model.request.debit.ListPayRequest;
 import com.vibee.model.request.debit.PayRequest;
 import com.vibee.model.response.BaseResponse;
 import com.vibee.model.response.bill.GetTopTen;
 import com.vibee.model.response.debit.DebitDetailResponse;
-import com.vibee.model.response.debit.DebitItemsResponse;
 import com.vibee.model.response.debit.DebitOfUserResponse;
 import com.vibee.model.response.debit.GetDetailBill;
+import com.vibee.model.result.CreateDetailBillResult;
 import com.vibee.repo.*;
 import com.vibee.utils.MessageUtils;
 import com.vibee.utils.ProductUtils;
@@ -43,9 +44,14 @@ public class DebitImpl {
     private final PayRepository payRepository;
     private final VUnitRepo vUnitRepo;
     private final VUserRepo vUserRepo;
+    private final RedisAdapter redisAdapter;
+    private final VExportRepo exportRepo;
+    private final VWarehouseRepo warehouseRepo;
 
     @Autowired
-    public DebitImpl(DebitRepository debitRepository, DebitDetailRepository debitDetailRepository, VBillRepo billRepo, VDetailBillRepo detailBillRepo, PayRepository payRepository, VUnitRepo vUnitRepo, VUserRepo vUserRepo) {
+    public DebitImpl(DebitRepository debitRepository, DebitDetailRepository debitDetailRepository, VBillRepo billRepo,
+                     VDetailBillRepo detailBillRepo, PayRepository payRepository, VUnitRepo vUnitRepo,
+                     VUserRepo vUserRepo, RedisAdapter redisAdapter, VExportRepo exportRepo, VWarehouseRepo warehouseRepo) {
         this.debitRepository = debitRepository;
         this.debitDetailRepository = debitDetailRepository;
         this.billRepo = billRepo;
@@ -53,14 +59,9 @@ public class DebitImpl {
         this.payRepository = payRepository;
         this.vUnitRepo = vUnitRepo;
         this.vUserRepo = vUserRepo;
-    }
-
-    public BigDecimal totalAmountOwed(ListPayRequest total) {
-        Double sum = Double.valueOf(0);
-        for (PayRequest getDetailBill : total.getData()) {
-            sum += getDetailBill.getInPrice().doubleValue();
-        }
-        return BigDecimal.valueOf(sum);
+        this.redisAdapter = redisAdapter;
+        this.exportRepo = exportRepo;
+        this.warehouseRepo = warehouseRepo;
     }
 
     public BaseResponse createDebit(DebitRequest request, BindingResult bindingResult) {
@@ -138,6 +139,81 @@ public class DebitImpl {
         }
         return response;
     }
+    public BaseResponse add(debtRequest request) {
+
+        BaseResponse response=new BaseResponse();
+        BigDecimal inPrice=request.getInPrice();
+        BigDecimal sumPrice= BigDecimal.valueOf(0);
+        String creator="";
+        String paymentMethod= request.getPaymentMethod();
+        String transactionType= request.getTransactionType();
+        String language=request.getLanguage();
+        String address = request.getAddress();
+        String fullName = request.getFullName();
+        String phone = request.getPhoneNumber();
+        BigDecimal totalInPrice = request.getInPrice();
+
+        List<CreateDetailBillResult> createDetailBillResults= null;
+        try {
+            createDetailBillResults = this.redisAdapter.gets(request.getCartCode(), CreateDetailBillResult.class);
+        } catch (Exception e) {
+            createDetailBillResults=null;
+        }
+        if(createDetailBillResults==null || createDetailBillResults.size()==0){
+            response.getStatus().setStatus(Status.Fail);
+            response.getStatus().setMessage(MessageUtils.get("bill.not.found",language));
+            return response;
+        }
+
+        VBill bill=new VBill();
+        bill.setCreatedDate(new Date());
+        bill.setCreator(creator);
+        bill.setPrice(sumPrice);
+        bill.setInPrice(inPrice);
+        bill.setPaymentMethods(paymentMethod);
+        bill.setStatus(10);
+        bill.setTransactionType(transactionType);
+        bill.setAddress(address);
+        bill.setTotalPriceDebt(totalInPrice);
+        bill.setFullName(fullName);
+        bill.setPhoneNumber(phone);
+        bill=billRepo.save(bill);
+        List<VDetailBill> detailBills=new ArrayList<>();
+        for (CreateDetailBillResult result:createDetailBillResults){
+            VDetailBill detailBill=new VDetailBill();
+            BigDecimal price=result.getExport().getOutPrice().divide(BigDecimal.valueOf(result.getAmount()));
+            sumPrice=sumPrice.add(price);
+            detailBill.setPrice(price);
+            detailBill.setBillId(bill.getId());
+            detailBill.setAmount(result.getAmount());
+            detailBill.setCreator(creator);
+            detailBill.setUnitId(result.getUnitId());
+            detailBill.setStatus(1);
+            detailBill.setCreatedDate(new Date());
+            detailBill.setImportId(result.getImportId());
+            detailBills.add(detailBill);
+            VExport export=this.exportRepo.getById(result.getExport().getExportId());
+            export.setOutAmount(export.getOutAmount()+result.getAmount());
+            this.exportRepo.save(export);
+            VWarehouse warehouse=this.warehouseRepo.getWarehouseByImportId(result.getImportId());
+            warehouse.setOutPrice(warehouse.getOutPrice().add(price));
+            warehouse.setOutAmount(warehouse.getOutAmount()+result.getAmount());
+            this.warehouseRepo.save(warehouse);
+        }
+        if (request.getPaymentMethod().equals("payment")){
+            bill.setInPrice(sumPrice);
+        }
+        bill.setPrice(sumPrice);
+        this.billRepo.save(bill);
+        this.detailBillRepo.saveAll(detailBills);
+        //xoa cache redis theo cartCode
+        this.redisAdapter.delete(request.getCartCode());
+        //ket thuc chuc nang
+        response.getStatus().setMessage(MessageUtils.get(language,"msg.success.transaction.bill"));
+        response.getStatus().setStatus(Status.Success);
+        return response;
+    }
+
 
     public BaseResponse updateDebit(int idDebit, DebitRequest request, BindingResult bindingResult) {
 

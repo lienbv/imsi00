@@ -48,7 +48,7 @@ public class ShowProductServiceImpl implements ShowListProductImp {
         List<ShowProductItems> items = new ArrayList<>();
         ShowListProduct response = new ShowListProduct();
         for (ShowProductStaff item: showProduct){
-            List<SelectExportStallObject> exportStalls=this.vExportRepo.getExportsId(item.getImportID());
+//            List<SelectExportStallObject> exportStalls=this.vExportRepo.getExportsId(item.getImportID());
             ShowProductItems req = new ShowProductItems();
             req.setId(item.getId());
             req.setExpired(item.getExpired());
@@ -61,7 +61,7 @@ public class ShowProductServiceImpl implements ShowListProductImp {
             req.setFileImport(item.getFileImport());
             req.setQrCode(item.getQrCode());
             req.setImportID(item.getImportID());
-            req.setUnit(exportStalls);
+//            req.setUnit(exportStalls);
             items.add(req);
         }
         response.setItems(items);

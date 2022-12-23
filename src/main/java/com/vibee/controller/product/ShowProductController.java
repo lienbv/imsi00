@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("${vibee.config}/staff-product/")
+@RequestMapping("${vibee.config}/product/")
 @CrossOrigin("*")
 public class ShowProductController {
     @Autowired

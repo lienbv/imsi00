@@ -77,6 +77,7 @@ public class AddBillServiceImpl implements AddBillService {
         bill.setPaymentMethods(paymentMethod);
         bill.setStatus(1);
         bill.setTransactionType(transactionType);
+        bill.setTotalPriceDebt(BigDecimal.valueOf(0));
         bill=billRepo.save(bill);
         List<VDetailBill> detailBills=new ArrayList<>();
         for (CreateDetailBillResult result:createDetailBillResults){

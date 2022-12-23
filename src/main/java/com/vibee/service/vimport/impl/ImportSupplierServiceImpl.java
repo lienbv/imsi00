@@ -113,9 +113,21 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
         id = idRedis;
         List<UnitItem> unitItemsRequest = request.getUnits();
 
+        if(barcode == null){
+            response.getStatus().setStatus(Status.Fail);
+            response.getStatus().setMessage(MessageUtils.get(language, "msg.import.barcode"));
+            return response;
+        }
+        if(inPrice.doubleValue() <= Double.valueOf(0)){
+            response.getStatus().setStatus(Status.Fail);
+            response.getStatus().setMessage(MessageUtils.get(language, "msg.import.inPrice"));
+            return response;
+        }
+
         if(inPrice == null|| inPrice==BigDecimal.valueOf(0)){
             importInWarehouse.setInPrice(BigDecimal.valueOf(0));
         }
+
         importInWarehouse.setUnit(unit);
         importInWarehouse.setId(id);
         importInWarehouse.setSupplierId(supplierId);
@@ -169,7 +181,6 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
         String rangeDates = request.getRangeDates();
         String unit = request.getUnit();
 
-
         List<UnitItem> unitItemsRequest = request.getUnits();
 
         int fileProduct = request.getFileId();
@@ -219,7 +230,6 @@ public class ImportSupplierServiceImpl implements IImportSuppierService {
             log.error("Unit product is null");
             return null;
         }
-
         infor.setId(redisId);
         infor.setNameProd(importInWarehouseRedis.getProductName());
         infor.setBarCode(importInWarehouseRedis.getBarcode());

@@ -45,4 +45,5 @@ public class VBill implements Serializable{
 	private String fullName;
 	@Column(name = "ADDRESS")
 	private String address;
+	private BigDecimal totalPriceDebt;
 }
