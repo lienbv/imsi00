@@ -82,10 +82,10 @@ public interface VProductRepo extends JpaSpecificationExecutor<VProduct>,JpaRepo
     @Query("SELECT CASE WHEN COUNT(p)>0 THEN TRUE ELSE FALSE END FROM product p WHERE p.barCode= :barcode")
     Boolean existsByBarcode(@Param("barcode") String barcode);
 
-    @Query("SELECT SUM(p.status) FROM product  p WHERE p.status = 3")
+    @Query("SELECT SUM(p.status) FROM product  p WHERE p.status = 2")
     public Optional<Long> sumReportBlockProduct();
 
-    @Query("SELECT SUM(p.status) FROM product p WHERE p.status = 2")
+    @Query("SELECT SUM(p.status) FROM product p WHERE p.status = 3")
     public Optional<Long> sumReportSoldOutProduct();
 
     public List<VProduct> findTop6ByOrderByCreatedDateDesc();

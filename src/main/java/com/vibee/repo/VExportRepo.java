@@ -51,6 +51,7 @@ public interface VExportRepo extends JpaRepository<VExport,Integer> {
     @Query("select new com.vibee.model.item.Uitem(u.unitName, e.outAmount, u.id, e.id, e.outPrice) from export e join unit u on u.id = e.unitId where e.importId = ?1 order by u.amount asc")
     List<Uitem> getAmountExportOfImport(int idImport);
 
+
     @Query("select e from export e where e.importId = ?1")
     VExport getAmountByIdImport(int idImport);
 }
