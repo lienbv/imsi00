@@ -12,4 +12,5 @@ public class GetUnitResult {
     private int statusCode;
     private String statusName;
     private int parentId;
+    private int amount;
 }

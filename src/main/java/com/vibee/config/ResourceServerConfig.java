@@ -58,7 +58,8 @@ public class ResourceServerConfig extends GlobalMethodSecurityConfiguration {
 				"/webjars/**",
 				"/swagger-ui.html#!/**",
 				"/actuator/**",
-				"/vibee/api/v1/auth/**");
+				"/vibee/api/v1/auth/**",
+				"/vibee/api/v1/file/**");
 	}
 	
 }

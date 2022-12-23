@@ -2,6 +2,7 @@ package com.vibee.model.response.product;
 
 import com.vibee.model.ObjectResponse.ProductStallObject;
 import com.vibee.model.response.BaseResponse;
+import com.vibee.model.result.ProductStallResult;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,5 +15,5 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SearchViewStallResponse extends BaseResponse {
-    private List<ProductStallObject> results;
+    private List<ProductStallResult> results;
 }

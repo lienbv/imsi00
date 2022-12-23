@@ -28,4 +28,7 @@ public interface VWarehouseRepo extends JpaRepository<VWarehouse, Integer> {
     VWarehouse getProductByCreateDate(int idProduct, Date date);
     @Query(value = "SELECT * FROM vibee.v_warehouse w where w.PRODUCT_ID = ?1 and  w.MODIFIED_Date = ?2", nativeQuery = true)
     VWarehouse getProductByModifyDate(int idProduct, Date date);
+
+    @Query("SELECT w.inAmount - w.outAmount from warehouse w WHERE w.id=(SELECT i.warehouseId FROM import i WHERE i.id= :importId)")
+    int getAmountByImportId(@Param("importId") int importId);
 }

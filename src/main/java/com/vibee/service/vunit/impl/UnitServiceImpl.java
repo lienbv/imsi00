@@ -226,6 +226,7 @@ public class UnitServiceImpl implements UnitService {
             result.setStatusCode(unit.getStatus());
             result.setDescription(unit.getDescription());
             result.setParentId(unit.getParentId());
+            result.setAmount(unit.getAmount());
             result.setStatusName(ProductUtils.statusname(unit.getStatus()));
             results.add(result);
         }
@@ -261,10 +262,19 @@ public class UnitServiceImpl implements UnitService {
             return response;
         }
         for (VUnit u : units) {
-            ExportResult result = new ExportResult();
-            result.setUnitId(u.getId());
-            result.setUnitName(u.getUnitName());
-            results.add(result);
+                if (u.getId()==0 || u.getId()==unitId){
+                    ExportResult result = new ExportResult();
+                    result.setUnitId(u.getId());
+                    result.setUnitName(u.getUnitName());
+                    result.setAmount(u.getAmount());
+                    results.add(result);
+            }else if (u.getAmount() > unit.getAmount()) {
+                ExportResult result = new ExportResult();
+                result.setUnitId(u.getId());
+                result.setUnitName(u.getUnitName());
+                result.setAmount(u.getAmount());
+                results.add(result);
+            }
         }
         response.setResults(results);
         response.getStatus().setStatus(Status.Success);

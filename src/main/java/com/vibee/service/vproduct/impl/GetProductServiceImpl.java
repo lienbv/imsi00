@@ -10,6 +10,7 @@ import com.vibee.model.request.product.GetProductRequest;
 import com.vibee.model.request.product.ViewStallRequest;
 import com.vibee.model.response.product.*;
 import com.vibee.model.ObjectResponse.ProductStallObject;
+import com.vibee.model.result.ProductStallResult;
 import com.vibee.model.result.SellOnlineResult;
 import com.vibee.repo.*;
 import com.vibee.service.vproduct.GetProductService;
@@ -26,10 +27,7 @@ import org.springframework.data.jpa.domain.JpaSort;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 @Service
 @Log4j2
@@ -68,20 +66,50 @@ public class GetProductServiceImpl implements GetProductService {
         String language = request.getLanguage();
         String searchValue = request.getSearchValue();
         SearchViewStallResponse response = new SearchViewStallResponse();
-        List<ProductStallObject> products = new ArrayList<>();
-        try {
-            Integer.parseInt(searchValue);
-            products = this.productRepo.searchProductByBarCode(searchValue + "%");
-        } catch (Exception e) {
-            if (searchValue.startsWith("VB")) {
-                products = this.productRepo.searchProductByProductCode(searchValue + "%");
-            } else {
-                products = this.productRepo.searchProductByproductName(searchValue + "%");
+        List<ProductStallResult> results = new ArrayList<>();
+        List<VImport> imports = this.importRepo.getImportIsActive();
+        Map<Integer, VImport> mapImport = new HashMap<>();
+//        List<VImport> imports = this.importRepo.findImportByProductCode(searchValue);
+        List<Integer> importIds = new ArrayList<>();
+        if (imports.isEmpty()) {
+            log.error("product not found");
+            response.getStatus().setStatus(Status.Fail);
+            response.getStatus().setMessage(MessageUtils.get(language, "msg.product.not.found"));
+            return response;
+        }
+        for (int i = 0; i < imports.size(); i++) {
+            for (int j = 1; j < imports.size(); j++) {
+                if (imports.get(i).getWarehouseId()==imports.get(j).getWarehouseId()) {
+                    if (imports.get(i).getExpiredDate().before(imports.get(j).getExpiredDate())) {
+//                        imports.remove(imports.get(j));
+                        mapImport.put(imports.get(i).getWarehouseId(), imports.get(i));
+                    }
+                }
             }
-
+        }
+//        for (int i = 0; i < imports.size(); i++) {
+//            for (int j = 1; j < imports.size(); j++) {
+//                if (imports.get(i).getWarehouseId()==imports.get(j).getWarehouseId()) {
+//                    imports.remove(imports.get(j));
+//                }
+//            }
+//        }
+        for (VImport vImport : mapImport.values()) {
+            VProduct product = this.productRepo.getProductByWarehouseId(vImport.getWarehouseId());
+            if (product==null){
+                continue;
+            }
+            ProductStallResult result = new ProductStallResult();
+            result.setProductCode(vImport.getProductCode());
+            result.setProductName(product.getProductName());
+            result.setImg(this.fileUploadRepo.getURLById(product.getFileId()));
+            result.setProductId(product.getId());
+            result.setBarCode(product.getBarCode());
+            result.setImportId(vImport.getId());
+            results.add(result);
         }
 
-        if (products.isEmpty()) {
+        if (results.isEmpty()) {
             log.error("product not found");
             response.getStatus().setStatus(Status.Fail);
             response.getStatus().setMessage(MessageUtils.get(language, "msg.product.not.found"));
@@ -90,7 +118,7 @@ public class GetProductServiceImpl implements GetProductService {
 
         response.getStatus().setStatus(Status.Success);
         response.getStatus().setMessage("");
-        response.setResults(products);
+        response.setResults(results);
         log.info("GetProductService - view staff :: END");
         return response;
     }
@@ -189,8 +217,8 @@ public class GetProductServiceImpl implements GetProductService {
     public DetailProductResponse detail(int productId, String language) {
         log.info("DetailProductService:: START");
         DetailProductResponse response = new DetailProductResponse();
-        VProduct product=this.productRepo.getProduct(productId);
-        VWarehouse warehouse=this.vWarehouseRepo.findByProductId(productId);
+        VProduct product = this.productRepo.getProduct(productId);
+        VWarehouse warehouse = this.vWarehouseRepo.findByProductId(productId);
 
         if (product == null) {
             log.error("Product is not exits");
@@ -204,21 +232,21 @@ public class GetProductServiceImpl implements GetProductService {
             response.getStatus().setMessage(MessageUtils.get(language, "msg.warehouse.not.found"));
             return response;
         }
-        String creator= this.userRepo.findFullNameByUsername(product.getCreator());
+        String creator = this.userRepo.findFullNameByUsername(product.getCreator());
         if (creator == null) {
             log.error("creator not found");
             response.getStatus().setStatus(Status.Fail);
             response.getStatus().setMessage(MessageUtils.get(language, "msg.creator.not.found"));
             return response;
         }
-        String categoryName=this.typeProductRepo.getNameById(product.getProductType());
+        String categoryName = this.typeProductRepo.getNameById(product.getProductType());
         if (categoryName == null) {
             log.error("categoryName not found");
             response.getStatus().setStatus(Status.Fail);
             response.getStatus().setMessage(MessageUtils.get(language, "msg.category.not.found"));
             return response;
         }
-        String urlImage=this.fileUploadRepo.getURLById(product.getFileId());
+        String urlImage = this.fileUploadRepo.getURLById(product.getFileId());
         response.setId(productId);
         response.setCreatedDate(Utiliies.formatDateTime(product.getCreatedDate()));
         response.setCreator(creator);
@@ -236,7 +264,7 @@ public class GetProductServiceImpl implements GetProductService {
         response.setInventory(inAmount - outAmount);
         response.setImportDate(Utiliies.formatDateTime(this.importRepo.getCreatedDateByProductId(warehouse.getProductId())));
         response.setSumImport(warehouse.getNumberOfEntries());
-        response.setSupplierNames(product.getSupplierName() );
+        response.setSupplierNames(product.getSupplierName());
         response.setUnitName(this.unitRepo.getUnitNameByUnitId(warehouse.getUnitId()));
         response.getStatus().setStatus(Status.Success);
         response.getStatus().setMessage(MessageUtils.get(language, "msg.product.detail.success"));
@@ -252,22 +280,23 @@ public class GetProductServiceImpl implements GetProductService {
         log.info("selectProductService:: END");
         return response;
     }
-    @Override
-    public InfoUpdateProductResponse infoUpdate(int idProd,String language) {
-        log.info("infoUpdateService :: Start");
-        InfoUpdateProductResponse response=new InfoUpdateProductResponse();
-        List<VTypeProduct> typeProducts=this.typeProductRepo.findByStatus(1);
-        List<GetTypeProductItem> typeProductItems=this.convertItem(typeProducts);
-        VProduct product=this.productRepo.getById(idProd);
 
-        if(product==null) {
+    @Override
+    public InfoUpdateProductResponse infoUpdate(int idProd, String language) {
+        log.info("infoUpdateService :: Start");
+        InfoUpdateProductResponse response = new InfoUpdateProductResponse();
+        List<VTypeProduct> typeProducts = this.typeProductRepo.findByStatus(1);
+        List<GetTypeProductItem> typeProductItems = this.convertItem(typeProducts);
+        VProduct product = this.productRepo.getById(idProd);
+
+        if (product == null) {
             log.error("infoUpdateService :: Product not found");
             response.getStatus().setStatus(Status.Fail);
             response.getStatus().setMessage(MessageUtils.get(language, "product.not.found"));
             return response;
         }
-        String urlImage=this.fileUploadRepo.getURLById(product.getFileId());
-        String categoryName=this.typeProductRepo.getById(product.getProductType()).getName();
+        String urlImage = this.fileUploadRepo.getURLById(product.getFileId());
+        String categoryName = this.typeProductRepo.getById(product.getProductType()).getName();
         response.setTypeProductItems(typeProductItems);
         response.setDescription(product.getDescription());
         response.setNameProd(product.getProductName());
@@ -278,46 +307,46 @@ public class GetProductServiceImpl implements GetProductService {
         response.getStatus().setStatus(Status.Success);
         response.getStatus().setMessage("");
         response.setStatusItems(ProductUtils.getStatuss(language));
-        response.setStatusName(ProductUtils.getstatusname(product.getStatus(),language));
+        response.setStatusName(ProductUtils.getstatusname(product.getStatus(), language));
         response.setStatusCode(product.getStatus());
         log.info("infoUpdateService :: End");
         return response;
     }
 
     @Override
-    public SellOnlineResponse sellOnline(String language, int pageNumber, int pageSize, String search){
+    public SellOnlineResponse sellOnline(String language, int pageNumber, int pageSize, String search) {
         log.info("sellOnlineService :: Start");
-        SellOnlineResponse response=new SellOnlineResponse();
-        List<SellOnlineResult> sellOnlineResults=new ArrayList<>();
+        SellOnlineResponse response = new SellOnlineResponse();
+        List<SellOnlineResult> sellOnlineResults = new ArrayList<>();
         Pageable pageable = PageRequest.of(pageNumber, pageSize);
         List<VProduct> products;
         long totalPage;
-        if (CommonUtil.isEmptyOrNull(search)){
-            products=this.productRepo.searchProductByName(pageable);
-            totalPage=this.productRepo.countProduct();
-        }else {
-            products=this.productRepo.searchProductByName(search,pageable);
-            totalPage=this.productRepo.countProduct(search);
+        if (CommonUtil.isEmptyOrNull(search)) {
+            products = this.productRepo.searchProductByName(pageable);
+            totalPage = this.productRepo.countProduct();
+        } else {
+            products = this.productRepo.searchProductByName(search, pageable);
+            totalPage = this.productRepo.countProduct(search);
         }
 
-        List<VWarehouse> warehouses=this.vWarehouseRepo.getAllWarehouse(pageable);
+        List<VWarehouse> warehouses = this.vWarehouseRepo.getAllWarehouse(pageable);
         if (products == null) {
             log.error("sellOnlineService :: warehouse not found");
             response.getStatus().setStatus(Status.Fail);
             response.getStatus().setMessage(MessageUtils.get(language, "msg.warehouse.not.found"));
             return response;
         }
-        for (VProduct product:products){
-            VWarehouse warehouse=this.vWarehouseRepo.findByProductId(product.getId());
-            VImport sellOnlineItems=this.importRepo.getImportByWarehouseId(warehouse.getId());
-            if(sellOnlineItems==null){
+        for (VProduct product : products) {
+            VWarehouse warehouse = this.vWarehouseRepo.findByProductId(product.getId());
+            VImport sellOnlineItems = this.importRepo.getImportByWarehouseId(warehouse.getId());
+            if (sellOnlineItems == null) {
                 continue;
             }
-            SellOnlineResult sellOnlineResult=new SellOnlineResult();
+            SellOnlineResult sellOnlineResult = new SellOnlineResult();
             sellOnlineResult.setImportId(sellOnlineItems.getId());
             sellOnlineResult.setProductCode(sellOnlineItems.getProductCode());
             sellOnlineResult.setProductName(this.productRepo.getProduct(warehouse.getProductId()).getProductName());
-            sellOnlineResult.setProductQuantity(warehouse.getInAmount()-warehouse.getOutAmount());
+            sellOnlineResult.setProductQuantity(warehouse.getInAmount() - warehouse.getOutAmount());
             sellOnlineResult.setProductImage(this.fileUploadRepo.getURLById(sellOnlineItems.getFileId()));
             sellOnlineResults.add(sellOnlineResult);
         }
@@ -333,11 +362,11 @@ public class GetProductServiceImpl implements GetProductService {
         return response;
     }
 
-    private List<GetTypeProductItem> convertItem(List<VTypeProduct> typeProducts){
+    private List<GetTypeProductItem> convertItem(List<VTypeProduct> typeProducts) {
 
-        List<GetTypeProductItem> items=new ArrayList<GetTypeProductItem>();
-        for(VTypeProduct product:typeProducts) {
-            GetTypeProductItem item=new GetTypeProductItem();
+        List<GetTypeProductItem> items = new ArrayList<GetTypeProductItem>();
+        for (VTypeProduct product : typeProducts) {
+            GetTypeProductItem item = new GetTypeProductItem();
             item.setId(product.getId());
             item.setName(product.getName());
             items.add(item);

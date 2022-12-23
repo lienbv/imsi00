@@ -81,9 +81,8 @@ public class GetWarehouseServiceImpl implements GetWarehouseService {
             response.getStatus().setMessage(MessageUtils.get(language, "product.not.found"));
             return response;
         }
-        Pageable pageable= PageRequest.of(0, 10, Sort.by("status").ascending());
 //        List<GetWarehousesObject> warehouses=this.warehouseRepo.getWarehouseByProductId(productId,pageable);
-        List<GetWarehousesObject> warehouses=this.importRepo.getWarehouseByProductId(productId,"v_import.status","asc");
+        List<GetWarehousesObject> warehouses=this.importRepo.getWarehouseByProductId(productId,"v_import.created_date","desc");
         if(warehouses==null || warehouses.size()==0) {
             log.error("getWereHouses :: warehouses not found");
             response.getStatus().setStatus(Status.Fail);
@@ -177,6 +176,8 @@ public class GetWarehouseServiceImpl implements GetWarehouseService {
             warehouse.setInPrice(o.getInPrice());
             warehouse.setUnit(o.getUnitName());
             warehouse.setInventory(o.getInventory());
+            warehouse.setProductCode(o.getProductCode());
+            warehouse.setExpireDate(CommonUtil.convertDateToStringddMMyyyy(o.getExpireDate()));
             warehouses.add(warehouse);
         }
         return warehouses;
@@ -189,6 +190,12 @@ public class GetWarehouseServiceImpl implements GetWarehouseService {
         BigDecimal outAmount = (BigDecimal) now[1];
         BigDecimal inPrice = (BigDecimal) now[2];
         BigDecimal outPrice = (BigDecimal) now[3];
+        if (outPrice == null) {
+            outPrice = new BigDecimal(0);
+        }
+        if (inPrice == null) {
+            inPrice = new BigDecimal(0);
+        }
         BigDecimal profit=outPrice.subtract(inPrice);
         response.setOutAmount(outAmount);
         response.setInAmount(inAmount);
@@ -202,20 +209,27 @@ public class GetWarehouseServiceImpl implements GetWarehouseService {
         BigDecimal inPriced = (BigDecimal) past[2];
         BigDecimal outPriced = (BigDecimal) past[3];
         if (inPrice.compareTo(BigDecimal.ZERO) == 0) {
+            inPriced = new BigDecimal(0);
             response.setCompareInMoney(BigDecimal.ZERO);
         } else {
             BigDecimal compareInMoney=((inPrice.divide(inPriced,2, RoundingMode.HALF_UP)).multiply(BigDecimal.valueOf(100))).subtract(BigDecimal.valueOf(100));
             response.setCompareInMoney(compareInMoney);
         }
         if (outPrice.compareTo(BigDecimal.ZERO) == 0) {
+            outPriced= new BigDecimal(0);
             response.setCompareOutMoney(BigDecimal.ZERO);
         } else {
             BigDecimal compareOutMoney=((outPrice.divide(outPriced,2, RoundingMode.HALF_UP)).multiply(BigDecimal.valueOf(100))).subtract(BigDecimal.valueOf(100));
             response.setCompareOutMoney(compareOutMoney);
         }
         BigDecimal profited=outPriced.subtract(inPriced);
-        BigDecimal compareProfit=(profit.divide(profited,2, RoundingMode.HALF_UP)).multiply(BigDecimal.valueOf(100)).subtract(BigDecimal.valueOf(100));
-        response.setCompareProfit(compareProfit);
+        if (outPrice.compareTo(BigDecimal.ZERO) == 0){
+            response.setCompareProfit(BigDecimal.ZERO);
+        }else{
+            BigDecimal compareProfit=(profit.divide(profited,2, RoundingMode.HALF_UP)).multiply(BigDecimal.valueOf(100)).subtract(BigDecimal.valueOf(100));
+            response.setCompareProfit(compareProfit);
+        }
+
         return response;
     }
 

@@ -31,6 +31,9 @@ public interface VImportRepo extends JpaSpecificationExecutor<VImport>,JpaReposi
     @Query("DELETE import i WHERE i.warehouseId= (SELECT w.id FROM warehouse w WHERE w.productId= :productId)")
     int deleteByProductId(@Param("productId") int id);
 
+    @Query(value = "SELECT * FROM v_import WHERE v_import.status=1 AND v_import.warehouse_id= ?1 ORDER BY v_import.EXPIRED_DATE DESC LIMIT 1",nativeQuery = true)
+    VImport getImportByWarehouseId(int warehouseId);
+
     @Query(value = "SELECT Import.ID as id, Import.name_supplier as nameSupplier, (Import.inventory/v_unit.amount) as inventory, Import.ID_UNIT as unitId, " +
             "Import.img as img FROM v_v_import JOIN v_unit ON v_unit.id=v_v_import.id_unit WHERE v_v_import.status = 1 AND v_v_import.id_product = ?1",nativeQuery = true)
     List<ViewStallObject> viewStall(int productId);
@@ -45,7 +48,10 @@ public interface VImportRepo extends JpaSpecificationExecutor<VImport>,JpaReposi
             "from import i join export e on e.importId=i.id join unit u on u.id=e.unitId join warehouse w on i.warehouseId=w.id where w.productId=?1 group by i.id order by i.createdDate")
     List<GetCharWarehouseObject> getCharWarehouseByProductId(int productId);
 
-    @Query(value = "SELECT us.fullname,v_import.id as importId, v_import.created_date as createdDate,ui.unit_name as unitName, v_import.IN_PRICE as inPrice, sum(v_import.in_amount) as inAmount, sum(e.out_amount/un.amount) as outAmount, sum(e.out_amount*e.out_price) as outPrice, v_import.status, (sum(v_import.in_amount)-sum(e.out_amount/un.amount)) as inventory,w.number_of_entries as countWarehouse \n" +
+    @Query(value = "SELECT us.fullname,v_import.id as importId, v_import.created_date as createdDate,ui.unit_name as unitName, " +
+            "v_import.IN_PRICE as inPrice, sum(v_import.in_amount) as inAmount, sum(e.out_amount/un.amount) as outAmount, sum(e.out_amount*e.out_price) as outPrice," +
+            "v_import.status, (sum(v_import.in_amount)-sum(e.out_amount/un.amount)) as inventory,w.number_of_entries as countWarehouse, " +
+            "v_import.product_code as productCode, v_import.expired_date as expireDate \n" +
             "FROM v_import JOIN v_warehouse as w on w.id=v_import.warehouse_id JOIN v_export as e ON e.import_id=v_import.id \n" +
             "JOIN v_unit as un ON un.id=e.id_unit \n" +
             "JOIN v_unit as ui ON ui.id=v_import.id_unit \n" +
@@ -63,9 +69,6 @@ public interface VImportRepo extends JpaSpecificationExecutor<VImport>,JpaReposi
             "FROM import i JOIN warehouse w ON w.id=i.warehouseId " +
             "JOIN product p ON p.id=w.productId JOIN unit u ON u.id=i.unitId WHERE p.barCode = :barCode AND e.status=1 ORDER BY i.id DESC LIMIT 1", nativeQuery = true)
     GetExportsObject getUnitImportByBarCode(@Param("barCode") String barCode);
-
-    @Query(value = "SELECT * FROM v_import WHERE v_import.status=1 AND v_import.warehouse_id= ?1 ORDER BY v_import.EXPIRED_DATE DESC LIMIT 1",nativeQuery = true)
-    VImport getImportByWarehouseId(int warehouseId);
     @Query(value = "select * from v_import v where v.WAREHOUSE_ID = ?1 order by v.UPDATE_DATE desc limit 1", nativeQuery = true)
     VImport getVImportBy(int warehouse);
 
@@ -91,6 +94,36 @@ public interface VImportRepo extends JpaSpecificationExecutor<VImport>,JpaReposi
     @Query("select w.productId from import i join warehouse w on i.warehouseId = w.id where i.supplierId = ?1 and year(i.createdDate) = ?2 group by w.id order by SUM(w.numberOfEntries) desc")
     List<Integer> getWareHouseId(int id, int year, Pageable pageable);
 
+    //and 0 < (select i.inAmount - SUM(e.outAmount) from export e where e.importId = i.id)
+    @Query("select i from import i join warehouse w on i.warehouseId = w.id join product p on p.id = w.productId where p.productName like ?1 and i.expiredDate between ?2 and ?3 order by i.expiredDate desc")
+    List<VImport> getImportsByProductCloseToExpired(String nameProduct, Date startDate, Date endDate, Pageable pageable);
+
+    //and 0 < (select i.inAmount - SUM(e.outAmount) from export e where e.importId = i.id)
+    @Query("select count (i) from import i join warehouse w on i.warehouseId = w.id join product p on p.id = w.productId where p.productName like ?1 and i.expiredDate between ?2 and ?3 order by i.expiredDate desc")
+    int getImportsByProductCloseToExpiredAmount(String nameProduct, Date startDate, Date endDate);
+
+    //and 0 < (select i.inAmount - SUM(e.outAmount) from export e where e.importId = i.id)
+    @Query("select i from import i join warehouse w on i.warehouseId = w.id join product p on p.id = w.productId where p.productName like ?1 and i.status = 0 order by i.expiredDate desc")
+    List<VImport> getImportsByProductExpiration(String nameProduct, Pageable pageable);
+
     @Query("SELECT i FROM import i WHERE i.warehouseId=(SELECT w.id FROM warehouse w WHERE w.productId = :productId) AND i.status=1 ORDER BY i.createdDate DESC")
     List<VImport> findImportIdByBarcode (@Param("productId") int productId,Pageable pageable);
+
+    @Query("SELECT i FROM import i WHERE i.productCode like :productCode% AND i.status=1")
+    List<VImport> findImportByProductCode (@Param("productCode") String productId);
+
+    @Query("SELECT i FROM import i WHERE i.id not in :ids AND i.status=1")
+    List<VImport> getImportByNotIds (@Param("ids") List<Integer> importIds);
+
+    @Query("SELECT i FROM import i WHERE i.id in :ids AND i.status=1")
+    List<VImport> getImportByIds (@Param("ids") List<Integer> importIds);
+    @Query("SELECT i.warehouseId FROM import i WHERE i.productCode like :productCode% AND i.status=1")
+    List<Integer> getWarehouseIdByProductCode (@Param("productCode") String productId);
+
+    @Query("SELECT i FROM import i WHERE i.status=1")
+    List<VImport> getImportIsActive ();
+
+    @Query("select i from import i where i.expiredDate between ?1 and ?2")
+    List<VImport> getImportsByDateCheckExpired(Date startDate, Date endDate);
+
 }
