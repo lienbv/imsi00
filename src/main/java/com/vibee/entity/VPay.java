@@ -21,8 +21,8 @@ public class VPay implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID")
     private int id;
-    @Column(name = "DEBIT_ID")
-    private int debitId;
+    @Column(name = "BILL_ID")
+    private int billId;
     @Column(name = "DATE_PAYMENT")
     private Date actualDateOfPaymentOfDebt;
     @Column(name = "PRICE")

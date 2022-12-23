@@ -66,13 +66,6 @@ public class TypeProductServiceImpl implements ITypeProductService {
             mmdChild.getData().setId(String.valueOf(p.getId()));
             mmdChild.getData().setParentId(String.valueOf(p.getParentId()));
 
-//            String amountProduct = this.productRepo.amountProductByType(p.getId());
-            String amountProduct ="10";
-            if (amountProduct == null) {
-                mmdChild.getData().setAmountProduct("0");
-            } else {
-                mmdChild.getData().setAmountProduct(amountProduct);
-            }
             // ------ Parent ----
             TypeItemsDto mmdParent;
             if (hm.containsKey(p.getParentId())) {

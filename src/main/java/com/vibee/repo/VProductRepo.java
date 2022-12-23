@@ -130,11 +130,11 @@ public interface VProductRepo extends JpaSpecificationExecutor<VProduct>,JpaRepo
     String amountProductByType1(int idType);
 
     @Query(value = "select p.ID as id, p.NAME_PRODUCT as productName, p.BAR_CODE as barcode, p.DESCRIPTION as description, p.NAME_SUPPLIER as supplierName,\n" +
-            "i.ID as importID, i.EXPIRED_DATE as expired, p.FILE_ID as files, i.FILE_ID as fileImport\n" +
-            " from vibee.v_product p join vibee.v_warehouse w on p.ID = w.PRODUCT_ID\n" +
-            "join vibee.v_import i on i.WAREHOUSE_ID = w.ID \n" +
-            "where p.STATUS =1\n" +
-            "group by importID\n" +
-            "order by i.EXPIRED_DATE asc  ", nativeQuery = true)
+            "            i.ID as importID, i.EXPIRED_DATE as expired, p.FILE_ID as files, i.FILE_ID as fileImport\n" +
+            "            from vibee.v_product p join vibee.v_warehouse w on p.ID = w.PRODUCT_ID\n" +
+            "            join vibee.v_import i on i.WAREHOUSE_ID = w.ID\n" +
+            "            where p.STATUS =1\n" +
+            "            group by importID\n" +
+            "            order by i.EXPIRED_DATE asc ", nativeQuery = true)
     List<ShowProductStaff> showProduct();
 }

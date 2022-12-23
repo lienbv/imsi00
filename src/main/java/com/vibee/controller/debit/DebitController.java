@@ -2,6 +2,7 @@ package com.vibee.controller.debit;
 
 
 import com.vibee.model.item.FilterItem;
+import com.vibee.model.request.bill.debtRequest;
 import com.vibee.model.request.debit.DebitPageRequest;
 import com.vibee.model.request.debit.DebitRequest;
 import com.vibee.model.request.debit.ListPayRequest;
@@ -21,7 +22,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
-@RequestMapping("${vibee.config}/debit")
+@RequestMapping("${vibee.config}/bill")
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 public class DebitController {
     private final DebitImpl debit;
@@ -31,30 +32,18 @@ public class DebitController {
     }
 
     @PostMapping("createDebit")
-    public BaseResponse createDebit(@Valid @RequestBody DebitRequest request, BindingResult bindingResult){
+    public BaseResponse addDebt(@Valid @RequestBody DebitRequest request, BindingResult bindingResult){
        return this.debit.createDebit(request, bindingResult);
+    }
+    @PostMapping("addDebit")
+    public BaseResponse createDebit(@Valid @RequestBody debtRequest request){
+        return this.debit.add(request);
     }
     @PostMapping("updateDebit/{idDebit}")
     public BaseResponse updateDebit(@PathVariable(name = "idDebit")int idDebit, @Valid @RequestBody DebitRequest request, BindingResult bindingResult){
         return this.debit.updateDebit( idDebit, request, bindingResult);
     }
 
-//    @GetMapping("findAll/{idUser}")
-//    public DebitItemsResponse findAll(@RequestParam(name = "pagenumber") int pageNumberReq,
-//                                      @RequestParam(name = "pagesize") int pageSizeReq,
-//                                      @RequestParam(name = "typefilter") String typeFilterReq,
-//                                      @RequestParam(name = "valuefilter") String valueFilterReq,
-//                                      @RequestParam(name= "language") String languageReq,
-//                                      @RequestParam(name = "search") String searchReq,
-//                                      @PathVariable(name = "idUser")int idUser){
-//        DebitPageRequest request = new DebitPageRequest();
-//        request.setPageNumber(pageNumberReq);
-//        request.setPageSize(pageSizeReq);
-//        request.setFilter(new FilterItem(typeFilterReq, valueFilterReq));
-//        request.setLanguage(languageReq);
-//        request.setSearchText(searchReq);
-//        return this.debit.findAll(idUser,request);
-//    }
     @GetMapping("listUserDebit")
     public DebitOfUserResponse listUserDebit(
 

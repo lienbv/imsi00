@@ -7,7 +7,7 @@ import com.vibee.service.vbill.AddBillService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-@RequestMapping("/vibee/api/v1/bill")
+@RequestMapping("/vibee/api/v1/auth/bill")
 @RestController
 @CrossOrigin("*")
 public class TransactionController {
