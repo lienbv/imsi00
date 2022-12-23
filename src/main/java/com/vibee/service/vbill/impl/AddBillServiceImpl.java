@@ -68,7 +68,7 @@ public class AddBillServiceImpl implements AddBillService {
         bill.setTotalPriceDebt(BigDecimal.valueOf(0));
         bill=billRepo.save(bill);
         List<VDetailBill> detailBills=new ArrayList<>();
-        for (SelectedProductResult result:request.getExportSelected()){
+        for (SelectedProductResult result:request.getViewStallResults()){
             VDetailBill detailBill=new VDetailBill();
             BigDecimal price=result.getExportSelected().getOutPrice().divide(BigDecimal.valueOf(result.getAmount()));
             sumPrice=sumPrice.add(price);
