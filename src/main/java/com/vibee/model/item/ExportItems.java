@@ -17,4 +17,5 @@ public class ExportItems implements Serializable {
     private BigDecimal inPrice;
     private BigDecimal outPrice;
     private int unit;
+
 }

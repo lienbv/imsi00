@@ -30,4 +30,7 @@ public interface VDetailBillRepo extends JpaSpecificationExecutor<VDetailBill>, 
     List<DetailBillOfDetailDebit> findByProductByBill( int idBill);
 
     List<VDetailBill> findByBillId(int id);
+
+    @Query("SELECT sum(db.price) FROM VDetailBill db WHERE db.importId = :importId")
+    Optional<Long> findBySumAmount(int importId);
 }
