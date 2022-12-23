@@ -22,5 +22,7 @@ public class WarehouseItem {
     private long outAmount;
     private BigDecimal inPrice;
     private Double inventory;
+    private String productCode;
+    private String expireDate;
 
 }

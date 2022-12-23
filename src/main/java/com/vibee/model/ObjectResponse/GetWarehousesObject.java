@@ -15,5 +15,7 @@ public interface GetWarehousesObject {
     int getStatus();
     int getCountWarehouse();
     String getUnitName();
+    String getProductCode();
+    Date getExpireDate();
 
 }

@@ -54,4 +54,20 @@ public interface VExportRepo extends JpaRepository<VExport,Integer> {
 
     @Query("select e from export e where e.importId = ?1")
     VExport getAmountByIdImport(int idImport);
+
+    @Query(value = "select v_export.id as exportId, v_export.out_price as outPrice,v_unit.unit_name unitName,\n" +
+            "v_unit.id as unitId, ((v_warehouse.in_amount-v_warehouse.out_amount)/v_unit.amount) as inventory, v_unit.amount as amount \n" +
+            " from vibee.v_unit v_unit join vibee.v_export v_export on v_unit.id=v_export.id_unit\n" +
+            " join vibee.v_import v_import on v_import.id=v_export.import_id\n" +
+            "join vibee.v_warehouse on v_warehouse.id=v_import.warehouse_id \n" +
+            "where v_import.ID =?1 AND v_export.status=1 group by v_export.id", nativeQuery = true)
+    List<SelectExportStallObject> getExportsId(int id);
+
+    @Query(value = "select v_export.id as exportId, v_export.out_price as outPrice,v_unit.unit_name unitName,\n" +
+            "v_unit.id as unitId, ((v_warehouse.in_amount-v_warehouse.out_amount)/v_unit.amount) as inventory, v_unit.amount as amount \n" +
+            " from vibee.v_unit v_unit join vibee.v_export v_export on v_unit.id=v_export.id_unit\n" +
+            " join vibee.v_import v_import on v_import.id=v_export.import_id\n" +
+            "join vibee.v_warehouse on v_warehouse.id=v_import.warehouse_id \n" +
+            "where v_import.ID =?1 AND v_export.status=1 and v_unit.ID=?2 group by v_export.id", nativeQuery = true)
+    SelectExportStallObject getExportsUnitId(int id, int unitId);
 }

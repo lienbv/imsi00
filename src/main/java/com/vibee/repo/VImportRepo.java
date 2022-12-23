@@ -48,7 +48,10 @@ public interface VImportRepo extends JpaSpecificationExecutor<VImport>,JpaReposi
             "from import i join export e on e.importId=i.id join unit u on u.id=e.unitId join warehouse w on i.warehouseId=w.id where w.productId=?1 group by i.id order by i.createdDate")
     List<GetCharWarehouseObject> getCharWarehouseByProductId(int productId);
 
-    @Query(value = "SELECT us.fullname,v_import.id as importId, v_import.created_date as createdDate,ui.unit_name as unitName, v_import.IN_PRICE as inPrice, sum(v_import.in_amount) as inAmount, sum(e.out_amount/un.amount) as outAmount, sum(e.out_amount*e.out_price) as outPrice, v_import.status, (sum(v_import.in_amount)-sum(e.out_amount/un.amount)) as inventory,w.number_of_entries as countWarehouse \n" +
+    @Query(value = "SELECT us.fullname,v_import.id as importId, v_import.created_date as createdDate,ui.unit_name as unitName, " +
+            "v_import.IN_PRICE as inPrice, sum(v_import.in_amount) as inAmount, sum(e.out_amount/un.amount) as outAmount, sum(e.out_amount*e.out_price) as outPrice," +
+            "v_import.status, (sum(v_import.in_amount)-sum(e.out_amount/un.amount)) as inventory,w.number_of_entries as countWarehouse, " +
+            "v_import.product_code as productCode, v_import.expired_date as expireDate \n" +
             "FROM v_import JOIN v_warehouse as w on w.id=v_import.warehouse_id JOIN v_export as e ON e.import_id=v_import.id \n" +
             "JOIN v_unit as un ON un.id=e.id_unit \n" +
             "JOIN v_unit as ui ON ui.id=v_import.id_unit \n" +

@@ -1,6 +1,6 @@
 package com.vibee.model.item;
 
-import com.vibee.model.response.category.CategoryImportItems;
+import com.vibee.model.ObjectResponse.SelectExportStallObject;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -8,16 +8,19 @@ import java.util.Date;
 import java.util.List;
 
 @Data
-public class ProductItems {
+public class ShowProductItems {
     private int id;
     private String productName;
+    private String description;
     private String barcode;
+    private String supplierName;
     private String qrCode;
     private int amount;
-    private Date expiry;
+    private Date expired;
     private String img;
     private BigDecimal price;
-    private List<UnitItem> units;
-    private List<CategoryImportItems> items;
-
+    private int importID;
+    private int files;
+    private int fileImport;
+    List<SelectExportStallObject> unit;
 }

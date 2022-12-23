@@ -124,7 +124,7 @@ public class Utiliies {
 
     public static boolean uploadFile(MultipartFile file){
 
-        String path = "./src/main/resources/static/"+file.getOriginalFilename();
+        String path = "D:\\vibee_ new\\vibee (1)\\vibee\\src\\assets\\image\\"+file.getOriginalFilename();
         File file1 = new File(path);
         if (file1.exists()) {
             file1.delete();
@@ -139,7 +139,7 @@ public class Utiliies {
     }
 
     public static String getFilePath(String fileName) {
-        return "./src/main/resources/static/" + fileName;
+        return "D:\\vibee_ new\\vibee (1)\\vibee\\src\\assets\\image\\" + fileName;
     }
     static String generateCode(int idProduct, int idWareHouse, int idImport) {
         String idProductSTR = idProduct+"";

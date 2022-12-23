@@ -27,10 +27,7 @@ import org.springframework.data.jpa.domain.JpaSort;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 @Service
 @Log4j2
@@ -71,6 +68,7 @@ public class GetProductServiceImpl implements GetProductService {
         SearchViewStallResponse response = new SearchViewStallResponse();
         List<ProductStallResult> results = new ArrayList<>();
         List<VImport> imports = this.importRepo.getImportIsActive();
+        Map<Integer, VImport> mapImport = new HashMap<>();
 //        List<VImport> imports = this.importRepo.findImportByProductCode(searchValue);
         List<Integer> importIds = new ArrayList<>();
         if (imports.isEmpty()) {
@@ -83,19 +81,20 @@ public class GetProductServiceImpl implements GetProductService {
             for (int j = 1; j < imports.size(); j++) {
                 if (imports.get(i).getWarehouseId()==imports.get(j).getWarehouseId()) {
                     if (imports.get(i).getExpiredDate().before(imports.get(j).getExpiredDate())) {
-                        imports.remove(imports.get(j));
+//                        imports.remove(imports.get(j));
+                        mapImport.put(imports.get(i).getWarehouseId(), imports.get(i));
                     }
                 }
             }
         }
-        for (int i = 0; i < imports.size(); i++) {
-            for (int j = 1; j < imports.size(); j++) {
-                if (imports.get(i).getWarehouseId()==imports.get(j).getWarehouseId()) {
-                    imports.remove(imports.get(j));
-                }
-            }
-        }
-        for (VImport vImport : imports) {
+//        for (int i = 0; i < imports.size(); i++) {
+//            for (int j = 1; j < imports.size(); j++) {
+//                if (imports.get(i).getWarehouseId()==imports.get(j).getWarehouseId()) {
+//                    imports.remove(imports.get(j));
+//                }
+//            }
+//        }
+        for (VImport vImport : mapImport.values()) {
             VProduct product = this.productRepo.getProductByWarehouseId(vImport.getWarehouseId());
             if (product==null){
                 continue;
