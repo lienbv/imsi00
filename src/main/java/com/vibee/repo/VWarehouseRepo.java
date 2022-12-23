@@ -31,4 +31,7 @@ public interface VWarehouseRepo extends JpaRepository<VWarehouse, Integer> {
 
     @Query("SELECT w.inAmount - w.outAmount from warehouse w WHERE w.id=(SELECT i.warehouseId FROM import i WHERE i.id= :importId)")
     int getAmountByImportId(@Param("importId") int importId);
+
+    @Query("SELECT w from warehouse w WHERE w.unitId=?1")
+    List<VWarehouse> getVWarehouseByUnitId(int unitId);
 }
