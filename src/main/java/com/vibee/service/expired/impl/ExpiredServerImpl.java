@@ -47,8 +47,6 @@ public class ExpiredServerImpl implements ExpiredServer {
         ExpirationResponse response = new ExpirationResponse();
         Pageable pageable = PageRequest.of(page, record);
         Calendar calendar = Calendar.getInstance();
-//        calendar.roll(Calendar.DATE, 14);
-//        System.out.println( new Date(calendar.getTimeInMillis() + 1209600000));
         Map<String, Calendar> map = this.getStartAndEndDate(new Date());
         List<VImport> imports = importRepo.getImportsByProductExpiration("%"+nameSearch+"%",pageable);
         List<ExpirationItem> closeToExpirationItems = new ArrayList<>();
@@ -57,26 +55,18 @@ public class ExpiredServerImpl implements ExpiredServer {
 
             List<Uitem> uitems = exportRepo.getAmountExportOfImport(vImport.getId());
 
-            if (uitems != null && !uitems.isEmpty()) {
-                inventory = this.convertUnitImport(vImport.getInAmount().intValue(), vImport.getUnitId()) - this.convertUnitExport(uitems);
-            } else {
-                inventory = vImport.getInAmount().intValue();
-            }
-
             ExpirationItem item = new ExpirationItem();
             item.setIdImport(vImport.getId());
             item.setExpired(vImport.getExpiredDate());
             item.setDateAdded(vImport.getCreatedDate());
             item.setNameProduct(vProductRepo.getProduct(vWarehouseRepo.getById(vImport.getWarehouseId()).getProductId()).getProductName());
-            item.setList(convertAmountUnit(uitems.get(uitems.size()-1).getIdUnit(), inventory, uitems));
             item.setInCome(vImport.getInMoney());
             item.setCreator(vImport.getCreator());
-            item.setAmount(convertMess(item.getList()));
+            item.setSupplier(vImport.getSupplierName());
             closeToExpirationItems.add(item);
         }
         response.setPage(page);
         response.setPageSize(record);
-//        response.setTotalPages();
         response.setTotalItems(importRepo.getImportsByProductCloseToExpiredAmount("%"+nameSearch+"%", new Date(), new Date(calendar.getTimeInMillis() + 1209600000)));
         response.setList(closeToExpirationItems);
         response.getStatus().setMessage(MessageUtils.get("vi", "msg.success"));
@@ -84,21 +74,6 @@ public class ExpiredServerImpl implements ExpiredServer {
         return response;
     }
 
-//    @Override
-//    public BaseResponse editPriceExport(EditPriceExportRequest request) {
-//        BaseResponse response = new BaseResponse();
-//        for (EditPriceExportItem item : request.getList()) {
-//            VExport export = exportRepo.getById(item.getIdExport());
-//            export.setOutPrice(item.getPrice());
-//            exportRepo.save(export);
-//        }
-//        VImport vImport = importRepo.getById(request.getIdImport());
-//        vImport.setStatus(3);
-//        importRepo.save(vImport);
-//        response.getStatus().setMessage(MessageUtils.get("vi", "msg.success"));
-//        response.getStatus().setStatus(Status.Success);
-//        return response;
-//    }
 
     public int getIdExport(List<Uitem> uitemsExport, int idUnit) {
         for (Uitem item : uitemsExport) {

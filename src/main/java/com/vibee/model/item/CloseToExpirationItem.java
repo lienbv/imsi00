@@ -14,6 +14,7 @@ public class CloseToExpirationItem {
     private Date dateAdded;
     private Date expired;
     private String creator;
+    private String supplier;
     private BigDecimal inCome;
     private List<Uitem> list;
 }
