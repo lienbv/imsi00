@@ -18,6 +18,7 @@ import com.vibee.model.response.bill.GetTopTen;
 import com.vibee.model.response.debit.DebitDetailResponse;
 import com.vibee.model.response.debit.DebitOfUserResponse;
 import com.vibee.model.response.debit.GetDetailBill;
+import com.vibee.model.response.product.SelectedProductResult;
 import com.vibee.model.result.CreateDetailBillResult;
 import com.vibee.repo.*;
 import com.vibee.utils.MessageUtils;
@@ -151,48 +152,36 @@ public class DebitImpl {
         String address = request.getAddress();
         String fullName = request.getFullName();
         String phone = request.getPhoneNumber();
-        BigDecimal totalInPrice = request.getInPrice();
-
-        List<CreateDetailBillResult> createDetailBillResults= null;
-        try {
-            createDetailBillResults = this.redisAdapter.gets(request.getCartCode(), CreateDetailBillResult.class);
-        } catch (Exception e) {
-            createDetailBillResults=null;
-        }
-        if(createDetailBillResults==null || createDetailBillResults.size()==0){
-            response.getStatus().setStatus(Status.Fail);
-            response.getStatus().setMessage(MessageUtils.get("bill.not.found",language));
-            return response;
-        }
+        BigDecimal totalInPrice = request.getTotalPriceDebt();
 
         VBill bill=new VBill();
         bill.setCreatedDate(new Date());
         bill.setCreator(creator);
         bill.setPrice(sumPrice);
         bill.setInPrice(inPrice);
-        bill.setPaymentMethods(paymentMethod);
         bill.setStatus(10);
         bill.setTransactionType(transactionType);
-        bill.setAddress(address);
         bill.setTotalPriceDebt(totalInPrice);
+        bill.setAddress(address);
         bill.setFullName(fullName);
         bill.setPhoneNumber(phone);
+
         bill=billRepo.save(bill);
         List<VDetailBill> detailBills=new ArrayList<>();
-        for (CreateDetailBillResult result:createDetailBillResults){
+        for (SelectedProductResult result:request.getViewStallResults()){
             VDetailBill detailBill=new VDetailBill();
-            BigDecimal price=result.getExport().getOutPrice().divide(BigDecimal.valueOf(result.getAmount()));
+            BigDecimal price=result.getExportSelected().getOutPrice().divide(BigDecimal.valueOf(result.getAmount()));
             sumPrice=sumPrice.add(price);
             detailBill.setPrice(price);
             detailBill.setBillId(bill.getId());
             detailBill.setAmount(result.getAmount());
             detailBill.setCreator(creator);
-            detailBill.setUnitId(result.getUnitId());
+            detailBill.setUnitId(result.getExportSelected().getUnitId());
             detailBill.setStatus(1);
             detailBill.setCreatedDate(new Date());
             detailBill.setImportId(result.getImportId());
             detailBills.add(detailBill);
-            VExport export=this.exportRepo.getById(result.getExport().getExportId());
+            VExport export=this.exportRepo.getById(result.getExportSelected().getExportId());
             export.setOutAmount(export.getOutAmount()+result.getAmount());
             this.exportRepo.save(export);
             VWarehouse warehouse=this.warehouseRepo.getWarehouseByImportId(result.getImportId());
@@ -200,7 +189,7 @@ public class DebitImpl {
             warehouse.setOutAmount(warehouse.getOutAmount()+result.getAmount());
             this.warehouseRepo.save(warehouse);
         }
-        if (request.getPaymentMethod().equals("payment")){
+        if (request.getPaymentMethod().equals("debt")){
             bill.setInPrice(sumPrice);
         }
         bill.setPrice(sumPrice);
@@ -283,16 +272,13 @@ public class DebitImpl {
             response.getStatus().setMessage(MessageUtils.get(language, bindingResult.getAllErrors().get(0).getDefaultMessage()));
             response.getStatus().setStatus(Status.Fail);
         } else {
-            VDebit debit = this.debitRepository.findById(idDebit);
+            VBill debit = this.billRepo.findById(idDebit);
             if (debit == null) {
                 response.getStatus().setMessage(MessageUtils.get(language, "Error 161"));
                 response.getStatus().setStatus(Status.Fail);
             }
-            if (debit.getTotalAmountOwed().doubleValue() < request.getInPrice().doubleValue()) {
-                response.getStatus().setMessage(MessageUtils.get(language, "Error 91"));
-                response.getStatus().setStatus(Status.Fail);
-            } else {
-                List<VPay> pays = this.payRepository.findByDebitId(idDebit);
+              else {
+                List<VPay> pays = this.payRepository.findByBillId(idDebit);
                 DebitObjectPayResponse getPay = this.payRepository.getPay(debit.getId());
                 VPay pay = new VPay();
                 if (pays.size() == 0) {
@@ -300,10 +286,10 @@ public class DebitImpl {
                         response.getStatus().setMessage(MessageUtils.get(language, bindingResult.getAllErrors().get(0).getDefaultMessage()));
                         response.getStatus().setStatus(Status.Fail);
                     }
-                    if (debit.getTotalAmountOwed().doubleValue() < request.getInPrice().doubleValue()) {
+                    if (debit.getTotalPriceDebt().doubleValue() < request.getInPrice().doubleValue()) {
                         response.getStatus().setMessage(MessageUtils.get(language, "Failed"));
                         response.getStatus().setStatus(Status.Fail);
-                    } else if (debit.getTotalAmountOwed().doubleValue() == request.getInPrice().doubleValue()) {
+                    } else if (debit.getTotalPriceDebt().doubleValue() == request.getInPrice().doubleValue()) {
                         pay.setStatus(1);
                         debit.setStatus(1);
                     }
@@ -312,14 +298,14 @@ public class DebitImpl {
                         debit.setStatus(2);
                     }
 
-                    pay.setPrice(BigDecimal.valueOf(debit.getTotalAmountOwed().doubleValue() - request.getInPrice().doubleValue()));
+                    pay.setPrice(BigDecimal.valueOf(debit.getTotalPriceDebt().doubleValue() - request.getInPrice().doubleValue()));
                     pay.setIn_Price(request.getInPrice());
                     pay.setNumberOfPayOuts(1);
                     pay.setActualDateOfPaymentOfDebt(new Date());
                     pay.setCreator(creator);
-                    pay.setDebitId(debit.getId());
+                    pay.setBillId(debit.getId());
                     this.payRepository.save(pay);
-                    this.debitRepository.save(debit);
+                    this.billRepo.save(debit);
 
                     response.getStatus().setMessage(MessageUtils.get(language, "Success"));
                     response.getStatus().setStatus(Status.Success);
@@ -341,11 +327,11 @@ public class DebitImpl {
                         response.getStatus().setMessage(MessageUtils.get(language, "Bạn đã thanh toán đầy đủ 1"));
                         response.getStatus().setStatus(Status.Success);
                     }
-                    if (debit.getTotalAmountOwed().doubleValue() < getPay.getPrice().doubleValue()) {
+                    if (debit.getTotalPriceDebt().doubleValue() < getPay.getPrice().doubleValue()) {
                         response.getStatus().setMessage(MessageUtils.get(language, "Failed"));
                         response.getStatus().setStatus(Status.Fail);
                     }
-                   else if (getPay.getInPrice() == debit.getTotalAmountOwed()) {
+                   else if (getPay.getInPrice() == debit.getTotalPriceDebt()) {
 
                         payNumberOfPayOuts_1.setStatus(1);
                         debit.setStatus(1);
@@ -361,11 +347,11 @@ public class DebitImpl {
                     payNumberOfPayOuts_1.setPrice(BigDecimal.valueOf(getNewDate.getPrice().doubleValue() - request.getInPrice().doubleValue()));
                     payNumberOfPayOuts_1.setNumberOfPayOuts(getNewDate.getNumberOfPayOuts() + 1);
                     payNumberOfPayOuts_1.setActualDateOfPaymentOfDebt(new Date());
-                    payNumberOfPayOuts_1.setDebitId(debit.getId());
+                    payNumberOfPayOuts_1.setBillId(debit.getId());
                     payNumberOfPayOuts_1.setIn_Price(request.getInPrice());
 
                     this.payRepository.save(payNumberOfPayOuts_1);
-                    this.debitRepository.save(debit);
+                    this.billRepo.save(debit);
 
                     response.getStatus().setMessage(MessageUtils.get(language, "Success"));
                     response.getStatus().setStatus(Status.Success);
@@ -431,8 +417,8 @@ public class DebitImpl {
             }
 
         } else {
-            if (!typeFilter.equals("id")  && !typeFilter.equals("fullName") && !typeFilter.equals("totalAmountOwed") &&
-                    !typeFilter.equals("status") && !typeFilter.equals("phoneNumber")&& !typeFilter.equals("debitDate") ) {
+            if (!typeFilter.equals("id")  && !typeFilter.equals("fullName") && !typeFilter.equals("totalPriceDebt") &&
+                    !typeFilter.equals("status") && !typeFilter.equals("phoneNumber")&& !typeFilter.equals("createdDate") ) {
                 response.getStatus().setStatus(Status.Fail);
                 response.getStatus().setMessage(MessageUtils.get(language, "error.invalid.filter"));
             }
@@ -463,84 +449,22 @@ public class DebitImpl {
         return response;
 
     }
-//
-//    public DebitItemsResponse findAll(int idUser, DebitPageRequest request) {
-//        int pageNumber = request.getPageNumber();
-//        int pageSize = request.getPageSize();
-//        String searchText = request.getSearchText();
-//        String typeFilter = request.getFilter().getTypeFilter();
-//        String valueFilter = request.getFilter().getValueFilter();
-//        String language = request.getLanguage();
-//        DebitItemsResponse response = new DebitItemsResponse();
-//        int totalPage = 0;
-//        VUser vUser = this.vUserRepo.findById(idUser);
-//
-//        Page<VBill> findAll = null;
-//        if (typeFilter.equals("none") && valueFilter.equals("none")) {
-//            if (searchText.equals("") || searchText == null) {
-//                Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by("status"));
-////                findAll = this.debitRepository.findByUserId(vUser.getId(), pageable);
-//                totalPage = findAll.getTotalPages();
-//            } else {
-//                Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by("status"));
-////                findAll = this.debitRepository.findByFullNameOrPhoneNumberContainingIgnoreCase(searchText, searchText, pageable);
-//                totalPage = findAll.getTotalPages();
-//            }
-//
-//        } else {
-//            if (!typeFilter.equals("id") && !typeFilter.equals("address") && !typeFilter.equals("fullname") && !typeFilter.equals("creator") &&
-//                    !typeFilter.equals("price") && !typeFilter.equals("debitDate") && !typeFilter.equals("phoneNumber") && !typeFilter.equals("status")) {
-//                response.getStatus().setStatus(Status.Fail);
-//                response.getStatus().setMessage(MessageUtils.get(language, "error.invalid.filter"));
-//            }
-//            Pageable pageable = null;
-//            if (valueFilter.equals("asc")) {
-//                pageable = PageRequest.of(pageNumber, pageSize, Sort.by(typeFilter).ascending());
-//            } else {
-//                pageable = PageRequest.of(pageNumber, pageSize, Sort.by(typeFilter).descending());
-//            }
-//            if (searchText.equals("") || searchText == null) {
-//                findAll = this.debitRepository.findByUserId(vUser.getId(), pageable);
-//                totalPage = findAll.getTotalPages();
-//
-//            } else {
-////                findAll = this.debitRepository.findByFullNameOrPhoneNumberContainingIgnoreCase(searchText, searchText, pageable);
-//                totalPage = findAll.getTotalPages();
-//            }
-//
-//        }
-//        response.setItems(this.convertEntityToResponse(findAll.getContent(), language));
-//        response.setPage(pageNumber);
-//        response.setPageSize(pageSize);
-//        response.setTotalPages(totalPage);
-//        response.setTotalItems((int) findAll.getTotalElements());
-//        response.getStatus().setMessage(MessageUtils.get(language, "Success"));
-//        response.getStatus().setStatus(Status.Success);
-//        return response;
-//
-//    }
 
     public DebitDetailResponse findByIdDebitOfDebitDetail(int idDebit) {
-        VDebit debit = this.debitRepository.findById(idDebit);
+        VBill debit = this.billRepo.findById(idDebit);
         List<GetDetailBill> debitItems = new ArrayList<>();
         DebitDetailResponse response = new DebitDetailResponse();
         if (debit == null) {
             return null;
         } else {
-
-                VUser user = this.vUserRepo.findById(debit.getUserId());
-                VBill vBill = this.billRepo.findById(debit.getBillId());
-
                 response.setFullName(debit.getFullName());
-                response.setTotalAmountOwed(debit.getTotalAmountOwed());
-                response.setBillId(debit.getBillId());
-                response.setAddress(user.getAddress());
+                response.setTotalAmountOwed(debit.getTotalPriceDebt());
+                response.setBillId(debit.getId());
+                response.setAddress(debit.getAddress());
                 response.setPhoneNumber(debit.getPhoneNumber());
-                response.setTypeOfDebtor(debit.getTypeOfDebtor());
                 response.setIdDebit(debit.getId());
-                response.setDescription(debit.getDescription());
-                response.setTotal(vBill.getPrice());
-                response.setCreateDate(vBill.getCreatedDate());
+                response.setDescription(debit.getMessage());
+                response.setCreateDate(debit.getCreatedDate());
         }
         return response;
     }
@@ -577,7 +501,7 @@ public class DebitImpl {
             items.setTotal(debit.getPrice());
             items.setStatusCode(ProductUtils.convertStatus(debit.getStatus(), language));
 
-            List<VPay> getAllPay = this.payRepository.findByDebitId(debit.getId());
+            List<VPay> getAllPay = this.payRepository.findByBillId(debit.getId());
             if(getAllPay!=null){
                 for (VPay vPay: getAllPay){
                     PayItems itemsPay = new PayItems();
@@ -585,7 +509,7 @@ public class DebitImpl {
                     itemsPay.setNumberOfPayOuts(vPay.getNumberOfPayOuts());
                     itemsPay.setId(vPay.getId());
                     itemsPay.setPrice(vPay.getPrice());
-                    itemsPay.setIdDebt(vPay.getDebitId());
+                    itemsPay.setIdDebt(vPay.getBillId());
                     itemsPay.setDatePayment(vPay.getActualDateOfPaymentOfDebt());
                     itemsPay.setInPrice(vPay.getIn_Price());
                     itemsPay.setStatusCode(ProductUtils.convertStatus(debit.getStatus(), language));
