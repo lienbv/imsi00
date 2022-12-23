@@ -81,6 +81,7 @@ public class CloseToExpiredServiceImpl implements CloseToExpiredService {
             item.setNameProduct(vProductRepo.getProduct(vWarehouseRepo.getById(vImport.getWarehouseId()).getProductId()).getProductName());
             item.setInCome(vImport.getInMoney());
             item.setCreator(vImport.getCreator());
+            item.setSupplier(vImport.getSupplierName());
 //            item.setAmount(vImport.getInAmount()+"");
             closeToExpirationItems.add(item);
         }
