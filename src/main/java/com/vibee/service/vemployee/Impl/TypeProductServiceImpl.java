@@ -1,21 +1,26 @@
 package com.vibee.service.vemployee.Impl;
 
+import com.vibee.config.redis.RedisAdapter;
 import com.vibee.entity.VTypeProduct;
 import com.vibee.model.Status;
 import com.vibee.model.request.category.*;
 import com.vibee.model.response.BaseResponse;
+import com.vibee.model.response.auth.LoginResponse;
 import com.vibee.model.response.category.*;
 import com.vibee.repo.VProductRepo;
 import com.vibee.repo.VTypeProductRepo;
 import com.vibee.service.vemployee.ITypeProductService;
+import com.vibee.utils.CommonUtil;
 import com.vibee.utils.MessageUtils;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections.map.HashedMap;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 
 @Service
@@ -24,10 +29,15 @@ public class TypeProductServiceImpl implements ITypeProductService {
 
     private final VTypeProductRepo typeProductRepo;
     private final VProductRepo productRepo;
-
-    public TypeProductServiceImpl(VTypeProductRepo repo, VProductRepo productRepo) {
+    private final HttpServletRequest servletRequest;
+    private static final String TOKEN_PREFIX="Bearer ";
+    @Autowired
+    private RedisAdapter redisAdapter;
+    public TypeProductServiceImpl(VTypeProductRepo repo, VProductRepo productRepo,
+                                  HttpServletRequest servletRequest) {
         this.typeProductRepo = repo;
         this.productRepo = productRepo;
+        this.servletRequest = servletRequest;
     }
     @Override
     public TypeProductItemsResponse getAll() {
@@ -437,7 +447,7 @@ public class TypeProductServiceImpl implements ITypeProductService {
 
         VTypeProduct typeProduct = new VTypeProduct();
         typeProduct.setName(name);
-        typeProduct.setCreator("lienpt");
+        typeProduct.setCreator(this.getUserName());
         typeProduct.setCreatedDate(new Date());
         typeProduct.setStatus(1);
         typeProduct.setDescription(decription);
@@ -449,5 +459,19 @@ public class TypeProductServiceImpl implements ITypeProductService {
         response.getStatus().setStatus(Status.Success);
         response.getStatus().setMessage(MessageUtils.get(language, "msg.typeProduct.success"));
         return response;
+    }
+
+    private String getUserName(){
+        String token=servletRequest.getHeader("Authorization");
+        if (CommonUtil.isEmptyOrNull(token)) {
+            return null;
+        }
+        String key = "expireToken::" + token.substring(TOKEN_PREFIX.length()).hashCode();
+        if (Boolean.FALSE.equals(this.redisAdapter.exists(key))) {
+            return null;
+        }
+        LoginResponse loginResponse=this.redisAdapter.get(key, LoginResponse.class);
+        String username = loginResponse.getUsername();
+        return username;
     }
 }
