@@ -48,7 +48,7 @@ public class ShowProductServiceImpl implements ShowListProductImp {
         List<ShowProductItems> items = new ArrayList<>();
         ShowListProduct response = new ShowListProduct();
         for (ShowProductStaff item: showProduct){
-//            List<SelectExportStallObject> exportStalls=this.vExportRepo.getExportsId(item.getImportID());
+            List<SelectExportStallObject> exportStalls=this.vExportRepo.getExportsId(item.getImportID());
             ShowProductItems req = new ShowProductItems();
             req.setId(item.getId());
             req.setExpired(item.getExpired());
