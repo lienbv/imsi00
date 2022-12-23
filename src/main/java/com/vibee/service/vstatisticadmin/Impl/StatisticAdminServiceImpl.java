@@ -181,6 +181,8 @@ public class StatisticAdminServiceImpl implements StatisticAdminService {
         StatisticAdminResponse response = new StatisticAdminResponse();
         log.info("AdminStatisticResponse :: Start");
 
+//        System.out.println(startDate+"-"+endDate);
+
         Calendar sDate = Calendar.getInstance();
         sDate.setTime(stringToDate(startDate));
         sDate.set(Calendar.HOUR_OF_DAY, 0);
@@ -223,7 +225,7 @@ public class StatisticAdminServiceImpl implements StatisticAdminService {
                 statisticBill.setSales(sales);
                 statisticBill.setAmount(quantity);
                 sDateBill.roll(Calendar.DATE, 1);
-                statisticBill.setDate(sDateBill.getTime());
+                statisticBill.setDate(Utiliies.formatDate(sDateBill.getTime()));
                 statisticOfDay.add(statisticBill);
                 sales = BigDecimal.ZERO;
                 quantity = 0;
@@ -245,8 +247,8 @@ public class StatisticAdminServiceImpl implements StatisticAdminService {
             }
             statisticBill.setSales(sales);
             statisticBill.setAmount(quantity);
-            sDateBill.roll(Calendar.DATE, 1);
-            statisticBill.setDate(sDateBill.getTime());
+//            sDateBill.roll(Calendar.DATE, 1);
+            statisticBill.setDate(Utiliies.formatDate(sDateBill.getTime()));
             statisticOfDay.add(statisticBill);
         }
 
