@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 
 @RestController
-@RequestMapping("/vibee/api/v1/auth")
+@RequestMapping("${vibee.config}/")
 @CrossOrigin(origins = "*")
 public class TypeProductController {
     private final ITypeProductService typeProductService;
@@ -64,9 +64,7 @@ public class TypeProductController {
 
     @GetMapping (value = "editType/{id}")
     public EditTypeProductResponse edit(@PathVariable(name = "id") int id) {
-        DeleteTypeProductRequest request = new DeleteTypeProductRequest();
-        request.setId(id);
-        return typeProductService.edit(request);
+        return typeProductService.edit(id);
     }
     @GetMapping(value = "getDetailParentById/{id}")
     public SelectionTypeProductItems getDetailParentById(@PathVariable(name = "id") int id){

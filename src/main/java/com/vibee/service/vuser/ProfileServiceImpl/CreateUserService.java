@@ -281,12 +281,12 @@ public class CreateUserService implements IUserService {
             response.getStatus().setStatus(Status.Fail);
             return response;
         }
-        if (vUser.getStatus() == 2 || vUser.getStatus() == 2) {
+        if (vUser.getStatus() == 1 || vUser.getStatus() == 1) {
             response.getStatus().setMessage(MessageUtils.get(language, "msg.delete.failse"));
             response.getStatus().setStatus(Status.Fail);
             return response;
         }
-        vUser.setStatus(2);
+        vUser.setStatus(1);
         this.userRepo.save(vUser);
         response.getStatus().setMessage(MessageUtils.get(language, "msg.delete.success"));
         response.getStatus().setStatus(Status.Success);

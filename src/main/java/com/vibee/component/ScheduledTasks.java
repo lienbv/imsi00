@@ -61,51 +61,5 @@ public class ScheduledTasks {
         }
         log.info("updateStatusDebtAfterFourteenDay :: End");
     }
-//    public String sendMessage(MessageModel messageRequest) {
-//        try {
-//            Twilio.init(accountSID, accountAuthToken);
-//
-//            String textOTP = messageRequest.setToken(String.valueOf(value));
-//
-//            String mobileNumber = messageRequest.getMobileNumber();
-//
-//            UserBO userBO = userService.findByPhoneNumber(mobileNumber);
-//            if (userBO == null) {
-//                return "Phone number don't exit";
-//            }
-//
-//
-//
-//
-//
-//
-//            Status status = create.getStatus();
-//            userBO.setOTP(textOTP);
-//            userService.saveOTP(messageRequest,value);
-//
-//            logger.info("Message Send Succesfully to the number " + mobileNumber);
-//
-//            return "Message Send Succesfully";
-//        } catch (Exception e) {
-//            logger.error("Exception in sendMessage Method " + e);
-//            return "Message Send Fail";
-//        }
-//
-//    }
-//    public boolean verifyOTP(String OTP) {
-//        UserBO user = userDAO.findByOTP(OTP);
-//
-//        if (user == null || !OTP.equals(user.getOTP())) {
-//            return false;
-//        } else {
-////            user.setOTP(null);
-//            userDAO.save(user);
-//
-//            return true;
-//        }
-
-//    }
-
-
 
 }

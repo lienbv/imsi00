@@ -13,6 +13,7 @@ import com.vibee.model.response.v_import.ImportWarehouseItems;
 import com.vibee.model.response.v_import.ImportWarehouseItemsResponse;
 import com.vibee.model.response.v_import.ListImportInWarehouseRedis;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public interface IImportSuppierService {
@@ -28,4 +29,5 @@ public interface IImportSuppierService {
     List<UnitItem> getAllSelectUnitByIdParent(int parent, String language);
     ListCategoryImportItems getCategory();
     InfoCreateProductResponse info(String request);
+    List<UnitItem> getAllPrice(int id, BigDecimal inPrice,int amount, String language);
 }
