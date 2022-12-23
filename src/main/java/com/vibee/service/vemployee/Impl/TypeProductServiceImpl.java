@@ -125,10 +125,8 @@ public class TypeProductServiceImpl implements ITypeProductService {
             mmdChild.getData().setCreator(p.getCreator());
             mmdChild.getData().setId(String.valueOf(p.getId()));
             mmdChild.getData().setParentId(String.valueOf(p.getParentId()));
-//            String amountProduct = this.productRepo.amountProductByType(p.getId());
-//            String amountProduct1 = this.productRepo.amountProductByType1(p.getId());
-            String amountProduct ="10";
-            String amountProduct1 = "20";
+            String amountProduct = this.productRepo.amountProductByType(p.getId());
+            String amountProduct1 = this.productRepo.amountProductByType1(p.getId());
             if (p.getParentId() == 0) {
                 mmdChild.getData().setAmountProduct(amountProduct1);
 
@@ -190,7 +188,6 @@ public class TypeProductServiceImpl implements ITypeProductService {
                 list = this.typeProductRepo.searchNameByPageAndFilter(listByIdParent);
                 listByPage = this.typeProductRepo.listId(searchText + "%");
                 totalPage = (int) Math.ceil((double) listByPage.size() / pageSize);
-                System.out.println(listByIdParent.size() + " 175 " + list.size() + " 177 " + listByPage.size() + "__" + totalPage);
 
             }
 
@@ -211,9 +208,9 @@ public class TypeProductServiceImpl implements ITypeProductService {
                 totalPage = (int) Math.ceil((double) listByPage.size() / pageSize);
 
             } else {
-                listByIdParent = this.typeProductRepo.listIdParent(searchText + "%", pageable);
+                listByIdParent = this.typeProductRepo.listIdParent("%"+searchText + "%", pageable);
                 list = this.typeProductRepo.searchNameByPageAndFilter(listByIdParent);
-                listByPage = this.typeProductRepo.listId(searchText + "%");
+                listByPage = this.typeProductRepo.listId("%"+searchText + "%");
                 totalPage = (int) Math.ceil((double) listByPage.size() / pageSize);
             }
         }
@@ -239,11 +236,6 @@ public class TypeProductServiceImpl implements ITypeProductService {
         typeProduct.setCreatedDate(new Date());
         typeProduct.setStatus(1);
         typeProduct.setDescription(decription);
-        if (parentId == null) {
-            typeProduct.setParentId(0);
-        } else {
-            typeProduct.setParentId(Integer.parseInt(parentId));
-        }
         this.typeProductRepo.save(typeProduct);
         response.getStatus().setStatus(Status.Success);
         response.getStatus().setMessage(MessageUtils.get(language, "msg.typeProduct.success"));
@@ -357,7 +349,6 @@ public class TypeProductServiceImpl implements ITypeProductService {
     public BaseResponse update(UpdateTypeProductRequest request) {
         BaseResponse response = new BaseResponse();
         int id = request.getId();
-        ;
         String name = request.getName();
         String desrestion = request.getDescription();
         int parentId = request.getParentId();
@@ -391,15 +382,12 @@ public class TypeProductServiceImpl implements ITypeProductService {
 
     }
     @Override
-    public EditTypeProductResponse edit(DeleteTypeProductRequest request) {
+    public EditTypeProductResponse edit(int id) {
         EditTypeProductResponse response = new EditTypeProductResponse();
-        int id = request.getId();
-        String language = request.getLanguage();
 
         VTypeProduct typeProduct = this.typeProductRepo.findById(id);
         if (typeProduct == null) {
             response.getStatus().setStatus(Status.Fail);
-            response.getStatus().setMessage(MessageUtils.get(language, "msg.typeProducId.notExits"));
         } else {
             if (typeProduct.getStatus() == 1) {
                 response.setId(id);
@@ -407,10 +395,9 @@ public class TypeProductServiceImpl implements ITypeProductService {
                 response.setDescription(typeProduct.getDescription());
                 response.setName(typeProduct.getName());
                 response.getStatus().setStatus(Status.Success);
-                response.getStatus().setMessage(MessageUtils.get(language, "msg.typeProduct.success"));
+
             } else {
                 response.getStatus().setStatus(Status.Fail);
-                response.getStatus().setMessage(MessageUtils.get(language, "msg.typeProduct.fail"));
             }
         }
         return response;
@@ -420,9 +407,9 @@ public class TypeProductServiceImpl implements ITypeProductService {
     public String convertStatus(int status, String language) {
         switch (status) {
             case 1:
-                return "Active";
+                return "Hoạt động ";
             case 2:
-                return "Inactive";
+                return "Không hoạt động";
             default:
                 return "không biết";
         }
@@ -441,7 +428,7 @@ public class TypeProductServiceImpl implements ITypeProductService {
         BaseResponse response = new BaseResponse();
         String name = request.getName();
         String decription = request.getDescription();
-        String id = request.getId();
+        int id = request.getId();
 
         String language = request.getLanguage();
 
@@ -451,10 +438,7 @@ public class TypeProductServiceImpl implements ITypeProductService {
         typeProduct.setCreatedDate(new Date());
         typeProduct.setStatus(1);
         typeProduct.setDescription(decription);
-        if(id==null){
-            typeProduct.setParentId(0);
-        }
-        typeProduct.setParentId(Integer.parseInt(id));
+        typeProduct.setParentId(id);
         this.typeProductRepo.save(typeProduct);
         response.getStatus().setStatus(Status.Success);
         response.getStatus().setMessage(MessageUtils.get(language, "msg.typeProduct.success"));

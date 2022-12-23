@@ -14,41 +14,40 @@ import java.util.Map;
 @Log4j2
 @Repository
 public class ImportRedisRepo {
-//    private  HashOperations hashOperations;
-    @Autowired
-    private RedisTemplate redisTemplate;
+    private  HashOperations hashOperations;
 
-//    public ImportRedisRepo(){
-//        this.hashOperations = redisTemplate.opsForHash();
-//    }
+
+    public ImportRedisRepo(RedisTemplate redisTemplate){
+        this.hashOperations = redisTemplate.opsForHash();
+    }
 
     public void create(String key, ImportInWarehouseRedis redis) {
-        this.redisTemplate.opsForHash().put(key, redis.getId(), redis);
+        this.hashOperations .put(key, redis.getId(), redis);
     }
 
     public ImportInWarehouseRedis get(String key, String redisId) {
-        return (ImportInWarehouseRedis) this.redisTemplate.opsForHash().get(key, redisId);
+        return (ImportInWarehouseRedis)  this.hashOperations.get(key, redisId);
     }
 
     public Map<String ,ImportInWarehouseRedis> getAll(int key){
-        return  this.redisTemplate.opsForHash().entries(key);
+        return  this.hashOperations.entries(key);
     }
     public List<ImportInWarehouseRedis> getAllList(String key){
-        return  this.redisTemplate.opsForHash().values(key);
+        return  this.hashOperations.values(key);
     }
 
 
 
-    public void update(String key, String redisId, ImportInWarehouseRedis redis) {
-        this.redisTemplate.opsForHash().put(key,redisId, redis);
-        log.info(String.format("User with ID %s updated", redis.getId()));
+    public void update(String key, String redisKey, ImportInWarehouseRedis redis) {
+        this.hashOperations.put(key,redisKey, redis);
+        log.info(String.format("User with ID %s updated", redisKey));
     }
 
     public void delete(String key, String redisId) {
-        this.redisTemplate.opsForHash().delete(key, redisId);
+        this.hashOperations.delete(key, redisId);
         log.info(String.format("User with ID %s deleted", redisId));
     }
     public void deleteAll(String key) {
-      this.redisTemplate.delete(key);
+        this.hashOperations.delete(key);
     }
 }

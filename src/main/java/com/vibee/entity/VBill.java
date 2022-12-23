@@ -39,4 +39,10 @@ public class VBill implements Serializable{
 	private String paymentMethods;
 	@Column(name="IN_PRICE")
 	private BigDecimal inPrice;
+	@Column(name = "PHONE_NUMBER")
+	private String phoneNumber;
+	@Column(name = "FULL_NAME")
+	private String fullName;
+	@Column(name = "ADDRESS")
+	private String address;
 }
