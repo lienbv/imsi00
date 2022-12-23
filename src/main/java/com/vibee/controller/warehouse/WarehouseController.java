@@ -1,9 +1,11 @@
 package com.vibee.controller.warehouse;
 
+import com.vibee.model.item.GetExportItems;
 import com.vibee.model.request.warehouse.GetWarehouseRequest;
 import com.vibee.model.response.BaseResponse;
 import com.vibee.model.response.product.CreateProductResponse;
 import com.vibee.model.response.v_import.ImportWarehouseItemsResponse;
+import com.vibee.model.response.warehouse.DetailWarehouseResponse;
 import com.vibee.model.response.warehouse.GetWarehousesResponse;
 import com.vibee.model.response.warehouse.ImportWarehouseResponse;
 import com.vibee.service.vimport.GetWarehouseService;
@@ -61,5 +63,15 @@ public class WarehouseController {
     @PostMapping("/save-import-products-to-redis")
     public BaseResponse saveImportProductsToRedis(@RequestParam("language") String language, @RequestBody ImportWarehouseResponse request) {
         return this.createWarehouseService.saveRedis(request,language);
+    }
+
+    @GetMapping("detail/{importId}")
+    public DetailWarehouseResponse getDetail(@PathVariable(name = "importId") int importId, @RequestParam(name = "language") String language) {
+        return this.getWarehouseService.getDetailWarehouse(importId,language);
+    }
+
+    @PostMapping("update")
+    public BaseResponse update(@RequestParam(name = "language") String language, @RequestBody GetExportItems request) {
+        return this.getWarehouseService.updateWarehouse(language,request);
     }
 }
