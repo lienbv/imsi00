@@ -1,14 +1,13 @@
 package com.vibee.model.request.v_import;
 
 import com.vibee.model.item.UnitItem;
-import com.vibee.model.request.BaseRequest;
 import lombok.Data;
 
 import java.math.BigDecimal;
 import java.util.List;
+
 @Data
-public class ImportInWarehouse extends BaseRequest {
-    private String id;
+public class ImportWarehouseUpdateRequest {
     private String nameProd;
     private String unit;
     private String description;

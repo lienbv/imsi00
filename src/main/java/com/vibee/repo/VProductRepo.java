@@ -1,9 +1,7 @@
 package com.vibee.repo;
 
 import com.vibee.entity.VProduct;
-import com.vibee.model.ObjectResponse.GetProductObject;
-import com.vibee.model.ObjectResponse.ImportInWarehouseObject;
-import com.vibee.model.ObjectResponse.ProductStallObject;
+import com.vibee.model.ObjectResponse.*;
 import com.vibee.model.response.product.IgetHomeSellOnline;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -82,10 +80,10 @@ public interface VProductRepo extends JpaSpecificationExecutor<VProduct>,JpaRepo
     @Query("SELECT CASE WHEN COUNT(p)>0 THEN TRUE ELSE FALSE END FROM product p WHERE p.barCode= :barcode")
     Boolean existsByBarcode(@Param("barcode") String barcode);
 
-    @Query("SELECT SUM(p.status) FROM product  p WHERE p.status = 3")
+    @Query("SELECT count (p.status) FROM product  p WHERE p.status = 2")
     public Optional<Long> sumReportBlockProduct();
 
-    @Query("SELECT SUM(p.status) FROM product p WHERE p.status = 2")
+    @Query("SELECT count(p.status) FROM product p WHERE p.status = 3")
     public Optional<Long> sumReportSoldOutProduct();
 
     public List<VProduct> findTop6ByOrderByCreatedDateDesc();
@@ -130,4 +128,13 @@ public interface VProductRepo extends JpaSpecificationExecutor<VProduct>,JpaRepo
             "where t.PARENT_ID=?1 \n" +
             "having sum(w.IN_AMOUNT) - sum(w.OUT_AMOUNT) >0" , nativeQuery = true)
     String amountProductByType1(int idType);
+
+    @Query(value = "select p.ID as id, p.NAME_PRODUCT as productName, p.BAR_CODE as barcode, p.DESCRIPTION as description, p.NAME_SUPPLIER as supplierName,\n" +
+            "i.ID as importID, i.EXPIRED_DATE as expired, p.FILE_ID as files, i.FILE_ID as fileImport\n" +
+            " from vibee.v_product p join vibee.v_warehouse w on p.ID = w.PRODUCT_ID\n" +
+            "join vibee.v_import i on i.WAREHOUSE_ID = w.ID \n" +
+            "where p.STATUS =1\n" +
+            "group by importID\n" +
+            "order by i.EXPIRED_DATE asc  ", nativeQuery = true)
+    List<ShowProductStaff> showProduct();
 }

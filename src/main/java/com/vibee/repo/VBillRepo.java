@@ -40,4 +40,6 @@ public interface VBillRepo extends JpaSpecificationExecutor<VBill>, JpaRepositor
 
     @Query(value = "select * from v_bill order by CREATED_DATE desc limit 10", nativeQuery = true)
     List<VBill> getTopTen();
+    Page<VBill> findByStatus(int status, Pageable pageable);
+    Page<VBill> findByFullNameLikeOrPhoneNumberLikeAndStatus(String fullName, String phone, int status, Pageable pageable);
 }

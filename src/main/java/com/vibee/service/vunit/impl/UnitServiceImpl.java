@@ -1,6 +1,8 @@
 package com.vibee.service.vunit.impl;
 
+import com.vibee.entity.VExport;
 import com.vibee.entity.VUnit;
+import com.vibee.entity.VWarehouse;
 import com.vibee.model.Status;
 import com.vibee.model.item.InfoUnitItem;
 import com.vibee.model.item.UnitItemEdit;
@@ -11,6 +13,7 @@ import com.vibee.model.response.unit.GetUnitChildReponse;
 import com.vibee.model.result.ExportResult;
 import com.vibee.model.result.GetUnitResult;
 import com.vibee.repo.VUnitRepo;
+import com.vibee.repo.VWarehouseRepo;
 import com.vibee.service.vunit.UnitService;
 import com.vibee.utils.MessageUtils;
 import com.vibee.utils.ProductUtils;
@@ -37,6 +40,9 @@ public class UnitServiceImpl implements UnitService {
     public UnitServiceImpl(VUnitRepo unitRepo){
         this.unitRepo=unitRepo;
     }
+
+    @Autowired
+    private VWarehouseRepo vWarehouseRepo;
 
     @Override
     public GetUnitChildReponse getUnitChild(int paretnId, String language) {
@@ -122,9 +128,45 @@ public class UnitServiceImpl implements UnitService {
         return unitsItem;
     }
 
+    //parent > 0 , child = 0 thêm nhánh con
+    //parent = 0, child > 0 thêm cha
     @Override
     public VUnit save(UnitRequest request) {
         log.info("UnitService-save :: Start");
+        List<VUnit> unitsOld = new ArrayList<>();
+
+        int valueOld = 0;
+        if (request.getChildId() == 0 && request.getParentId() > 0) {
+            VUnit unitParent = unitRepo.getUnitById(request.getParentId());
+            if (unitParent != null) {
+                unitsOld = unitRepo.getChildUnitASCByParentId(request.getParentId());
+                if (unitsOld.size() > 0) {
+                    List<VWarehouse> warehouses = vWarehouseRepo.getVWarehouseByUnitId(unitsOld.get(unitsOld.size()-1).getId());
+                    if (warehouses.size() > 0) {
+                        if (unitsOld.size() > 1) {
+                            int amountOldChild = unitsOld.get(unitsOld.size()-1).getAmount();
+                            int amountOldParent = unitsOld.get(unitsOld.size()-2).getAmount();
+                            valueOld = amountOldChild/amountOldParent;
+                        } else if (unitsOld.size() > 0) {
+                            int amountOldChild = unitsOld.get(unitsOld.size()-1).getAmount();
+                            int amountOldParent = unitsOld.get(0).getAmount();
+                            valueOld = amountOldChild/amountOldParent;
+                        } else {
+                            valueOld = unitParent.getAmount();
+                        }
+                    } else {
+                        unitsOld = new ArrayList<>();
+                    }
+                } else {
+                    List<VWarehouse> warehouses = vWarehouseRepo.getVWarehouseByUnitId(unitParent.getId());
+                    if (warehouses.size() > 0) {
+                        unitsOld.add(unitParent);
+                    } else {
+                        unitsOld = new ArrayList<>();
+                    }
+                }
+            }
+        }
         VUnit unit = new VUnit();
         unit.setUnitName(request.getUnitName());
         unit.setAmount(request.getAmount());
@@ -146,6 +188,36 @@ public class UnitServiceImpl implements UnitService {
                 unitRepo.save(childUnit);
             }
         }
+
+        if (!unitsOld.isEmpty()) {
+            List<VUnit> unitsNew = unitRepo.getChildUnitASCByParentId(request.getParentId());
+            if (unitsOld.size() != 1) {
+                if (unitsNew.get(unitsNew.size()-1).getId() != unitsOld.get(unitsOld.size()-1).getId()) {
+                    List<VWarehouse> warehouses = vWarehouseRepo.getVWarehouseByUnitId(unitsOld.get(unitsOld.size()-1).getId());
+                    VUnit unitNewChild = unitsNew.get(unitsNew.size()-1);
+                    VUnit unitNewParent = unitsNew.get(unitsNew.size()-2);
+                    int amount = unitNewChild.getAmount()/unitNewParent.getAmount();
+                    for (VWarehouse warehouse : warehouses) {
+                        warehouse.setUnitId(unitNewChild.getId());
+                        warehouse.setInAmount(warehouse.getInAmount()*amount);
+                        warehouse.setOutAmount(warehouse.getOutAmount()*amount);
+                        vWarehouseRepo.save(warehouse);
+                    }
+                }
+            } else {
+                List<VWarehouse> warehouses = vWarehouseRepo.getVWarehouseByUnitId(unitsOld.get(unitsOld.size()-1).getId());
+                VUnit unitNewChild = unitsNew.get(unitsNew.size()-1);
+                VUnit unitNewParent = unitsOld.get(0);
+                int amount = unitNewChild.getAmount()/unitNewParent.getAmount();
+                for (VWarehouse warehouse : warehouses) {
+                    warehouse.setUnitId(unitNewChild.getId());
+                    warehouse.setInAmount(warehouse.getInAmount()*amount);
+                    warehouse.setOutAmount(warehouse.getOutAmount()*amount);
+                    vWarehouseRepo.save(warehouse);
+                }
+            }
+        }
+
         log.info("UnitService-save :: End");
         return unit;
     }
@@ -154,6 +226,42 @@ public class UnitServiceImpl implements UnitService {
     public VUnit update(UnitRequest request) {
         log.info("UnitService-update :: Start");
         VUnit unitOld = unitRepo.findById(request.getId());
+        List<VUnit> unitsOld = new ArrayList<>();
+        int valueOld = 0;
+        int amountOldChild = 0;
+        int amountOldParent = 0;
+//        if (request.getChildId() == 0 && request.getParentId() > 0) {
+        VUnit unitParent = unitRepo.getUnitById(unitOld.getParentId());
+        if (unitParent != null) {
+            unitsOld = unitRepo.getChildUnitASCByParentId(unitOld.getParentId());
+            if (unitsOld.size() > 0) {
+                List<VWarehouse> warehouses = vWarehouseRepo.getVWarehouseByUnitId(unitsOld.get(unitsOld.size()-1).getId());
+                if (warehouses.size() > 0) {
+                    if (unitsOld.size() > 1) {
+                        amountOldChild = unitsOld.get(unitsOld.size()-1).getAmount();
+                        amountOldParent = unitsOld.get(unitsOld.size()-2).getAmount();
+                        valueOld = amountOldChild/amountOldParent;
+                    } else if (unitsOld.size() > 0) {
+                        amountOldChild = unitsOld.get(unitsOld.size()-1).getAmount();
+                        amountOldParent = unitsOld.get(0).getAmount();
+                        valueOld = amountOldChild/amountOldParent;
+                    } else {
+                        valueOld = unitParent.getAmount();
+                    }
+                } else {
+                    unitsOld = null;
+                }
+            }  else {
+                List<VWarehouse> warehouses = vWarehouseRepo.getVWarehouseByUnitId(unitParent.getId());
+                if (warehouses.size() > 0) {
+                    unitsOld.add(unitParent);
+                } else {
+                    unitsOld = new ArrayList<>();
+                }
+            }
+        }
+//        }
+
         VUnit unit = new VUnit();
         unit.setId(request.getId());
         unit.setUnitName(request.getUnitName());
@@ -163,8 +271,49 @@ public class UnitServiceImpl implements UnitService {
         unit.setCreatedDate(new Date());
         unit.setStatus(1);
         //unit.setCreator();
-
         VUnit save = unitRepo.save(unit);
+
+        if (unitsOld != null) {
+            List<VUnit> unitsNew = unitRepo.getChildUnitASCByParentId(unitOld.getParentId());
+            if (unitsOld.size() != 1) {
+                if (unitsNew.get(unitsNew.size()-1).getId() != unitsOld.get(unitsOld.size()-1).getId()) {
+                    List<VWarehouse> warehouses = vWarehouseRepo.getVWarehouseByUnitId(unitsOld.get(unitsOld.size()-1).getId());
+                    VUnit unitNewChild = unitsNew.get(unitsNew.size()-1);
+                    VUnit unitNewParent = unitsNew.get(unitsNew.size()-2);
+                    int amount = unitNewChild.getAmount()/unitNewParent.getAmount();
+                    for (VWarehouse warehouse : warehouses) {
+                        warehouse.setUnitId(unitNewChild.getId());
+                        warehouse.setInAmount(warehouse.getInAmount()*amount);
+                        warehouse.setOutAmount(warehouse.getOutAmount()*amount);
+                        vWarehouseRepo.save(warehouse);
+                    }
+                } else if (unitsNew.get(unitsNew.size()-1).getId() == unitsOld.get(unitsOld.size()-1).getId() && unitsNew.get(unitsNew.size()-1).getAmount() != amountOldChild) {
+                    List<VWarehouse> warehouses = vWarehouseRepo.getVWarehouseByUnitId(unitsOld.get(unitsOld.size()-1).getId());
+                    VUnit unitNewChild = unitsNew.get(unitsNew.size()-1);
+                    VUnit unitNewParent = unitsNew.get(unitsNew.size()-2);
+                    int amount = unitNewChild.getAmount()/unitNewParent.getAmount();
+                    for (VWarehouse warehouse : warehouses) {
+                        warehouse.setUnitId(unitNewChild.getId());
+                        warehouse.setInAmount(warehouse.getInAmount()*amount);
+                        warehouse.setOutAmount(warehouse.getOutAmount()*amount);
+                        vWarehouseRepo.save(warehouse);
+                    }
+                }
+            }
+//            else {
+//                List<VWarehouse> warehouses = vWarehouseRepo.getVWarehouseByUnitId(save.getId());
+//                VUnit unitNewChild = unitsNew.get(unitsNew.size()-1);
+
+//                VUnit unitNewParent = unitsOld.get(0);
+//                int amount = unitNewChild.getAmount()/unitNewParent.getAmount();
+//                for (VWarehouse warehouse : warehouses) {
+//                    warehouse.setUnitId(unitNewChild.getId());
+//                    warehouse.setInAmount(warehouse.getInAmount()*save.getAmount());
+//                    vWarehouseRepo.save(warehouse);
+//                }
+
+//            }
+        }
         log.info("UnitService-update :: End");
         return unit;
     }
@@ -173,10 +322,24 @@ public class UnitServiceImpl implements UnitService {
     public BaseResponse delete(int id) {
         log.info("UnitService-delete :: Start");
         BaseResponse response = new BaseResponse();
-        VUnit unit = unitRepo.findById(id);
+        VUnit unitOld = unitRepo.findById(id);
+        List<VUnit> unitsOld = unitRepo.getChildUnitASCByParentId(unitOld.getParentId());
+        int idUnitOld = unitsOld.get(unitsOld.size()-1).getId();
+        int amountUnitOld = unitsOld.get(unitsOld.size()-1).getAmount();
 //        unitRepo.delete(unit);
-        unit.setStatus(2);
-        unitRepo.save(unit);
+        unitOld.setStatus(2);
+        unitRepo.save(unitOld);
+
+        List<VUnit> unitsNew = unitRepo.getChildUnitASCByParentId(unitOld.getParentId());
+        if (unitsNew.get(unitsNew.size()-1).getId() != idUnitOld) {
+            List<VWarehouse> warehouses = vWarehouseRepo.getVWarehouseByUnitId(idUnitOld);
+            for (VWarehouse warehouse : warehouses) {
+                warehouse.setUnitId(unitsNew.get(unitsNew.size()-1).getId());
+                warehouse.setInAmount(warehouse.getInAmount()/(amountUnitOld/unitsNew.get(unitsNew.size()-1).getAmount()));
+                warehouse.setOutAmount(warehouse.getOutAmount()/(amountUnitOld/unitsNew.get(unitsNew.size()-1).getAmount()));
+                vWarehouseRepo.save(warehouse);
+            }
+        }
         response.getStatus().setMessage(MessageUtils.get("","msg.success"));
         response.getStatus().setStatus(Status.Success);
         log.info("UnitService-delete :: End");
@@ -262,13 +425,13 @@ public class UnitServiceImpl implements UnitService {
             return response;
         }
         for (VUnit u : units) {
-                if (u.getId()==0 || u.getId()==unitId){
-                    ExportResult result = new ExportResult();
-                    result.setUnitId(u.getId());
-                    result.setUnitName(u.getUnitName());
-                    result.setAmount(u.getAmount());
-                    results.add(result);
-            }else if (u.getAmount() > unit.getAmount()) {
+            if (u.getId()==0 || u.getId()==unitId){
+                ExportResult result = new ExportResult();
+                result.setUnitId(u.getId());
+                result.setUnitName(u.getUnitName());
+                result.setAmount(u.getAmount());
+                results.add(result);
+            } else if (u.getAmount() > unit.getAmount()) {
                 ExportResult result = new ExportResult();
                 result.setUnitId(u.getId());
                 result.setUnitName(u.getUnitName());

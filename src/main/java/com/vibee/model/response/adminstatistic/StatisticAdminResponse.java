@@ -33,6 +33,9 @@ public class StatisticAdminResponse extends BaseResponse {
     private int sumOrderShipping;
     private int sumOrderCancel;
 
+    private int totalCloseToExpired;
+    private int totalExpired;
+
     public StatisticAdminResponse() {
         super();
     }

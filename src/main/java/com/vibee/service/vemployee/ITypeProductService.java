@@ -16,7 +16,7 @@ public interface ITypeProductService {
     List<SelectionTypeProductItems> getAllSelected();
     BaseResponse delete(DeleteTypeProductRequest request);
     BaseResponse update(UpdateTypeProductRequest request);
-    EditTypeProductResponse edit(DeleteTypeProductRequest request);
+    EditTypeProductResponse edit(int id);
     SelectionTypeProductItems getAllSelectDetail(int id);
     BaseResponse createTypeDetail(CreateTypeProductDetailRequest request);
 
