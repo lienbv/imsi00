@@ -1,20 +1,16 @@
 package com.vibee.service.vimport.impl;
 
-import com.vibee.entity.VWarehouse;
+import com.vibee.entity.*;
 import com.vibee.model.ObjectResponse.*;
 import com.vibee.model.Status;
-import com.vibee.model.item.FilterItem;
-import com.vibee.model.item.GetCharWareHouseItem;
-import com.vibee.model.item.GetLastImportItem;
-import com.vibee.model.item.WarehouseItem;
+import com.vibee.model.item.*;
 import com.vibee.model.request.warehouse.GetWarehouseRequest;
+import com.vibee.model.response.BaseResponse;
+import com.vibee.model.response.warehouse.DetailWarehouseResponse;
 import com.vibee.model.response.warehouse.FilterWarehouseResponse;
 import com.vibee.model.response.warehouse.GetWarehousesResponse;
 import com.vibee.model.result.GetProductResult;
-import com.vibee.repo.VFileUploadRepo;
-import com.vibee.repo.VProductRepo;
-import com.vibee.repo.VImportRepo;
-import com.vibee.repo.VWarehouseRepo;
+import com.vibee.repo.*;
 import com.vibee.service.vimport.GetWarehouseService;
 import com.vibee.utils.CommonUtil;
 import com.vibee.utils.MessageUtils;
@@ -30,8 +26,9 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
+import java.util.Optional;
+
 @Log4j2
 @Service
 public class GetWarehouseServiceImpl implements GetWarehouseService {
@@ -40,16 +37,25 @@ public class GetWarehouseServiceImpl implements GetWarehouseService {
     private final VImportRepo importRepo;
     private final VWarehouseRepo warehouseRepo;
     private final VFileUploadRepo fileUploadRepo;
+    private final VExportRepo exportRepo;
+    private final VUnitRepo unitRepo;
+    private final VDetailBillRepo detailBillRepo;
 
     @Autowired
     public GetWarehouseServiceImpl(VProductRepo productRepo,
                                    VImportRepo importRepo,
                                    VWarehouseRepo warehouseRepo,
-                                   VFileUploadRepo fileUploadRepo){
+                                   VFileUploadRepo fileUploadRepo,
+                                   VExportRepo exportRepo,
+                                   VUnitRepo unitRepo,
+                                   VDetailBillRepo detailBillRepo) {
         this.productRepo=productRepo;
         this.importRepo = importRepo;
         this.warehouseRepo=warehouseRepo;
         this.fileUploadRepo=fileUploadRepo;
+        this.exportRepo=exportRepo;
+        this.unitRepo=unitRepo;
+        this.detailBillRepo=detailBillRepo;
     }
     @Override
     public GetWarehousesResponse getWarehouses(GetWarehouseRequest request) {
@@ -159,6 +165,65 @@ public class GetWarehouseServiceImpl implements GetWarehouseService {
 //        response.setGetWarehouseItems(this.convertWarehouse(warehouses,language));
         response.setFilterItem(filterItem);
         log.info("getWereHouses :: End");
+        return response;
+    }
+
+    @Override
+    public DetailWarehouseResponse getDetailWarehouse(int importId, String language) {
+        DetailWarehouseResponse response=new DetailWarehouseResponse();
+        List<GetExportItems> exportItems=new ArrayList<>();
+        VImport vImport=this.importRepo.getById(importId);
+        response.setExpireDate(CommonUtil.convertDateToStringddMMyyyy(vImport.getExpiredDate()));
+        response.setSupplierName(vImport.getSupplierName());
+        response.setProductCode(vImport.getProductCode());
+        response.setInPrice(vImport.getInMoney());
+        response.setInAmount(vImport.getInAmount());
+        VUnit unit=this.unitRepo.getById(vImport.getUnitId());
+        List<VExport> vExports=this.exportRepo.getExportsByImportId(vImport.getId());
+        double outAmount = 0;
+        for (VExport vExport:vExports) {
+            GetExportItems detailWarehouseItem=new GetExportItems();
+            VUnit vUnit=this.unitRepo.getById(vExport.getUnitId());
+            detailWarehouseItem.setUnitName(vUnit.getUnitName());
+            detailWarehouseItem.setOutPrice(vExport.getOutPrice());
+            detailWarehouseItem.setInPrice(vExport.getInPrice());
+            detailWarehouseItem.setExportId(vExport.getId());
+            if (unit.getId()==vUnit.getId()) {
+                outAmount+=vExport.getOutAmount();
+            }else{
+                outAmount+=(vExport.getOutAmount()*(vUnit.getAmount()/unit.getAmount()));
+            }
+            exportItems.add(detailWarehouseItem);
+        }
+
+        Optional<Long> outPrice=this.detailBillRepo.findBySumAmount(vImport.getId());
+        if (outPrice.isPresent()) {
+            response.setOutPrice(BigDecimal.valueOf(outPrice.get()));
+        }else{
+            response.setOutPrice(BigDecimal.valueOf(0));
+        }
+        response.setOutAmount(outAmount);
+        response.setExportItems(exportItems);
+        response.setUnitName(unit.getUnitName());
+        response.getStatus().setStatus(Status.Success);
+        response.getStatus().setMessage(MessageUtils.get(language,"werehouse.found"));
+        return response;
+    }
+
+    @Override
+    public BaseResponse updateWarehouse(String language, GetExportItems request) {
+        BaseResponse response=new BaseResponse();
+        VExport vExport=this.exportRepo.getById(request.getExportId());
+        if (vExport==null) {
+            response.getStatus().setStatus(Status.Fail);
+            response.getStatus().setMessage(MessageUtils.get(language,"export.not.found"));
+            return response;
+        }
+        vExport.setOutPrice(request.getOutPrice());
+        vExport.setInPrice(request.getInPrice());
+        this.exportRepo.save(vExport);
+        response.getStatus().setStatus(Status.Success);
+        response.getStatus().setMessage(MessageUtils.get(language,"update.export.success"));
         return response;
     }
 
